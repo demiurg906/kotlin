@@ -5,109 +5,78 @@
 
 package org.jetbrains.kotlin.cli.jvm.analyzer
 
-import org.jetbrains.kotlin.cli.jvm.analyzer.scope.newAnalyzer
+import org.jetbrains.kotlin.cli.jvm.analyzer.scope.TypePredicate
+import org.jetbrains.kotlin.cli.jvm.analyzer.scope.analyzer
+
 
 val analyzers = listOf(
-    analyzerWhile(),
-    analyzerFor1(),
-    analyzerFor2(),
-    analyzerIf1(),
-    analyzerIf2(),
-    functionNameAnalyzer()
-)
+    functionDefinition(),
+    ifThenElse(),
+    functionName(),
+    functionCall(),
+    forLoop(),
+    variableType(),
+    whileLoop()
+).map { it.first.title to it }.toMap()
 
-fun functionNameAnalyzer() = newAnalyzer {
-    title = "function name"
+
+fun functionDefinition() = analyzer("functionDefinition") {
+    function {
+        numberOfArguments = 2
+        argument { type = TypePredicate("Int") }
+        argument { type = TypePredicate("A") }
+        returnType = TypePredicate("Int")
+
+        info = { println("foo founded") }
+    }
+} to true
+
+
+fun ifThenElse() = analyzer("ifThenElse") {
+    function { body {
+        ifCondition {
+            thenBranch {
+                variableDefinition { type = TypePredicate.Int }
+            }
+            elseBranch {
+                variableDefinition { type = TypePredicate.Int }
+            }
+        }
+    } }
+} to true
+
+
+fun functionName() = analyzer("functionName") {
     function {
         name = "foo"
-        info = { println("$name founded") }
     }
-}
+} to true
 
-fun analyzerWhile() = newAnalyzer {
-    title = "while"
-    function {
-        body {
-            whileLoop {
-                body {
-                    variableDefinition {
-                        message = "while"
-                    }
-                }
-            }
-        }
-    }
-}
 
-fun analyzerFor1() = newAnalyzer {
-    title = "for recursive true"
-    function {
-        body {
-            forLoop {
-                body{
-                    recursiveSearch = true
-                    variableDefinition {
-                        message = "for"
-                    }
-                }
-            }
-        }
-    }
-}
+fun functionCall() = analyzer("functionCall") {
+    val foo = function { name = "foo" }
+    function { body {
+        functionCall(foo)
+    } }
+} to true
 
-fun analyzerFor2() = newAnalyzer {
-    title = "for recursive false"
-    function {
-        body {
-            forLoop {
-                body{
-                    recursiveSearch = false
-                    variableDefinition {
-                        message = "for"
-                    }
-                }
-            }
-        }
-    }
-}
 
-fun analyzerIf1() = newAnalyzer {
-    title = "if then else"
-    function {
-        body {
-            ifCondition {
-                thenBranch {
-                    variableDefinition {
-                        message = "then"
-                    }
-                }
-                elseBranch {
-                    variableDefinition {
-                        message = "else"
-                    }
-                }
-            }
-        }
-    }
-}
+fun forLoop() = analyzer("forLoop") {
+    function { body {
+        forLoop { body {
+            variableDefinition { type = TypePredicate.Int }
+        } }
+    } }
+} to true
 
-fun analyzerIf2() = newAnalyzer {
-    title = "if then else no rec"
-    function {
-        body {
-            recursiveSearch = false
-            ifCondition {
-                thenBranch {
-                    variableDefinition {
-                        message = "then"
-                    }
-                }
-                elseBranch {
-                    variableDefinition {
-                        message = "else"
-                    }
-                }
-            }
-        }
-    }
-}
+
+fun variableType() = analyzer("variableType") {
+    variableDefinition { type = TypePredicate.Int }
+} to true
+
+
+fun whileLoop() = analyzer("whileLoop") {
+    function { body {
+        variableDefinition { type = TypePredicate.Int }
+    } }
+} to true

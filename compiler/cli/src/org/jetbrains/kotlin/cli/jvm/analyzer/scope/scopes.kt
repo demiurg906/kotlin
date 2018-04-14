@@ -6,324 +6,512 @@
 package org.jetbrains.kotlin.cli.jvm.analyzer.scope
 
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.ir.expressions.IrBlock
-import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
-import org.jetbrains.kotlin.ir.expressions.IrWhen
-import org.jetbrains.kotlin.ir.expressions.IrWhileLoop
-import org.jetbrains.kotlin.ir.expressions.impl.IrIfThenElseImpl
-import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
-import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
-import org.jetbrains.kotlin.ir.visitors.acceptVoid
+import org.jetbrains.kotlin.ir.expressions.*
+import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.utils.keysToMap
 
-abstract class AnalyzerComponent {
-    abstract val visitor: IrElementVisitorVoid
+
+typealias VisitorData = Pair<Boolean, Unit>
+typealias Visitor = IrElementVisitor<VisitorData, Unit>
+
+fun falseVisitorData() = false to Unit
+
+abstract class AbstractPredicate {
+    abstract val visitor: Visitor
+    private val cachedResults = mutableMapOf<IrElement, VisitorData>()
     var info: () -> Unit = {}
 
-    abstract fun checkIrNode(element: IrElement): Boolean
+    open fun checkIrNode(element: IrElement): VisitorData {
+        if (element in cachedResults) {
+            return cachedResults[element]!!
+        }
+        val result = element.accept(visitor, Unit)
+        cachedResults[element] = result
+        return result
+    }
 }
 
-abstract class AbstractScope : AnalyzerComponent() {
-    protected val innerScopes = mutableListOf<AnalyzerComponent>()
+abstract class ScopePredicate : AbstractPredicate() {
+    protected val innerPredicates = mutableListOf<AbstractPredicate>()
 
     var recursiveSearch = true
 
-    fun classDefinition(init: ClassScope.() -> Unit): ClassScope {
-        val scope = ClassScope()
-        scope.init()
-        innerScopes += scope
-        return scope
+    fun classDefinition(init: ClassPredicate.() -> Unit): ClassPredicate {
+        val predicate = ClassPredicate()
+        predicate.init()
+        innerPredicates += predicate
+        return predicate
     }
 
-    fun objectDefinition(init: ObjectScope.() -> Unit): ObjectScope {
-        val scope = ObjectScope()
-        scope.init()
-        innerScopes += scope
-        return scope
+    fun objectDefinition(init: ObjectPredicate.() -> Unit): ObjectPredicate {
+        val predicate = ObjectPredicate()
+        predicate.init()
+        innerPredicates += predicate
+        return predicate
     }
 
-    fun interfaceDefinition(init: InterfaceScope.() -> Unit): InterfaceScope {
-        val scope = InterfaceScope()
-        scope.init()
-        innerScopes += scope
-        return scope
+    fun interfaceDefinition(init: InterfacePredicate.() -> Unit): InterfacePredicate {
+        val predicate = InterfacePredicate()
+        predicate.init()
+        innerPredicates += predicate
+        return predicate
     }
 
-    fun function(init: FunctionDefinition.() -> Unit): FunctionDefinition {
-        val scope = FunctionDefinition()
-        scope.init()
-        innerScopes += scope
-        return scope
-    }
-}
-
-class CodeScope : AbstractScope() {
-    override fun checkIrNode(element: IrElement): Boolean = true
-
-    fun forLoop(init: ForLoop.() -> Unit): ForLoop {
-        val scope = ForLoop()
-        scope.init()
-        innerScopes += scope
-        return scope
+    fun function(init: FunctionPredicate.() -> Unit): FunctionPredicate {
+        val predicate = FunctionPredicate()
+        predicate.init()
+        innerPredicates += predicate
+        return predicate
     }
 
-    fun whileLoop(init: WhileLoop.() -> Unit): WhileLoop {
-        val scope = WhileLoop()
-        scope.init()
-        innerScopes += scope
-        return scope
-    }
-
-    fun ifCondition(init: IfCondition.() -> Unit): IfCondition {
-        val scope = IfCondition()
-        scope.init()
-        innerScopes += scope
-        return scope
-    }
-
-    fun variableDefinition(init: VariableDefinition.() -> Unit): VariableDefinition {
-        val scope = VariableDefinition()
-        scope.init()
-        innerScopes += scope
-        return scope
-    }
-
-    override val visitor: IrElementVisitorVoid = MyVisitor()
-
-    inner class MyVisitor : IrElementVisitorVoid {
-        override fun visitElement(element: IrElement) {
-            innerScopes.forEach { element.acceptVoid(it.visitor) }
-            if (recursiveSearch) {
-                element.acceptChildrenVoid(this)
-            }
-        }
+    fun variableDefinition(init: VariablePredicate.() -> Unit): VariablePredicate {
+        val predicate = VariablePredicate()
+        predicate.init()
+        innerPredicates += predicate
+        return predicate
     }
 }
 
-open class ClassScope : AbstractScope() {
-    override val visitor: IrElementVisitorVoid
-        get() = TODO("not implemented")
+class CodeBlockPredicate : ScopePredicate() {
+    override val visitor: Visitor
+        get() = MyVisitor()
 
-    override fun checkIrNode(element: IrElement): Boolean {
-        TODO("not implemented")
-    }
+    inner class MyVisitor : Visitor {
+        override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
 
-    fun propertyDefinition(init: PropertyDefinition.() -> Unit): PropertyDefinition {
-        val scope = PropertyDefinition()
-        scope.init()
-        innerScopes += scope
-        return scope
-    }
-}
-
-class ObjectScope : ClassScope()
-
-class InterfaceScope : ClassScope()
-
-class FunctionDefinition : AnalyzerComponent() {
-    override val visitor: IrElementVisitorVoid = MyVisitor()
-
-    private var body: CodeScope? = null
-
-    var name: String? = null
-
-    override fun checkIrNode(element: IrElement): Boolean {
-        if (element !is IrFunction) {
-            return false
+        override fun visitBlockBody(body: IrBlockBody, data: Unit): VisitorData {
+            return visitSmthWithStatements(body, data)
         }
-        if (name != null && element is IrSimpleFunction) {
-            return element.name.identifier == name
+
+        override fun visitBlock(expression: IrBlock, data: Unit): VisitorData {
+            return visitSmthWithStatements(expression, data)
         }
-        return true
-    }
 
-    fun body(init: CodeScope.() -> Unit): CodeScope {
-        body = CodeScope()
-        body?.init()
-        return body!!
-    }
-
-    inner class MyVisitor : IrElementVisitorVoid {
-        override fun visitElement(element: IrElement) {}
-
-        override fun visitFunction(declaration: IrFunction) {
-            if (!checkIrNode(declaration)) {
-                return
-            }
+        private fun visitSmthWithStatements(body: IrStatementContainer, data: Unit): VisitorData {
             info()
-            if (body != null) {
-                declaration.body?.acceptChildrenVoid(body!!.visitor)
+            val matches = mutableMapOf<AbstractPredicate, Boolean>()
+            matches.putAll(innerPredicates.keysToMap { false })
+            for (predicate in innerPredicates) {
+                for (statement in body.statements) {
+                    val (result, map) = predicate.checkIrNode(statement)
+                    if (result) {
+                        matches[predicate] = true
+                    }
+                }
+            }
+            if (matches.values.all{ it }) {
+                return true to Unit
+            } else {
+                return falseVisitorData()
             }
         }
     }
+
+    fun forLoop(init: ForLoopPredicate.() -> Unit): ForLoopPredicate {
+        val predicate = ForLoopPredicate()
+        predicate.init()
+        innerPredicates += predicate
+        return predicate
+    }
+
+    fun whileLoop(init: WhileLoopPredicate.() -> Unit): WhileLoopPredicate {
+        val predicate = WhileLoopPredicate()
+        predicate.init()
+        innerPredicates += predicate
+        return predicate
+    }
+
+    fun ifCondition(init: IfPredicate.() -> Unit): IfPredicate {
+        val predicate = IfPredicate()
+        predicate.init()
+        innerPredicates += predicate
+        return predicate
+    }
+    
+    fun functionCall(func: FunctionPredicate, init: FunctionCallPredicate.() -> Unit = {}): FunctionCallPredicate {
+        val predicate = FunctionCallPredicate(func)
+        predicate.init()
+        innerPredicates += predicate
+        return predicate
+    }
+    
 }
 
-class VariableDefinition() : AnalyzerComponent() {
-    override val visitor: IrElementVisitorVoid = MyVisitor()
+class VariablePredicate : AbstractPredicate() {
+    private var typePredicate: TypePredicate? = null
+    var type: TypePredicate?
+        get() = typePredicate
+        set(value) {
+            typePredicate = value
+        }
 
     var message: String? = null
 
-    override fun checkIrNode(element: IrElement): Boolean {
-        // TODO
-        return true
-    }
+    private var _isVar: Boolean? = null
+    var isVar: Boolean?
+        get() = _isVar
+        set(value) {
+            _isVal = null
+            _isVar = value
+        }
 
-    inner class MyVisitor : IrElementVisitorVoid {
-        override fun visitElement(element: IrElement) {}
+    private var _isVal: Boolean? = null
+    var isVal: Boolean?
+        get() = _isVal
+        set(value) {
+            _isVar = null
+            _isVal = value
+        }
 
-        override fun visitVariable(declaration: IrVariable) {
-            if (!checkIrNode(declaration)) {
-                return
+    var isConst: Boolean? = null
+    var isLateinit: Boolean? = null
+
+    override val visitor: Visitor
+        get() = MyVisitor()
+
+    inner class MyVisitor : Visitor {
+        override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
+
+        override fun visitVariable(declaration: IrVariable, data: Unit): VisitorData {
+            if (isVar != null && declaration.isVar != isVar ||
+                isVal != null && declaration.isVar == isVal ||
+                isConst != null && declaration.isConst != isConst ||
+                isLateinit != null && declaration.isLateinit != isLateinit ||
+                typePredicate != null && typePredicate!!.checkType(declaration.type)
+            ) {
+                return falseVisitorData()
             }
 
+            info()
             var s = "variable ${declaration.name}"
             if (message != null) {
                 s += ". message: $message"
             }
             println(s)
+            return true to Unit
         }
     }
 }
 
-class PropertyDefinition : AnalyzerComponent() {
-    override val visitor: IrElementVisitorVoid = MyVisitor()
+class ValueParameterPredicate : AbstractPredicate() {
+    override val visitor: Visitor
+        get() = MyVisitor()
 
-    override fun checkIrNode(element: IrElement): Boolean {
-        TODO("not implemented")
-    }
+    private var typePredicate: TypePredicate? = null
+    var type: TypePredicate?
+        get() = typePredicate
+        set(value) {
+            typePredicate = value
+        }
 
-    inner class MyVisitor : IrElementVisitorVoid {
-        override fun visitElement(element: IrElement) {
-            TODO("not implemented")
+    inner class MyVisitor : Visitor {
+        override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
+
+        override fun visitValueParameter(declaration: IrValueParameter, data: Unit): VisitorData {
+            if (typePredicate != null && typePredicate!!.checkType(declaration.type)) {
+                return falseVisitorData()
+            }
+            return true to Unit
         }
     }
 }
 
-class IfCondition : AnalyzerComponent() {
-    override val visitor: IrElementVisitorVoid = MyVisitor()
+open class ClassPredicate : ScopePredicate() {
 
-    private val thenScopes = mutableListOf<CodeScope>()
-    private val elseScopes = mutableListOf<CodeScope>()
+    override val visitor: Visitor
+        get() = TODO("not implemented")
 
-    override fun checkIrNode(element: IrElement): Boolean {
-        // TODO
-        return true
+    fun propertyDefinition(init: PropertyPredicate.() -> Unit): PropertyPredicate {
+        val predicate = PropertyPredicate()
+        predicate.init()
+        innerPredicates += predicate
+        return predicate
+    }
+}
+
+class ObjectPredicate : ClassPredicate()
+
+class InterfacePredicate : ClassPredicate()
+
+class PropertyPredicate : AbstractPredicate() {
+    override val visitor: Visitor
+        get() = TODO("not implemented")
+}
+
+open class FunctionDeclarationPredicate: AbstractPredicate() {
+    private val parameterPredicates = mutableListOf<ValueParameterPredicate>()
+
+    var name: String? = null
+    var numberOfArguments: Int? = null
+    var visibility: Visibility? = null
+    var isInline: Boolean? = null
+
+    private var returnTypePredicate: TypePredicate? = null
+    var returnType: TypePredicate?
+        get() = returnTypePredicate
+        set(value) {
+            returnTypePredicate = value
+        }
+
+    fun argument(init: ValueParameterPredicate.() -> Unit): ValueParameterPredicate {
+        val predicate = ValueParameterPredicate()
+        predicate.init()
+        parameterPredicates += predicate
+        return predicate
     }
 
-    fun thenBranch(init: CodeScope.() -> Unit): CodeScope {
-        val scope = CodeScope()
-        scope.init()
-        thenScopes += scope
-        return scope
-    }
+    override val visitor: Visitor
+        get() = MyVisitor()
 
-    fun elseBranch(init: CodeScope.() -> Unit): CodeScope {
-        val scope = CodeScope()
-        scope.init()
-        elseScopes += scope
-        return scope
-    }
+    open inner class MyVisitor(protected val finalClass: Boolean = true) : Visitor {
+        override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
 
-    inner class MyVisitor : IrElementVisitorVoid {
-        override fun visitElement(element: IrElement) {}
+        override fun visitFunction(declaration: IrFunction, data: Unit): VisitorData {
+            // definition
+            if (numberOfArguments != null && declaration.valueParameters.size != numberOfArguments ||
+                visibility != null && Visibilities.compare(declaration.visibility, visibility!!) != 0 ||
+                isInline != null && declaration.isInline != isInline ||
+                returnTypePredicate != null && !returnTypePredicate!!.checkType(declaration.returnType)
+            ) {
+                return falseVisitorData()
+            }
 
-        override fun visitWhen(expression: IrWhen) {
-            if (expression is IrIfThenElseImpl) {
-                if (!checkIrNode(expression)) {
-                    return
+            val checkedArguments = mutableMapOf<IrValueParameter, Boolean>()
+            for (parameterPredicate in parameterPredicates) {
+                var found = false
+                for (parameter in declaration.valueParameters) {
+                    if (checkedArguments.getOrDefault(parameter, false)) {
+                        continue
+                    }
+                    val (res, map) = parameterPredicate.checkIrNode(parameter)
+                    if (res) {
+                        checkedArguments[parameter] = true
+                        found = true
+                    }
                 }
-                info()
-                thenScopes.forEach { expression.branches[0].acceptVoid(it.visitor) }
-                if (expression.branches.size > 1) {
-                    elseScopes.forEach { expression.branches[1].acceptVoid(it.visitor) }
+                if (!found) {
+                    return falseVisitorData()
                 }
             }
+            if (finalClass) {
+                info()
+            }
+            return true to Unit
+        }
+
+        override fun visitSimpleFunction(declaration: IrSimpleFunction, data: Unit): VisitorData {
+            if (name != null && declaration.name.identifier != name) {
+                return falseVisitorData()
+            }
+            return visitFunction(declaration, data)
         }
     }
 }
 
-class ForLoop : AnalyzerComponent() {
-    override val visitor: IrElementVisitorVoid = MyVisitor()
+class FunctionPredicate : FunctionDeclarationPredicate() {
+    private var bodyPredicate: CodeBlockPredicate? = null
 
-    private var body: CodeScope? = null
+    override val visitor: Visitor
+        get() = MyVisitor()
 
-    override fun checkIrNode(element: IrElement): Boolean {
-        // TODO
-        return true
+    fun body(init: CodeBlockPredicate.() -> Unit): CodeBlockPredicate {
+        bodyPredicate = CodeBlockPredicate()
+        bodyPredicate?.init()
+        return bodyPredicate!!
     }
 
-    fun body(init: CodeScope.() -> Unit): CodeScope {
-        body = CodeScope()
+    inner class MyVisitor : FunctionDeclarationPredicate.MyVisitor(false) {
+        override fun visitFunction(declaration: IrFunction, data: Unit): VisitorData {
+            val (res, map) = super.visitFunction(declaration, data)
+            if (!res) {
+                return false to Unit
+            }
+            // body
+            var result = true
+            if (bodyPredicate != null && declaration.body != null) {
+                val (res2, map2) = bodyPredicate?.checkIrNode(declaration.body!!)!!
+                result = res2
+            }
+            if (result) {
+                info()
+                return true to Unit
+            }
+            return falseVisitorData()
+        }
+    }
+}
+
+class TypePredicate(val typeName: String) {
+    companion object {
+        val Int = TypePredicate("Int")
+        val Double = TypePredicate("Double")
+        val Boolean = TypePredicate("Booolean")
+        val String = TypePredicate("String")
+    }
+
+    fun checkType(type: KotlinType): Boolean {
+        return type.toString() == typeName
+//        val declarationType = type.toString().split(" ").getOrNull(2) ?: return false
+//        val declarationType = type.toString().split(" ").getOrNull(2) ?: return false
+//        return typeName == declarationType
+    }
+}
+
+class IfPredicate : AbstractPredicate() {
+    private var thenPredicate: CodeBlockPredicate? = null
+    private var elsePredicate: CodeBlockPredicate? = null
+
+    override val visitor: Visitor
+        get() = MyVisitor()
+
+    inner class MyVisitor : Visitor {
+        override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
+
+        override fun visitWhen(expression: IrWhen, data: Unit): VisitorData {
+            if (expression.branches.size < 2 && elsePredicate != null) {
+                return falseVisitorData()
+            }
+            var thenResult = true
+            var elseResult = true
+            if (thenPredicate != null) {
+                val (result, map) = thenPredicate!!.checkIrNode(expression.branches[0])
+                thenResult = result
+            }
+            if (elsePredicate != null) {
+                val (result, map) = elsePredicate!!.checkIrNode(expression.branches[1])
+                elseResult = result
+            }
+            val result = thenResult && elseResult
+            if (result) {
+                info()
+            }
+            return result to Unit
+        }
+    }
+
+    fun thenBranch(init: CodeBlockPredicate.() -> Unit): CodeBlockPredicate {
+        val predicate = CodeBlockPredicate()
+        predicate.init()
+        thenPredicate = predicate
+        return predicate
+    }
+
+    fun elseBranch(init: CodeBlockPredicate.() -> Unit): CodeBlockPredicate {
+        val predicate = CodeBlockPredicate()
+        predicate.init()
+        elsePredicate = predicate
+        return predicate
+    }
+}
+
+abstract class LoopPredicate : AbstractPredicate() {
+    var body: CodeBlockPredicate? = null
+
+    override val visitor: Visitor
+        get() = MyVisitor()
+
+    inner class MyVisitor : Visitor {
+        override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
+
+        override fun visitBlock(expression: IrBlock, data: Unit): VisitorData {
+            if (expression.origin != IrStatementOrigin.FOR_LOOP) {
+                return falseVisitorData()
+            }
+
+            val whileLoop = expression.statements.firstOrNull { it is IrWhileLoop }
+            if (whileLoop != null && body != null) {
+                val loopBody = (whileLoop as IrWhileLoop).body ?: return falseVisitorData()
+                if (loopBody is IrBlock && loopBody.statements.size >= 2) {
+                    info()
+                    return body!!.checkIrNode(loopBody.statements[1])
+                }
+            }
+            info()
+            return true to Unit
+        }
+    }
+
+    fun body(init: CodeBlockPredicate.() -> Unit): CodeBlockPredicate {
+        body = CodeBlockPredicate()
         body?.init()
         return body!!
     }
+}
 
-    inner class MyVisitor : IrElementVisitorVoid {
-        override fun visitElement(element: IrElement) {}
+class ForLoopPredicate : LoopPredicate()
 
-        override fun visitBlock(expression: IrBlock) {
-            if (expression.origin == IrStatementOrigin.FOR_LOOP && checkIrNode(expression)) {
-                info()
-                val whileLoop = expression.statements.firstOrNull { it is IrWhileLoop }
-                if (whileLoop != null && body != null) {
-                    val loopBody = (whileLoop as IrWhileLoop).body ?: return
-                    if (loopBody is IrBlock && loopBody.statements.size >= 2) {
-                        loopBody.statements[1].acceptChildrenVoid(body!!.visitor)
+class WhileLoopPredicate : LoopPredicate()
+
+class FunctionCallPredicate(val functionPredicate: FunctionPredicate) : AbstractPredicate() {
+    override val visitor: Visitor
+        get() = MyVisitor()
+    
+    inner class MyVisitor : Visitor {
+        override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
+
+        override fun visitCall(expression: IrCall, data: Unit): VisitorData {
+            val calledFunction = expression.symbol.owner
+            return functionPredicate.checkIrNode(calledFunction)
+        }
+    }
+}
+
+class FilePredicate : ScopePredicate() {
+    override val visitor: Visitor
+        get() = MyVisitor()
+
+    inner class MyVisitor : Visitor {
+        override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
+
+        override fun visitFile(declaration: IrFile, data: Unit): VisitorData {
+            val matches = mutableMapOf<AbstractPredicate, Boolean>()
+            matches.putAll(innerPredicates.keysToMap { false })
+            for (predicate in innerPredicates) {
+                for (innerDeclaration in declaration.declarations) {
+                    val (result, map) = predicate.checkIrNode(innerDeclaration)
+                    if (result) {
+                        matches[predicate] = true
                     }
                 }
             }
-        }
-    }
-}
-
-class WhileLoop : AbstractScope() {
-    override val visitor: IrElementVisitorVoid = MyVisitor()
-
-    override fun checkIrNode(element: IrElement): Boolean {
-        // TODO
-        return true
-    }
-
-    inner class MyVisitor : IrElementVisitorVoid {
-        override fun visitElement(element: IrElement) {}
-
-        override fun visitWhileLoop(loop: IrWhileLoop) {
-            if (!checkIrNode(loop)) {
-                return
+            if (matches.values.all{ it }) {
+                info()
+                return true to Unit
+            } else {
+                return falseVisitorData()
             }
-            info()
-            innerScopes.forEach { loop.body?.acceptChildrenVoid(it.visitor) }
-        }
-    }
-
-}
-
-class NewAnalyzer : AbstractScope() {
-    fun execute(irModule: IrModuleFragment, moduleDescriptor: ModuleDescriptor, bindingContext: BindingContext) {
-        irModule.acceptChildrenVoid(visitor)
-    }
-
-    override fun checkIrNode(element: IrElement): Boolean = true
-
-    override val visitor: IrElementVisitorVoid = MyVisitor()
-
-    var title: String = ""
-
-    inner class MyVisitor : IrElementVisitorVoid {
-        override fun visitElement(element: IrElement) {
-            element.acceptChildrenVoid(this)
-        }
-
-        override fun visitFile(declaration: IrFile) {
-            innerScopes.forEach { declaration.acceptChildrenVoid(it.visitor) }
         }
     }
 }
 
-fun newAnalyzer(init: NewAnalyzer.() -> Unit): NewAnalyzer {
-    val analyzer = NewAnalyzer()
-    analyzer.init()
-    return analyzer
+class Analyzer(
+    val title: String,
+    val predicate: AbstractPredicate
+) {
+    fun execute(irModule: IrModuleFragment, moduleDescriptor: ModuleDescriptor, bindingContext: BindingContext){
+        for (file in irModule.files) {
+            val (result, data) = predicate.checkIrNode(file)
+            println("${file.fqName}: predicate is ${result}")
+        }
+    }
 }
+
+fun analyzer(title: String, init: FilePredicate.() -> Unit): Analyzer {
+    val predicate = FilePredicate()
+    predicate.init()
+    return Analyzer(title, predicate)
+}
+
+/*
+    TODO: rename predicates to predicates
+    в analyzer запихнуть главный предикат, убрать наследование от Scope
+    DataHolder = Map<>? / emptyMap
+    change recursiveSearch to everywhere {...} *minor
+    сделать свой класс для типов, сравнивать типы по fqn
+ */
