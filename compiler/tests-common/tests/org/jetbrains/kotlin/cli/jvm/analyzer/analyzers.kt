@@ -5,8 +5,7 @@
 
 package org.jetbrains.kotlin.cli.jvm.analyzer
 
-import org.jetbrains.kotlin.cli.jvm.analyzer.scope.TypePredicate
-import org.jetbrains.kotlin.cli.jvm.analyzer.scope.analyzer
+import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.TypePredicate
 
 
 val analyzers = listOf(
@@ -33,16 +32,18 @@ fun functionDefinition() = analyzer("functionDefinition") {
 
 
 fun ifThenElse() = analyzer("ifThenElse") {
-    function { body {
-        ifCondition {
-            thenBranch {
-                variableDefinition { type = TypePredicate.Int }
-            }
-            elseBranch {
-                variableDefinition { type = TypePredicate.Int }
+    function {
+        body {
+            ifCondition {
+                thenBranch {
+                    variableDefinition { type = TypePredicate.Int }
+                }
+                elseBranch {
+                    variableDefinition { type = TypePredicate.Int }
+                }
             }
         }
-    } }
+    }
 } to true
 
 
@@ -55,18 +56,24 @@ fun functionName() = analyzer("functionName") {
 
 fun functionCall() = analyzer("functionCall") {
     val foo = function { name = "foo" }
-    function { body {
-        functionCall(foo)
-    } }
+    function {
+        body {
+            functionCall(foo)
+        }
+    }
 } to true
 
 
 fun forLoop() = analyzer("forLoop") {
-    function { body {
-        forLoop { body {
-            variableDefinition { type = TypePredicate.Int }
-        } }
-    } }
+    function {
+        body {
+            forLoop {
+                body {
+                    variableDefinition { type = TypePredicate.Int }
+                }
+            }
+        }
+    }
 } to true
 
 
@@ -76,7 +83,9 @@ fun variableType() = analyzer("variableType") {
 
 
 fun whileLoop() = analyzer("whileLoop") {
-    function { body {
-        variableDefinition { type = TypePredicate.Int }
-    } }
+    function {
+        body {
+            variableDefinition { type = TypePredicate.Int }
+        }
+    }
 } to true
