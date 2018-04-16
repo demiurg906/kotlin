@@ -25,11 +25,11 @@ class IfPredicate : AbstractPredicate() {
             var thenResult = true
             var elseResult = true
             if (thenPredicate != null) {
-                val (result, map) = thenPredicate!!.checkIrNode(expression.branches[0])
+                val (result, map) = thenPredicate!!.checkIrNode(expression.branches[0].result)
                 thenResult = result
             }
             if (elsePredicate != null) {
-                val (result, map) = elsePredicate!!.checkIrNode(expression.branches[1])
+                val (result, map) = elsePredicate!!.checkIrNode(expression.branches[1].result)
                 elseResult = result
             }
             val result = thenResult && elseResult
@@ -55,9 +55,17 @@ class IfPredicate : AbstractPredicate() {
     }
 }
 
-abstract class LoopPredicate : AbstractPredicate() {
+abstract class LoopPredicate() : AbstractPredicate() {
     var body: CodeBlockPredicate? = null
 
+    fun body(init: CodeBlockPredicate.() -> Unit): CodeBlockPredicate {
+        body = CodeBlockPredicate()
+        body?.init()
+        return body!!
+    }
+}
+
+class ForLoopPredicate : LoopPredicate() {
     override val visitor: Visitor
         get() = MyVisitor()
 
@@ -68,7 +76,6 @@ abstract class LoopPredicate : AbstractPredicate() {
             if (expression.origin != IrStatementOrigin.FOR_LOOP) {
                 return falseVisitorData()
             }
-
             val whileLoop = expression.statements.firstOrNull { it is IrWhileLoop }
             if (whileLoop != null && body != null) {
                 val loopBody = (whileLoop as IrWhileLoop).body ?: return falseVisitorData()
@@ -81,17 +88,31 @@ abstract class LoopPredicate : AbstractPredicate() {
             return true to Unit
         }
     }
-
-    fun body(init: CodeBlockPredicate.() -> Unit): CodeBlockPredicate {
-        body = CodeBlockPredicate()
-        body?.init()
-        return body!!
-    }
 }
 
-class ForLoopPredicate : LoopPredicate()
+class WhileLoopPredicate : LoopPredicate() {
+    override val visitor: Visitor
+        get() = MyVisitor()
 
-class WhileLoopPredicate : LoopPredicate()
+    inner class MyVisitor : Visitor {
+        override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
+
+        override fun visitWhileLoop(loop: IrWhileLoop, data: Unit): VisitorData {
+            var res = true
+            if (body != null) {
+                val loopBody = loop.body ?: return falseVisitorData()
+                val (result, map) = body!!.checkIrNode(loopBody)
+                res = result
+            }
+            if (res) {
+                info()
+                return true to Unit
+            } else {
+                return falseVisitorData()
+            }
+        }
+    }
+}
 
 class FunctionCallPredicate(val functionPredicate: FunctionPredicate) : AbstractPredicate() {
     override val visitor: Visitor

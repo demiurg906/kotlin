@@ -49,7 +49,7 @@ class VariablePredicate : AbstractPredicate() {
                 isVal != null && declaration.isVar == isVal ||
                 isConst != null && declaration.isConst != isConst ||
                 isLateinit != null && declaration.isLateinit != isLateinit ||
-                typePredicate != null && typePredicate!!.checkType(declaration.type)
+                typePredicate != null && !typePredicate!!.checkType(declaration.type)
             ) {
                 return falseVisitorData()
             }

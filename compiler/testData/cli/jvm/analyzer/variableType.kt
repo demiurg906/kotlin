@@ -1,1 +1,3 @@
-val x: Int = 10
+fun foo() {
+    val x: Int = 10
+}

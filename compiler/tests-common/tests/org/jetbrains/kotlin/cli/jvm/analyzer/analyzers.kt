@@ -32,60 +32,52 @@ fun functionDefinition() = analyzer("functionDefinition") {
 
 
 fun ifThenElse() = analyzer("ifThenElse") {
-    function {
-        body {
-            ifCondition {
-                thenBranch {
-                    variableDefinition { type = TypePredicate.Int }
-                }
-                elseBranch {
-                    variableDefinition { type = TypePredicate.Int }
-                }
+    function { body {
+        ifCondition {
+            thenBranch {
+                variableDefinition { type = TypePredicate.Int }
+            }
+            elseBranch {
+                variableDefinition { type = TypePredicate.Int }
             }
         }
-    }
+    } }
 } to true
 
 
 fun functionName() = analyzer("functionName") {
-    function {
-        name = "foo"
-    }
+    function { name = "foo" }
 } to true
 
 
 fun functionCall() = analyzer("functionCall") {
     val foo = function { name = "foo" }
-    function {
-        body {
-            functionCall(foo)
-        }
-    }
+    function { body {
+        functionCall(foo)
+    } }
 } to true
 
 
 fun forLoop() = analyzer("forLoop") {
-    function {
-        body {
-            forLoop {
-                body {
-                    variableDefinition { type = TypePredicate.Int }
-                }
-            }
-        }
-    }
+    function { body {
+        forLoop { body {
+            variableDefinition { type = TypePredicate.Int }
+        } }
+    } }
 } to true
 
 
 fun variableType() = analyzer("variableType") {
-    variableDefinition { type = TypePredicate.Int }
+    function { body {
+        variableDefinition { type = TypePredicate.Int }
+    } }
 } to true
 
 
 fun whileLoop() = analyzer("whileLoop") {
-    function {
-        body {
+    function { body {
+        whileLoop { body {
             variableDefinition { type = TypePredicate.Int }
-        }
-    }
+        } }
+    } }
 } to true
