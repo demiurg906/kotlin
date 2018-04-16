@@ -15,11 +15,14 @@ class Analyzer(
     val title: String,
     val predicate: AbstractPredicate
 ) {
-    fun execute(irModule: IrModuleFragment, moduleDescriptor: ModuleDescriptor, bindingContext: BindingContext){
+    fun execute(irModule: IrModuleFragment, moduleDescriptor: ModuleDescriptor, bindingContext: BindingContext): Boolean {
+        var res = true
         for (file in irModule.files) {
-            val (result, data) = predicate.checkIrNode(file)
+            val (result, data) =  predicate.checkIrNode(file)
             println("${file.fqName}: predicate is $result")
+            res = res && result
         }
+        return res
     }
 }
 
