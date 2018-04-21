@@ -82,7 +82,7 @@ open class FunctionDeclarationPredicate: AbstractPredicate() {
     }
 }
 
-class FunctionPredicate : FunctionDeclarationPredicate() {
+open class FunctionPredicate : FunctionDeclarationPredicate() {
     private var bodyPredicate: CodeBlockPredicate? = null
 
     override val visitor: Visitor

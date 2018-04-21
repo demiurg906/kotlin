@@ -31,6 +31,20 @@ abstract class ScopePredicate : AbstractPredicate() {
         return predicate
     }
 
+    fun annotationDefinition(init: AnnotationPredicate.() -> Unit): AnnotationPredicate {
+        val predicate = AnnotationPredicate()
+        predicate.init()
+        innerPredicates += predicate
+        return predicate
+    }
+
+    fun enumDefinition(init: EnumPredicate.() -> Unit): EnumPredicate {
+        val predicate = EnumPredicate()
+        predicate.init()
+        innerPredicates += predicate
+        return predicate
+    }
+
     fun function(init: FunctionPredicate.() -> Unit): FunctionPredicate {
         val predicate = FunctionPredicate()
         predicate.init()

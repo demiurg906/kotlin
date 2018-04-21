@@ -8,8 +8,8 @@ package org.jetbrains.kotlin.cli.jvm.analyzer.predicates
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 
-class VariablePredicate : AbstractPredicate() {
-    private var typePredicate: TypePredicate? = null
+open class VariablePredicate : AbstractPredicate() {
+    protected var typePredicate: TypePredicate? = null
     var type: TypePredicate?
         get() = typePredicate
         set(value) {

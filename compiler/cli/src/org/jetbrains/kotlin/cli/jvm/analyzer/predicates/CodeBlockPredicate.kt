@@ -28,7 +28,6 @@ class CodeBlockPredicate : ScopePredicate() {
         }
 
         private fun visitSmthWithStatements(body: IrStatementContainer, data: Unit): VisitorData {
-            info()
             val matches = mutableMapOf<AbstractPredicate, Boolean>()
             matches.putAll(innerPredicates.keysToMap { false })
             for (predicate in innerPredicates) {
@@ -39,6 +38,7 @@ class CodeBlockPredicate : ScopePredicate() {
                     }
                 }
             }
+            info()
             if (matches.values.all{ it }) {
                 return true to Unit
             } else {

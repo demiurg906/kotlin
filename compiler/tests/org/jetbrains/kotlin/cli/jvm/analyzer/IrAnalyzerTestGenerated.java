@@ -25,6 +25,12 @@ public class IrAnalyzerTestGenerated extends AbstractIrAnalyzerTest {
         KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/cli/jvm/analyzer"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
     }
 
+    @TestMetadata("classTst.kt")
+    public void testClassTst() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/cli/jvm/analyzer/classTst.kt");
+        doTest(fileName);
+    }
+
     @TestMetadata("forLoop.kt")
     public void testForLoop() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/cli/jvm/analyzer/forLoop.kt");

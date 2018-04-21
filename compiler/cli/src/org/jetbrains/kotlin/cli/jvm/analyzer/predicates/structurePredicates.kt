@@ -55,7 +55,7 @@ class IfPredicate : AbstractPredicate() {
     }
 }
 
-abstract class LoopPredicate() : AbstractPredicate() {
+abstract class LoopPredicate : AbstractPredicate() {
     var body: CodeBlockPredicate? = null
 
     fun body(init: CodeBlockPredicate.() -> Unit): CodeBlockPredicate {

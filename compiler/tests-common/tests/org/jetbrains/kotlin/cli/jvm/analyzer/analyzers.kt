@@ -6,9 +6,11 @@
 package org.jetbrains.kotlin.cli.jvm.analyzer
 
 import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.TypePredicate
+import org.jetbrains.kotlin.descriptors.ClassKind
 
 
 val analyzers = listOf(
+    classTst(),
     functionDefinition(),
     ifThenElse(),
     functionName(),
@@ -17,6 +19,31 @@ val analyzers = listOf(
     variableType(),
     whileLoop()
 ).map { it.first.title to it }.toMap()
+
+
+fun classTst() = analyzer("classTst") {
+    val i2 = interfaceDefinition { name = "I2" }
+    val a = classDefinition {
+        name = "A"
+        superClass(ClassKind.INTERFACE) { name = "I1" }
+    }
+
+    classDefinition {
+        name = "B"
+
+        superClass(i2)
+        superClass(a)
+
+        function {
+            argument { type = TypePredicate.Int }
+        }
+
+        propertyDefinition {
+            isVal = true
+            type = TypePredicate.Int
+        }
+    }
+} to true
 
 
 fun functionDefinition() = analyzer("functionDefinition") {
