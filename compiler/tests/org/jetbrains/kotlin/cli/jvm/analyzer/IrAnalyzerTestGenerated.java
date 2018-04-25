@@ -31,6 +31,12 @@ public class IrAnalyzerTestGenerated extends AbstractIrAnalyzerTest {
         doTest(fileName);
     }
 
+    @TestMetadata("fileEverywhere.kt")
+    public void testFileEverywhere() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/cli/jvm/analyzer/fileEverywhere.kt");
+        doTest(fileName);
+    }
+
     @TestMetadata("forLoop.kt")
     public void testForLoop() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/cli/jvm/analyzer/forLoop.kt");
@@ -49,6 +55,12 @@ public class IrAnalyzerTestGenerated extends AbstractIrAnalyzerTest {
         doTest(fileName);
     }
 
+    @TestMetadata("functionEverywhere.kt")
+    public void testFunctionEverywhere() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/cli/jvm/analyzer/functionEverywhere.kt");
+        doTest(fileName);
+    }
+
     @TestMetadata("functionName.kt")
     public void testFunctionName() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/cli/jvm/analyzer/functionName.kt");
@@ -61,9 +73,21 @@ public class IrAnalyzerTestGenerated extends AbstractIrAnalyzerTest {
         doTest(fileName);
     }
 
+    @TestMetadata("objectEverywhere.kt")
+    public void testObjectEverywhere() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/cli/jvm/analyzer/objectEverywhere.kt");
+        doTest(fileName);
+    }
+
     @TestMetadata("variableType.kt")
     public void testVariableType() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/cli/jvm/analyzer/variableType.kt");
+        doTest(fileName);
+    }
+
+    @TestMetadata("whileEverywhere.kt")
+    public void testWhileEverywhere() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/cli/jvm/analyzer/whileEverywhere.kt");
         doTest(fileName);
     }
 

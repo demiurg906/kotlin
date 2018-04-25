@@ -16,16 +16,19 @@ class CodeBlockPredicate : ScopePredicate() {
         get() = MyVisitor()
 
     inner class MyVisitor : Visitor {
+        private val recursiveVisitor = RecursiveVisitor(this)
+
+        private fun recursiveVisit(data: VisitorData, element: IrElement) = recursiveVisit(recursiveVisitor, data, element)
+
         override fun visitElement(element: IrElement, data: Unit): VisitorData =
-            falseVisitorData()
+            recursiveVisit(falseVisitorData(), element)
 
-        override fun visitBlockBody(body: IrBlockBody, data: Unit): VisitorData {
-            return visitSmthWithStatements(body, data)
-        }
+        override fun visitBlockBody(body: IrBlockBody, data: Unit): VisitorData =
+            recursiveVisit(visitSmthWithStatements(body, data), body)
 
-        override fun visitBlock(expression: IrBlock, data: Unit): VisitorData {
-            return visitSmthWithStatements(expression, data)
-        }
+
+        override fun visitBlock(expression: IrBlock, data: Unit): VisitorData =
+            recursiveVisit(visitSmthWithStatements(expression, data), expression)
 
         private fun visitSmthWithStatements(body: IrStatementContainer, data: Unit): VisitorData {
             val matches = mutableMapOf<AbstractPredicate, Boolean>()
@@ -39,10 +42,10 @@ class CodeBlockPredicate : ScopePredicate() {
                 }
             }
             info()
-            if (matches.values.all{ it }) {
-                return true to Unit
+            return if (matches.values.all{ it }) {
+                true to Unit
             } else {
-                return falseVisitorData()
+                falseVisitorData()
             }
         }
     }
@@ -75,4 +78,9 @@ class CodeBlockPredicate : ScopePredicate() {
         return predicate
     }
 
+    fun everywhere(init: CodeBlockPredicate.() -> Unit) {
+        val predicate = CodeBlockPredicate()
+        predicate.init()
+        everywherePredicates += predicate
+    }
 }

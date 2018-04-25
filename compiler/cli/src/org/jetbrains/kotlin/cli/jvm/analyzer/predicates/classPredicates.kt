@@ -22,7 +22,7 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
     private val superClassPredicates = mutableSetOf<ClassPredicate>()
 
     fun superClass(classKind: ClassKind, init: ClassPredicate.() -> Unit) {
-        val predicate = when(classKind) {
+        val predicate = when (classKind) {
             ClassKind.CLASS -> ClassPredicate()
             ClassKind.ANNOTATION_CLASS -> AnnotationPredicate()
             ClassKind.INTERFACE -> InterfacePredicate()
@@ -69,8 +69,19 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
         innerPredicates += predicate
     }
 
+    fun everywhere(init: CodeBlockPredicate.() -> Unit) {
+        val predicate = CodeBlockPredicate()
+        predicate.init()
+        everywherePredicates += predicate
+    }
+
     inner class MyVisitor : Visitor {
-        override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
+        private val recursiveVisitor = RecursiveVisitor(this)
+
+        private fun recursiveVisit(data: VisitorData, element: IrElement) = recursiveVisit(recursiveVisitor, data, element)
+
+        override fun visitElement(element: IrElement, data: Unit): VisitorData =
+            recursiveVisit(falseVisitorData(), element)
 
         override fun visitClass(declaration: IrClass, data: Unit): VisitorData {
             if (
@@ -78,7 +89,7 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
                 name != null && declaration.name.asString() != name!! ||
                 modality != null && declaration.modality != modality!!
             ) {
-                return falseVisitorData()
+                return recursiveVisit(falseVisitorData(), declaration)
             }
 
             // TODO: fix
@@ -108,11 +119,13 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
                 }
             }
             info()
-            if (matches.values.all{ it }) {
-                return true to Unit
-            } else {
-                return falseVisitorData()
-            }
+            return recursiveVisit(
+                if (matches.values.all { it }) {
+                    true to Unit
+                } else {
+                    falseVisitorData()
+                }, declaration
+            )
         }
 
         private fun allSuperClasses(declaration: IrClass): Set<IrClass> {
@@ -137,7 +150,7 @@ class ConstructorPredicate : FunctionPredicate() {
         override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
 
         override fun visitConstructor(declaration: IrConstructor, data: Unit): VisitorData =
-                functionVisitor.visitFunction(declaration, data)
+            functionVisitor.visitFunction(declaration, data)
     }
 }
 

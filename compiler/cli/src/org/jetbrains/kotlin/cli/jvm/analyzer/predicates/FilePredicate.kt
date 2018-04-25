@@ -13,9 +13,19 @@ class FilePredicate : ScopePredicate() {
     override val visitor: Visitor
         get() = MyVisitor()
 
+    fun everywhere(init: CodeBlockPredicate.() -> Unit) {
+        val predicate = CodeBlockPredicate()
+        predicate.init()
+        everywherePredicates += predicate
+    }
+
     inner class MyVisitor : Visitor {
+        private val recursiveVisitor = RecursiveVisitor(this)
+
+        private fun recursiveVisit(data: VisitorData, element: IrElement) = recursiveVisit(recursiveVisitor, data, element)
+
         override fun visitElement(element: IrElement, data: Unit): VisitorData =
-            falseVisitorData()
+            recursiveVisit(falseVisitorData(), element)
 
         override fun visitFile(declaration: IrFile, data: Unit): VisitorData {
             val matches = mutableMapOf<AbstractPredicate, Boolean>()
@@ -28,12 +38,14 @@ class FilePredicate : ScopePredicate() {
                     }
                 }
             }
-            if (matches.values.all{ it }) {
-                info()
-                return true to Unit
-            } else {
-                return falseVisitorData()
-            }
+            return recursiveVisit(
+                if (matches.values.all { it }) {
+                    info()
+                    true to Unit
+                } else {
+                    falseVisitorData()
+                }, declaration
+            )
         }
     }
 }

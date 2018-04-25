@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.cli.jvm.analyzer
 import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.TypePredicate
 import org.jetbrains.kotlin.descriptors.ClassKind
 
+// Live Template: testana
 
 val analyzers = listOf(
     classTst(),
@@ -17,9 +18,46 @@ val analyzers = listOf(
     functionCall(),
     forLoop(),
     variableType(),
-    whileLoop()
+    whileLoop(),
+    fileEverywhere(),
+    whileEverywhere(),
+    functionEverywhere(),
+    objectEverywhere()
 ).map { it.first.title to it }.toMap()
 
+fun whileEverywhere() = analyzer("whileEverywhere") {
+    function { body {
+        whileLoop { body {
+            everywhere {
+                variableDefinition { type = TypePredicate.Int }
+            }
+        } }
+    } }
+} to true
+
+fun functionEverywhere() = analyzer("functionEverywhere") {
+    function { body {
+        everywhere {
+            variableDefinition { type = TypePredicate.Int }
+        }
+
+        variableDefinition { type = TypePredicate.Double }
+    } }
+} to true
+
+fun objectEverywhere() = analyzer("objectEverywhere") {
+    objectDefinition {
+        everywhere {
+            variableDefinition { type = TypePredicate.Int }
+        }
+    }
+} to true
+
+fun fileEverywhere() = analyzer("fileEverywhere") {
+    everywhere {
+        variableDefinition { type = TypePredicate.Int }
+    }
+} to true
 
 fun classTst() = analyzer("classTst") {
     val i2 = interfaceDefinition { name = "I2" }
