@@ -6,7 +6,9 @@
 package org.jetbrains.kotlin.cli.jvm.analyzer.predicates
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.*
+import org.jetbrains.kotlin.ir.expressions.impl.IrCallWithIndexedArgumentsBase
 
 class IfPredicate : AbstractPredicate() {
     private var thenPredicate: CodeBlockPredicate? = null
@@ -121,9 +123,30 @@ class FunctionCallPredicate(val functionPredicate: FunctionPredicate) : Abstract
     inner class MyVisitor : Visitor {
         override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
 
+        override fun visitVariable(declaration: IrVariable, data: Unit): VisitorData {
+            val initializer = declaration.initializer ?: return falseVisitorData()
+            return initializer.accept(this, data)
+        }
+
         override fun visitCall(expression: IrCall, data: Unit): VisitorData {
             val calledFunction = expression.symbol.owner
-            return functionPredicate.checkIrNode(calledFunction)
+            var (res, map) = functionPredicate.checkIrNode(calledFunction)
+
+            if (expression is IrCallWithIndexedArgumentsBase) {
+                var i = 0
+                while (true) {
+                    try {
+                        val argument = expression.getValueArgument(i) ?: continue
+                        val (resArg, mapArg) = argument.accept(this, data)
+                        res = res || resArg
+                        i += 1
+                    } catch (e: ArrayIndexOutOfBoundsException) {
+                        break
+                    }
+                }
+            }
+
+            return res to map
         }
     }
 }

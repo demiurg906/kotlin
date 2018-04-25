@@ -79,8 +79,10 @@ fun functionName() = analyzer("functionName") {
 
 fun functionCall() = analyzer("functionCall") {
     val foo = function { name = "foo" }
+    val baz = function { name = "baz" }
     function { body {
         functionCall(foo)
+        functionCall(baz)
     } }
 } to true
 
