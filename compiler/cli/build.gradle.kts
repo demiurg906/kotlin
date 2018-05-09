@@ -18,6 +18,7 @@ dependencies {
     compile(project(":js:js.translator"))
     compile(project(":js:js.serializer"))
     compile(project(":js:js.dce"))
+    compile("com.google.code.gson", "gson", "2.8.2")
     compile(commonDep("org.fusesource.jansi", "jansi"))
     compile(commonDep("org.jline", "jline"))
     compile(files("${System.getProperty("java.home")}/../lib/tools.jar"))

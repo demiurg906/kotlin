@@ -19,6 +19,10 @@ class ValueParameterPredicate : AbstractPredicate() {
             typePredicate = value
         }
 
+    override fun toString(): String = buildString {
+        append("Value parameter predicate")
+    }
+
     inner class MyVisitor : Visitor {
         override fun visitElement(element: IrElement, data: Unit): VisitorData =
             falseVisitorData()

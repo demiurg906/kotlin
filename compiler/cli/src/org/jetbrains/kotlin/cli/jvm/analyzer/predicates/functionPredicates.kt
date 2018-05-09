@@ -38,6 +38,30 @@ open class FunctionDeclarationPredicate: AbstractPredicate() {
     override val visitor: Visitor
         get() = MyVisitor()
 
+    override fun toString(): String = buildString {
+        append("Function declaration predicate")
+        if (name != null) {
+            appendDelimeter()
+            append("Name: $name")
+        }
+        if (numberOfArguments != null) {
+            appendDelimeter()
+            append("Number of arguments: $numberOfArguments")
+        }
+        if (visibility != null) {
+            appendDelimeter()
+            append("Visibility: $visibility")
+        }
+        if (isInline != null) {
+            appendDelimeter()
+            if (isInline!!) {
+                append("inline")
+            } else {
+                append("not inline")
+            }
+        }
+    }
+
     open inner class MyVisitor(protected val finalClass: Boolean = true) : Visitor {
         override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
 
@@ -96,7 +120,7 @@ open class FunctionDeclarationPredicate: AbstractPredicate() {
     }
 }
 
-open class FunctionPredicate : FunctionDeclarationPredicate() {
+open class FunctionPredicate(private val printName: String = "Function") : FunctionDeclarationPredicate() {
     private var bodyPredicate: CodeBlockPredicate? = null
 
     override val visitor: Visitor
@@ -108,13 +132,17 @@ open class FunctionPredicate : FunctionDeclarationPredicate() {
         return bodyPredicate!!
     }
 
+    override fun toString(): String = buildString {
+        append("$printName predicate")
+    }
+
     open inner class MyVisitor : FunctionDeclarationPredicate.MyVisitor(false) {
         override fun visitFunction(declaration: IrFunction, data: Unit): VisitorData {
             val declarationResult = super.visitFunction(declaration, data)
             if (!declarationResult.matched) {
                 return falseVisitorData()
             }
-            // body
+
             val matches: VisitorDataMap = mutableMapOf(this@FunctionPredicate to mutableListOf(declarationResult))
             if (bodyPredicate != null && declaration.body != null) {
                 val bodyResult = bodyPredicate?.checkIrNode(declaration.body!!)!!

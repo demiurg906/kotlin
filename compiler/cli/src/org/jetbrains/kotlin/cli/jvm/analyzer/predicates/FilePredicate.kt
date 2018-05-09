@@ -19,6 +19,10 @@ class FilePredicate : ScopePredicate() {
         everywherePredicates += predicate
     }
 
+    override fun toString(): String = buildString {
+        append("File predicate")
+    }
+
     inner class MyVisitor : Visitor {
         override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
 

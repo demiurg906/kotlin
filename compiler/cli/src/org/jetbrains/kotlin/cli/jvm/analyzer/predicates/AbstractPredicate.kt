@@ -29,6 +29,8 @@ interface Predicate {
         } else {
             falseVisitorData()
         }
+
+    fun StringBuilder.appendDelimeter(): StringBuilder = append(", ")
 }
 
 abstract class AbstractPredicate : Predicate {

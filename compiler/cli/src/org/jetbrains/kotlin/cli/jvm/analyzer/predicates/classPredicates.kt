@@ -70,9 +70,33 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
     }
 
     fun everywhere(init: CodeBlockPredicate.() -> Unit) {
-        val predicate = CodeBlockPredicate()
+        val predicate = CodeBlockPredicate("Everywhere")
         predicate.init()
         everywherePredicates += predicate
+    }
+
+    override fun toString(): String = buildString {
+        when (classKind) {
+            ClassKind.CLASS -> append("Class")
+            ClassKind.INTERFACE -> append("Interface")
+            ClassKind.ENUM_CLASS -> append("Enum class")
+            ClassKind.ENUM_ENTRY -> append("Enum entry")
+            ClassKind.ANNOTATION_CLASS -> append("Annotation class")
+            ClassKind.OBJECT -> if (isCompanion) {
+                append("Companion object")
+            } else {
+                append("Object")
+            }
+        }
+        append(" predicate")
+        if (name != null) {
+            appendDelimeter()
+            append("name: $name")
+        }
+        if (modality != null) {
+            appendDelimeter()
+            append("modality: $modality")
+        }
     }
 
     inner class MyVisitor : Visitor {
@@ -100,7 +124,7 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
 
             for (predicate in superClassPredicates) {
                 // TODO: fix to for loop for collecting data
-                val results = superClasses.map(predicate::checkIrNode)
+                val results = superClasses.map(predicate::checkIrNode).filter(VisitorData::matched)
                 matches[predicate]!!.addAll(results)
             }
 
@@ -129,7 +153,7 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
     }
 }
 
-class ConstructorPredicate : FunctionPredicate() {
+class ConstructorPredicate : FunctionPredicate("Constructor") {
     // TODO: подумать, можно ли заблокировать некоторые поля из FunctionPredicate
     // например, name, returnType
     // TODO: отнаследовать FunctionPredicate и ConstructorPredicate от какого-нибудь CallablePredicate
@@ -159,7 +183,7 @@ class AnnotationPredicate : ClassPredicate(ClassKind.ANNOTATION_CLASS)
 
 class EnumPredicate : ClassPredicate(ClassKind.ENUM_CLASS)
 
-class PropertyPredicate : VariablePredicate() {
+class PropertyPredicate : VariablePredicate("Property") {
     override val visitor: Visitor
         get() = MyVisitor()
 
@@ -167,13 +191,13 @@ class PropertyPredicate : VariablePredicate() {
     private var setterPredicate: FunctionPredicate? = null
 
     fun getter(init: FunctionPredicate.() -> Unit) {
-        val predicate = FunctionPredicate()
+        val predicate = FunctionPredicate("Getter")
         predicate.init()
         getterPredicate = predicate
     }
 
     fun setter(init: FunctionPredicate.() -> Unit) {
-        val predicate = FunctionPredicate()
+        val predicate = FunctionPredicate("Setter")
         predicate.init()
         setterPredicate = predicate
     }

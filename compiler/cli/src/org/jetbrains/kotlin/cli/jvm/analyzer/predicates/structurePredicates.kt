@@ -14,8 +14,26 @@ class IfPredicate : AbstractPredicate() {
     private var thenPredicate: CodeBlockPredicate? = null
     private var elsePredicate: CodeBlockPredicate? = null
 
+    fun thenBranch(init: CodeBlockPredicate.() -> Unit): CodeBlockPredicate {
+        val predicate = CodeBlockPredicate()
+        predicate.init()
+        thenPredicate = predicate
+        return predicate
+    }
+
+    fun elseBranch(init: CodeBlockPredicate.() -> Unit): CodeBlockPredicate {
+        val predicate = CodeBlockPredicate()
+        predicate.init()
+        elsePredicate = predicate
+        return predicate
+    }
+
     override val visitor: Visitor
         get() = MyVisitor()
+
+    override fun toString(): String = buildString {
+        append("If predicate")
+    }
 
     inner class MyVisitor : Visitor {
         override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
@@ -42,23 +60,9 @@ class IfPredicate : AbstractPredicate() {
             return result
         }
     }
-
-    fun thenBranch(init: CodeBlockPredicate.() -> Unit): CodeBlockPredicate {
-        val predicate = CodeBlockPredicate()
-        predicate.init()
-        thenPredicate = predicate
-        return predicate
-    }
-
-    fun elseBranch(init: CodeBlockPredicate.() -> Unit): CodeBlockPredicate {
-        val predicate = CodeBlockPredicate()
-        predicate.init()
-        elsePredicate = predicate
-        return predicate
-    }
 }
 
-abstract class LoopPredicate : AbstractPredicate() {
+abstract class LoopPredicate(private val printName: String) : AbstractPredicate() {
     var body: CodeBlockPredicate? = null
 
     fun body(init: CodeBlockPredicate.() -> Unit): CodeBlockPredicate {
@@ -66,9 +70,13 @@ abstract class LoopPredicate : AbstractPredicate() {
         body?.init()
         return body!!
     }
+
+    override fun toString(): String = buildString {
+        append("$printName predicate")
+    }
 }
 
-class ForLoopPredicate : LoopPredicate() {
+class ForLoopPredicate : LoopPredicate("For loop") {
     override val visitor: Visitor
         get() = MyVisitor()
 
@@ -93,7 +101,7 @@ class ForLoopPredicate : LoopPredicate() {
     }
 }
 
-class WhileLoopPredicate : LoopPredicate() {
+class WhileLoopPredicate : LoopPredicate("While loop") {
     override val visitor: Visitor
         get() = MyVisitor()
 
@@ -119,6 +127,10 @@ class WhileLoopPredicate : LoopPredicate() {
 class FunctionCallPredicate(val functionPredicate: FunctionPredicate) : AbstractPredicate() {
     override val visitor: Visitor
         get() = MyVisitor()
+
+    override fun toString(): String = buildString {
+        append("Function call predicate")
+    }
 
     inner class MyVisitor : Visitor {
         override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()

@@ -60,6 +60,18 @@ class TypePredicate(
         // type.value.constructor.this$0
         // irClass.symbol.descriptor
     }
+
+    override fun toString(): String = buildString {
+        append("Type predicate")
+        if (typeName != null) {
+            appendDelimeter()
+            append("Type name: $typeName")
+        }
+        if (classPredicate != null) {
+            appendDelimeter()
+            append("Class: $classPredicate")
+        }
+    }
 }
 
 /*

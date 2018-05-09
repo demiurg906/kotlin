@@ -8,15 +8,13 @@ package org.jetbrains.kotlin.cli.jvm.analyzer.predicates
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 
-open class VariablePredicate : AbstractPredicate() {
+open class VariablePredicate(private val printName: String = "Variable") : AbstractPredicate() {
     protected var typePredicate: TypePredicate? = null
     var type: TypePredicate?
         get() = typePredicate
         set(value) {
             typePredicate = value
         }
-
-    var message: String? = null
 
     private var _isVar: Boolean? = null
     var isVar: Boolean?
@@ -39,6 +37,34 @@ open class VariablePredicate : AbstractPredicate() {
 
     override val visitor: Visitor
         get() = MyVisitor()
+
+    override fun toString(): String = buildString {
+        append("$printName predicate")
+        if (isVal != null) {
+            appendDelimeter()
+            append("val")
+        }
+        if (isVar != null) {
+            appendDelimeter()
+            append("var")
+        }
+        if (isConst != null) {
+            appendDelimeter()
+            if (isConst!!) {
+                append("const")
+            } else {
+                append("not cost")
+            }
+        }
+        if (isLateinit != null) {
+            appendDelimeter()
+            if (isLateinit!!) {
+                append("lateinit")
+            } else {
+                append("not lateinit")
+            }
+        }
+    }
 
     inner class MyVisitor : Visitor {
         override fun visitElement(element: IrElement, data: Unit): VisitorData =
