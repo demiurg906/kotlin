@@ -61,23 +61,25 @@ abstract class ScopePredicate : AbstractPredicate() {
         return predicate
     }
 
-    protected fun recursiveVisit(recursiveVisitor: RecursiveVisitor, data: VisitorData, element: IrElement): VisitorData {
+    protected fun recursiveVisit(data: VisitorData, element: IrElement): VisitorData {
         if (everywherePredicates.isEmpty()) {
             return data
         }
+        val recursiveVisitor = RecursiveVisitor()
         val dataList = mutableListOf<VisitorData>()
         for (predicate in everywherePredicates) {
-            element.acceptChildren(recursiveVisitor, dataList)
+            element.acceptChildren(recursiveVisitor, predicate to dataList)
         }
         val res = data.first || dataList.filter { it.first }.any()
         return res to Unit
     }
 
-    protected inner class RecursiveVisitor(private val visitor: Visitor) : IrElementVisitor<Unit, MutableList<VisitorData>> {
-        override fun visitElement(element: IrElement, data: MutableList<VisitorData>) {
-            val res = element.accept(visitor, Unit)
+    protected inner class RecursiveVisitor : IrElementVisitor<Unit, Pair<CodeBlockPredicate, MutableList<VisitorData>>> {
+        override fun visitElement(element: IrElement, data: Pair<CodeBlockPredicate, MutableList<VisitorData>>) {
+            val (predicate, visitorDataList) = data
+            val res = predicate.checkIrNode(element)
             if (res.first) {
-                data.add(res)
+                visitorDataList.add(res)
             }
             element.acceptChildren(this, data)
         }

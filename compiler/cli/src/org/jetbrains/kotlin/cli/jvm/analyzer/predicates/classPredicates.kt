@@ -76,12 +76,7 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
     }
 
     inner class MyVisitor : Visitor {
-        private val recursiveVisitor = RecursiveVisitor(this)
-
-        private fun recursiveVisit(data: VisitorData, element: IrElement) = recursiveVisit(recursiveVisitor, data, element)
-
-        override fun visitElement(element: IrElement, data: Unit): VisitorData =
-            recursiveVisit(falseVisitorData(), element)
+        override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
 
         override fun visitClass(declaration: IrClass, data: Unit): VisitorData {
             if (
@@ -119,13 +114,13 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
                 }
             }
             info()
-            return recursiveVisit(
-                if (matches.values.all { it }) {
-                    true to Unit
-                } else {
-                    falseVisitorData()
-                }, declaration
-            )
+
+            val result = if (matches.values.all { it }) {
+                true to Unit
+            } else {
+                falseVisitorData()
+            }
+            return recursiveVisit(result, declaration)
         }
 
         private fun allSuperClasses(declaration: IrClass): Set<IrClass> {

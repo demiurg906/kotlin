@@ -16,19 +16,14 @@ class CodeBlockPredicate : ScopePredicate() {
         get() = MyVisitor()
 
     inner class MyVisitor : Visitor {
-        private val recursiveVisitor = RecursiveVisitor(this)
-
-        private fun recursiveVisit(data: VisitorData, element: IrElement) = recursiveVisit(recursiveVisitor, data, element)
-
         override fun visitElement(element: IrElement, data: Unit): VisitorData =
-            recursiveVisit(falseVisitorData(), element)
+            falseVisitorData()
 
         override fun visitBlockBody(body: IrBlockBody, data: Unit): VisitorData =
-            recursiveVisit(visitSmthWithStatements(body, data), body)
-
+            visitSmthWithStatements(body, data)
 
         override fun visitBlock(expression: IrBlock, data: Unit): VisitorData =
-            recursiveVisit(visitSmthWithStatements(expression, data), expression)
+            visitSmthWithStatements(expression, data)
 
         private fun visitSmthWithStatements(body: IrStatementContainer, data: Unit): VisitorData {
             val matches = mutableMapOf<AbstractPredicate, Boolean>()
@@ -42,11 +37,12 @@ class CodeBlockPredicate : ScopePredicate() {
                 }
             }
             info()
-            return if (matches.values.all{ it }) {
+            val result = if (matches.values.all { it }) {
                 true to Unit
             } else {
                 falseVisitorData()
             }
+            return recursiveVisit(result, body as IrElement)
         }
     }
 
