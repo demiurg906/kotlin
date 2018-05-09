@@ -24,10 +24,16 @@ class ValueParameterPredicate : AbstractPredicate() {
             falseVisitorData()
 
         override fun visitValueParameter(declaration: IrValueParameter, data: Unit): VisitorData {
-            if (typePredicate != null && typePredicate!!.checkType(declaration.type)) {
-                return falseVisitorData()
+            val matches: VisitorDataMap = mutableMapOf()
+            if (typePredicate != null) {
+                val result = typePredicate!!.checkType(declaration.type, declaration)
+                matches[typePredicate!!] = mutableListOf(result)
             }
-            return true to Unit
+            val result = matchedPredicatesToVisitorData(declaration, matches)
+            if (result.matched) {
+                info()
+            }
+            return result
         }
     }
 }

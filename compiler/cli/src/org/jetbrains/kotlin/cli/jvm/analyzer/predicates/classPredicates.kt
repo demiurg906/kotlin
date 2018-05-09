@@ -84,7 +84,7 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
                 name != null && declaration.name.asString() != name!! ||
                 modality != null && declaration.modality != modality!!
             ) {
-                return recursiveVisit(falseVisitorData(), declaration)
+                return falseVisitorData()
             }
 
             // TODO: fix
@@ -94,33 +94,30 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
 //                supers
 //            }.distinct()
 
+            val matches: VisitorDataMap = mutableMapOf()
+            matches.putAll(superClassPredicates.keysToMap { mutableListOf<VisitorData>() })
             val superClasses = allSuperClasses(declaration)
 
             for (predicate in superClassPredicates) {
                 // TODO: fix to for loop for collecting data
                 val results = superClasses.map(predicate::checkIrNode)
-                if (!results.filter { it.first }.any()) {
-                    return falseVisitorData()
-                }
+                matches[predicate]!!.addAll(results)
             }
-            val matches = mutableMapOf<AbstractPredicate, Boolean>()
-            matches.putAll(innerPredicates.keysToMap { false })
+
+            matches.putAll(innerPredicates.keysToMap { mutableListOf<VisitorData>() })
             for (predicate in innerPredicates) {
                 for (statement in declaration.declarations) {
-                    val (result, map) = predicate.checkIrNode(statement)
-                    if (result) {
-                        matches[predicate] = true
-                    }
+                    val result = predicate.checkIrNode(statement)
+                    matches[predicate]!!.add(result)
                 }
             }
-            info()
 
-            val result = if (matches.values.all { it }) {
-                true to Unit
-            } else {
-                falseVisitorData()
+            var result = matchedPredicatesToVisitorData(declaration, matches)
+            result = recursiveVisit(result, declaration)
+            if (result.matched) {
+                info()
             }
-            return recursiveVisit(result, declaration)
+            return result
         }
 
         private fun allSuperClasses(declaration: IrClass): Set<IrClass> {
@@ -188,41 +185,39 @@ class PropertyPredicate : VariablePredicate() {
             if (isVar != null && declaration.isVar != isVar ||
                 isVal != null && declaration.isVar == isVal ||
                 isConst != null && declaration.isConst != isConst ||
-                isLateinit != null && declaration.isLateinit != isLateinit ||
-                typePredicate != null && !typePredicate!!.checkType(declaration.type)
+                isLateinit != null && declaration.isLateinit != isLateinit
             ) {
                 return falseVisitorData()
             }
 
+            val matches: VisitorDataMap = mutableMapOf()
+            if (typePredicate != null) {
+                val result = typePredicate!!.checkType(declaration.type, declaration)
+                matches[typePredicate!!] = mutableListOf(result)
+            }
+
             if (getterPredicate != null) {
-                if (declaration.getter != null) {
-                    val (res, map) = getterPredicate!!.checkIrNode(declaration.getter!!)
-                    if (!res) {
-                        return falseVisitorData()
-                    }
+                val result = if (declaration.getter != null) {
+                    getterPredicate!!.checkIrNode(declaration.getter!!)
                 } else {
                     return falseVisitorData()
                 }
+                matches[getterPredicate!!] = mutableListOf(result)
             }
 
             if (setterPredicate != null) {
-                if (declaration.setter != null) {
-                    val (res, map) = setterPredicate!!.checkIrNode(declaration.setter!!)
-                    if (!res) {
-                        return falseVisitorData()
-                    }
+                val result = if (declaration.setter != null) {
+                    setterPredicate!!.checkIrNode(declaration.setter!!)
                 } else {
                     return falseVisitorData()
                 }
+                matches[setterPredicate!!] = mutableListOf(result)
             }
-
-            info()
-            var s = "variable ${declaration.name}"
-            if (message != null) {
-                s += ". message: $message"
+            val result = matchedPredicatesToVisitorData(declaration, matches)
+            if (result.matched) {
+                info()
             }
-            println(s)
-            return true to Unit
+            return result
         }
     }
 }

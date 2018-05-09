@@ -26,23 +26,23 @@ class CodeBlockPredicate : ScopePredicate() {
             visitSmthWithStatements(expression, data)
 
         private fun visitSmthWithStatements(body: IrStatementContainer, data: Unit): VisitorData {
-            val matches = mutableMapOf<AbstractPredicate, Boolean>()
-            matches.putAll(innerPredicates.keysToMap { false })
+            val matches: VisitorDataMap = mutableMapOf()
+            matches.putAll(innerPredicates.keysToMap { mutableListOf<VisitorData>() })
+
             for (predicate in innerPredicates) {
                 for (statement in body.statements) {
-                    val (result, map) = predicate.checkIrNode(statement)
-                    if (result) {
-                        matches[predicate] = true
+                    val result = predicate.checkIrNode(statement)
+                    if (result.matched) {
+                        matches[predicate]!!.add(result)
                     }
                 }
             }
-            info()
-            val result = if (matches.values.all { it }) {
-                true to Unit
-            } else {
-                falseVisitorData()
+            var result = matchedPredicatesToVisitorData(body as IrElement, matches)
+            result = recursiveVisit(result, body as IrElement)
+            if (result.matched) {
+                info()
             }
-            return recursiveVisit(result, body as IrElement)
+            return result
         }
     }
 

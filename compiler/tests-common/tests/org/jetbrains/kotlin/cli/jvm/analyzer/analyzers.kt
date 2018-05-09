@@ -47,23 +47,29 @@ fun companionShortName() = analyzer("companionShortName") {
 } to true
 
 fun whileEverywhere() = analyzer("whileEverywhere") {
-    function { body {
-        whileLoop { body {
-            everywhere {
-                variableDefinition { type = TypePredicate.Int }
+    function {
+        body {
+            whileLoop {
+                body {
+                    everywhere {
+                        variableDefinition { type = TypePredicate.Int }
+                    }
+                }
             }
-        } }
-    } }
+        }
+    }
 } to true
 
 fun functionEverywhere() = analyzer("functionEverywhere") {
-    function { body {
-        everywhere {
-            variableDefinition { type = TypePredicate.Int }
-        }
+    function {
+        body {
+            everywhere {
+                variableDefinition { type = TypePredicate.Int }
+            }
 
-        variableDefinition { type = TypePredicate.Double }
-    } }
+            variableDefinition { type = TypePredicate.Double }
+        }
+    }
 } to true
 
 fun objectEverywhere() = analyzer("objectEverywhere") {
@@ -118,16 +124,18 @@ fun functionDefinition() = analyzer("functionDefinition") {
 
 
 fun ifThenElse() = analyzer("ifThenElse") {
-    function { body {
-        ifCondition {
-            thenBranch {
-                variableDefinition { type = TypePredicate.Int }
-            }
-            elseBranch {
-                variableDefinition { type = TypePredicate.Int }
+    function {
+        body {
+            ifCondition {
+                thenBranch {
+                    variableDefinition { type = TypePredicate.Int }
+                }
+                elseBranch {
+                    variableDefinition { type = TypePredicate.Int }
+                }
             }
         }
-    } }
+    }
 } to true
 
 
@@ -139,33 +147,45 @@ fun functionName() = analyzer("functionName") {
 fun functionCall() = analyzer("functionCall") {
     val foo = function { name = "foo" }
     val baz = function { name = "baz" }
-    function { body {
-        functionCall(foo)
-        functionCall(baz)
-    } }
+    function {
+        body {
+            functionCall(foo)
+            functionCall(baz)
+        }
+    }
 } to true
 
 
 fun forLoop() = analyzer("forLoop") {
-    function { body {
-        forLoop { body {
-            variableDefinition { type = TypePredicate.Int }
-        } }
-    } }
+    function {
+        body {
+            forLoop {
+                body {
+                    variableDefinition { type = TypePredicate.Int }
+                }
+            }
+        }
+    }
 } to true
 
 
 fun variableType() = analyzer("variableType") {
-    function { body {
-        variableDefinition { type = TypePredicate.Int }
-    } }
+    function {
+        body {
+            variableDefinition { type = TypePredicate.Int }
+        }
+    }
 } to true
 
 
 fun whileLoop() = analyzer("whileLoop") {
-    function { body {
-        whileLoop { body {
-            variableDefinition { type = TypePredicate.Int }
-        } }
-    } }
+    function {
+        body {
+            whileLoop {
+                body {
+                    variableDefinition { type = TypePredicate.Int }
+                }
+            }
+        }
+    }
 } to true

@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
+import org.jetbrains.kotlin.utils.keysToMap
 
 open class FunctionDeclarationPredicate: AbstractPredicate() {
     private val parameterPredicates = mutableListOf<ValueParameterPredicate>()
@@ -44,33 +45,46 @@ open class FunctionDeclarationPredicate: AbstractPredicate() {
             // definition
             if (numberOfArguments != null && declaration.valueParameters.size != numberOfArguments ||
                 visibility != null && Visibilities.compare(declaration.visibility, visibility!!) != 0 ||
-                isInline != null && declaration.isInline != isInline ||
-                returnTypePredicate != null && !returnTypePredicate!!.checkType(declaration.returnType)
+                isInline != null && declaration.isInline != isInline
             ) {
                 return falseVisitorData()
             }
 
             val checkedArguments = mutableMapOf<IrValueParameter, Boolean>()
+            val matches: VisitorDataMap = mutableMapOf()
+            if (returnTypePredicate != null) {
+                val result = returnTypePredicate!!.checkType(declaration.returnType, declaration)
+                matches[returnTypePredicate!!] = mutableListOf(result)
+            }
+
+            matches.putAll(parameterPredicates.keysToMap { mutableListOf<VisitorData>() })
             for (parameterPredicate in parameterPredicates) {
                 var found = false
                 for (parameter in declaration.valueParameters) {
                     if (checkedArguments.getOrDefault(parameter, false)) {
                         continue
                     }
-                    val (res, map) = parameterPredicate.checkIrNode(parameter)
-                    if (res) {
+                    val result = parameterPredicate.checkIrNode(parameter)
+                    if (result.matched) {
+                        matches[parameterPredicate]!!.add(result)
                         checkedArguments[parameter] = true
                         found = true
+                        break
                     }
                 }
                 if (!found) {
                     return falseVisitorData()
                 }
             }
-            if (finalClass) {
-                info()
+            val result = matchedPredicatesToVisitorData(declaration, matches)
+            if (result.matched) {
+                if (finalClass) {
+                    info()
+                }
+                return result
+            } else {
+                return falseVisitorData()
             }
-            return true to Unit
         }
 
         override fun visitSimpleFunction(declaration: IrSimpleFunction, data: Unit): VisitorData {
@@ -94,23 +108,24 @@ open class FunctionPredicate : FunctionDeclarationPredicate() {
         return bodyPredicate!!
     }
 
-    inner open class MyVisitor : FunctionDeclarationPredicate.MyVisitor(false) {
+    open inner class MyVisitor : FunctionDeclarationPredicate.MyVisitor(false) {
         override fun visitFunction(declaration: IrFunction, data: Unit): VisitorData {
-            val (res, map) = super.visitFunction(declaration, data)
-            if (!res) {
-                return false to Unit
+            val declarationResult = super.visitFunction(declaration, data)
+            if (!declarationResult.matched) {
+                return falseVisitorData()
             }
             // body
-            var result = true
+            val matches: VisitorDataMap = mutableMapOf(this@FunctionPredicate to mutableListOf(declarationResult))
             if (bodyPredicate != null && declaration.body != null) {
-                val (res2, map2) = bodyPredicate?.checkIrNode(declaration.body!!)!!
-                result = res2
+                val bodyResult = bodyPredicate?.checkIrNode(declaration.body!!)!!
+                matches[bodyPredicate!!] = mutableListOf(bodyResult)
             }
-            if (result) {
+
+            val result = matchedPredicatesToVisitorData(declaration, matches)
+            if (result.matched) {
                 info()
-                return true to Unit
             }
-            return falseVisitorData()
+            return result
         }
     }
 }

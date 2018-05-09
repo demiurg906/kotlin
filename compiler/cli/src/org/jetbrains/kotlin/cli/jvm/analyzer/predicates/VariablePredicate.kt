@@ -48,19 +48,22 @@ open class VariablePredicate : AbstractPredicate() {
             if (isVar != null && declaration.isVar != isVar ||
                 isVal != null && declaration.isVar == isVal ||
                 isConst != null && declaration.isConst != isConst ||
-                isLateinit != null && declaration.isLateinit != isLateinit ||
-                typePredicate != null && !typePredicate!!.checkType(declaration.type)
+                isLateinit != null && declaration.isLateinit != isLateinit
             ) {
                 return falseVisitorData()
             }
 
-            info()
-            var s = "variable ${declaration.name}"
-            if (message != null) {
-                s += ". message: $message"
+            val matches: VisitorDataMap = mutableMapOf()
+            if (typePredicate != null) {
+                val result = typePredicate!!.checkType(declaration.type, declaration)
+                matches[typePredicate!!] = mutableListOf(result)
             }
-            println(s)
-            return true to Unit
+
+            val result = matchedPredicatesToVisitorData(declaration, matches)
+            if (result.matched) {
+                info()
+            }
+            return result
         }
     }
 }

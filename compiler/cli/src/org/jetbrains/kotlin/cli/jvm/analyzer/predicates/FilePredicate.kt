@@ -23,23 +23,22 @@ class FilePredicate : ScopePredicate() {
         override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
 
         override fun visitFile(declaration: IrFile, data: Unit): VisitorData {
-            val matches = mutableMapOf<AbstractPredicate, Boolean>()
-            matches.putAll(innerPredicates.keysToMap { false })
+            val matches: VisitorDataMap = mutableMapOf()
+            matches.putAll(innerPredicates.keysToMap { mutableListOf<VisitorData>() })
             for (predicate in innerPredicates) {
                 for (innerDeclaration in declaration.declarations) {
-                    val (result, map) = predicate.checkIrNode(innerDeclaration)
-                    if (result) {
-                        matches[predicate] = true
+                    val result = predicate.checkIrNode(innerDeclaration)
+                    if (result.matched) {
+                        matches[predicate]!!.add(result)
                     }
                 }
             }
-            val result = if (matches.values.all { it }) {
+            var result = matchedPredicatesToVisitorData(declaration, matches)
+            result = recursiveVisit(result, declaration)
+            if (result.matched) {
                 info()
-                true to Unit
-            } else {
-                falseVisitorData()
             }
-            return recursiveVisit(result, declaration)
+            return result
         }
     }
 }

@@ -8,12 +8,30 @@ package org.jetbrains.kotlin.cli.jvm.analyzer.predicates
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
-typealias VisitorData = Pair<Boolean, Unit>
+typealias VisitorDataMap = MutableMap<Predicate, MutableList<VisitorData>>
+
+data class VisitorData(
+    val predicate: Predicate,
+    val element: IrElement?,
+    val innerPredicatesMatches: VisitorDataMap = mutableMapOf()
+) {
+    val matched: Boolean
+        get() = element != null
+}
 typealias Visitor = IrElementVisitor<VisitorData, Unit>
 
-fun falseVisitorData() = false to Unit
+interface Predicate {
+    fun falseVisitorData() = VisitorData(this, null, mutableMapOf())
 
-abstract class AbstractPredicate {
+    fun matchedPredicatesToVisitorData(element: IrElement, matches: VisitorDataMap) =
+        if (matches.values.all { it.isNotEmpty() }) {
+            VisitorData(this, element, matches)
+        } else {
+            falseVisitorData()
+        }
+}
+
+abstract class AbstractPredicate : Predicate {
     abstract val visitor: Visitor
     private val cachedResults = mutableMapOf<IrElement, VisitorData>()
     var info: () -> Unit = {}
@@ -27,11 +45,5 @@ abstract class AbstractPredicate {
         return result
     }
 
-    fun allMatchedElements(): List<IrElement> = cachedResults.entries.filter { it.value.first }.map { it.key }
+    fun allMatchedElements(): List<IrElement> = cachedResults.entries.filter { it.value.matched }.map { it.key }
 }
-
-/*
-    TODO:
-    DataHolder = Map<>? / emptyMap
-    сделать свой класс для типов, сравнивать типы по fqn
-*/

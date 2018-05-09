@@ -109,7 +109,7 @@ abstract class AbstractIrAnalyzerTest : AbstractDiagnosticsTestWithStdLib() {
             val actual = analyzer.execute(irModule, moduleDescriptor, bindingContext)
             println("------------")
             println()
-            TestCase.assertEquals(expected, actual)
+            TestCase.assertEquals(expected, actual.first)
         } else {
             TestCase.fail("analyzer \"$filename\" not founded")
         }

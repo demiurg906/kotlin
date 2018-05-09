@@ -24,21 +24,22 @@ class IfPredicate : AbstractPredicate() {
             if (expression.branches.size < 2 && elsePredicate != null) {
                 return falseVisitorData()
             }
-            var thenResult = true
-            var elseResult = true
+            val matches: VisitorDataMap = mutableMapOf()
+
             if (thenPredicate != null) {
-                val (result, map) = thenPredicate!!.checkIrNode(expression.branches[0].result)
-                thenResult = result
+                val result = thenPredicate!!.checkIrNode(expression.branches[0].result)
+                matches[thenPredicate!!] = mutableListOf(result)
             }
             if (elsePredicate != null) {
-                val (result, map) = elsePredicate!!.checkIrNode(expression.branches[1].result)
-                elseResult = result
+                val result = elsePredicate!!.checkIrNode(expression.branches[0].result)
+                matches[elsePredicate!!] = mutableListOf(result)
             }
-            val result = thenResult && elseResult
-            if (result) {
+
+            val result = matchedPredicatesToVisitorData(expression, matches)
+            if (result.matched) {
                 info()
             }
-            return result to Unit
+            return result
         }
     }
 
@@ -82,12 +83,12 @@ class ForLoopPredicate : LoopPredicate() {
             if (whileLoop != null && body != null) {
                 val loopBody = (whileLoop as IrWhileLoop).body ?: return falseVisitorData()
                 if (loopBody is IrBlock && loopBody.statements.size >= 2) {
-                    info()
-                    return body!!.checkIrNode(loopBody.statements[1])
+                    val result = body!!.checkIrNode(loopBody.statements[1])
+                    return VisitorData(this@ForLoopPredicate, expression, mutableMapOf(body!! to mutableListOf(result)))
                 }
             }
             info()
-            return true to Unit
+            return VisitorData(this@ForLoopPredicate, expression, mutableMapOf())
         }
     }
 }
@@ -100,18 +101,17 @@ class WhileLoopPredicate : LoopPredicate() {
         override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
 
         override fun visitWhileLoop(loop: IrWhileLoop, data: Unit): VisitorData {
-            var res = true
+            val matches: VisitorDataMap = mutableMapOf()
             if (body != null) {
                 val loopBody = loop.body ?: return falseVisitorData()
-                val (result, map) = body!!.checkIrNode(loopBody)
-                res = result
+                val result = body!!.checkIrNode(loopBody)
+                matches[body!!] = mutableListOf(result)
             }
-            if (res) {
+            val result = matchedPredicatesToVisitorData(loop, matches)
+            if (result.matched) {
                 info()
-                return true to Unit
-            } else {
-                return falseVisitorData()
             }
+            return result
         }
     }
 }
@@ -125,28 +125,32 @@ class FunctionCallPredicate(val functionPredicate: FunctionPredicate) : Abstract
 
         override fun visitVariable(declaration: IrVariable, data: Unit): VisitorData {
             val initializer = declaration.initializer ?: return falseVisitorData()
-            return initializer.accept(this, data)
+            return checkIrNode(initializer)
         }
 
         override fun visitCall(expression: IrCall, data: Unit): VisitorData {
             val calledFunction = expression.symbol.owner
-            var (res, map) = functionPredicate.checkIrNode(calledFunction)
+            val results = mutableListOf(functionPredicate.checkIrNode(calledFunction))
 
             if (expression is IrCallWithIndexedArgumentsBase) {
                 var i = 0
                 while (true) {
                     try {
                         val argument = expression.getValueArgument(i) ?: continue
-                        val (resArg, mapArg) = argument.accept(this, data)
-                        res = res || resArg
+                        results.add(checkIrNode(argument))
                         i += 1
                     } catch (e: ArrayIndexOutOfBoundsException) {
                         break
                     }
                 }
             }
-
-            return res to map
+            val goodResults = results.filter(VisitorData::matched)
+            if (goodResults.isNotEmpty()) {
+                info()
+                return VisitorData(this@FunctionCallPredicate, expression, mutableMapOf(this@FunctionCallPredicate to goodResults.toMutableList()))
+            } else {
+                return falseVisitorData()
+            }
         }
     }
 }

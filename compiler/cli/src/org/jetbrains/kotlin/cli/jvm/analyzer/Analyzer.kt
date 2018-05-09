@@ -7,7 +7,9 @@ package org.jetbrains.kotlin.cli.jvm.analyzer
 
 import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.AbstractPredicate
 import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.FilePredicate
+import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.VisitorData
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.resolve.BindingContext
 
@@ -15,14 +17,16 @@ class Analyzer(
     val title: String,
     val predicate: AbstractPredicate
 ) {
-    fun execute(irModule: IrModuleFragment, moduleDescriptor: ModuleDescriptor, bindingContext: BindingContext): Boolean {
-        var res = true
+    fun execute(irModule: IrModuleFragment, moduleDescriptor: ModuleDescriptor, bindingContext: BindingContext): Pair<Boolean, Map<IrFile, VisitorData>> {
+        var result = true
+        val resultMap = mutableMapOf<IrFile, VisitorData>()
         for (file in irModule.files) {
-            val (result, data) =  predicate.checkIrNode(file)
+            val predicateResult = predicate.checkIrNode(file)
+            resultMap[file] = predicateResult
             println("${file.fqName}: predicate is $result")
-            res = res && result
+            result = result && predicateResult.matched
         }
-        return res
+        return result to resultMap
     }
 }
 
