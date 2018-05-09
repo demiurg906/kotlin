@@ -5,8 +5,10 @@
 
 package org.jetbrains.kotlin.cli.jvm.analyzer
 
+import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.ClassPredicate
 import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.TypePredicate
 import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.descriptors.Modality
 
 // Live Template: testana
 
@@ -22,8 +24,27 @@ val analyzers = listOf(
     fileEverywhere(),
     whileEverywhere(),
     functionEverywhere(),
-    objectEverywhere()
+    objectEverywhere(),
+    companionShortName()
 ).map { it.first.title to it }.toMap()
+
+fun companionShortName() = analyzer("companionShortName") {
+    var nestedClass: ClassPredicate? = null
+
+    classDefinition {
+        modality = Modality.OPEN
+        companionObject {
+            nestedClass = classDefinition { }
+        }
+    }
+
+    classDefinition {
+        function {
+            returnType = TypePredicate(classPredicate = nestedClass)
+        }
+    }
+
+} to true
 
 fun whileEverywhere() = analyzer("whileEverywhere") {
     function { body {

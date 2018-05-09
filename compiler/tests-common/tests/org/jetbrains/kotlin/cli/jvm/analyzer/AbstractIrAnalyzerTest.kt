@@ -76,7 +76,7 @@ abstract class AbstractIrAnalyzerTest : AbstractDiagnosticsTestWithStdLib() {
 
             moduleBindings[testModule] = result.bindingContext
         }
-
+        // TODO: Psi2IrTranslator:42
         extractStructuresForModules(testDataFile.nameWithoutExtension, groupedByModule, modules, moduleBindings)
     }
 

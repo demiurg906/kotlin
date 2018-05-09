@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
+import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.utils.keysToMap
 
@@ -27,7 +28,6 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
             ClassKind.ANNOTATION_CLASS -> AnnotationPredicate()
             ClassKind.INTERFACE -> InterfacePredicate()
             ClassKind.OBJECT -> ObjectPredicate()
-            // TODO: проверить, что от enum нельзя наследоваться
             else -> throw IllegalArgumentException("no deriving from enum")
         }
         predicate.init()
@@ -140,14 +140,17 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
 class ConstructorPredicate : FunctionPredicate() {
     // TODO: подумать, можно ли заблокировать некоторые поля из FunctionPredicate
     // например, name, returnType
+    // TODO: отнаследовать FunctionPredicate и ConstructorPredicate от какого-нибудь CallablePredicate
 
     override val visitor: Visitor
-        get() = MyCVisitor()
+        get() = MyVisitor()
 
-    inner class MyCVisitor : Visitor {
+    inner class MyVisitor : FunctionPredicate.MyVisitor() {
         private val functionVisitor = MyVisitor()
 
         override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
+
+        override fun visitFunction(declaration: IrFunction, data: Unit): VisitorData = falseVisitorData()
 
         override fun visitConstructor(declaration: IrConstructor, data: Unit): VisitorData =
             functionVisitor.visitFunction(declaration, data)

@@ -94,7 +94,7 @@ open class FunctionPredicate : FunctionDeclarationPredicate() {
         return bodyPredicate!!
     }
 
-    inner class MyVisitor : FunctionDeclarationPredicate.MyVisitor(false) {
+    inner open class MyVisitor : FunctionDeclarationPredicate.MyVisitor(false) {
         override fun visitFunction(declaration: IrFunction, data: Unit): VisitorData {
             val (res, map) = super.visitFunction(declaration, data)
             if (!res) {

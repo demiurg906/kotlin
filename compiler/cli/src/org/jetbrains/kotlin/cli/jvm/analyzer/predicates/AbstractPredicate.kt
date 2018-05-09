@@ -26,11 +26,12 @@ abstract class AbstractPredicate {
         cachedResults[element] = result
         return result
     }
+
+    fun allMatchedElements(): List<IrElement> = cachedResults.entries.filter { it.value.first }.map { it.key }
 }
 
 /*
     TODO:
     DataHolder = Map<>? / emptyMap
-    change recursiveSearch to everywhere {...} *minor
     сделать свой класс для типов, сравнивать типы по fqn
 */
