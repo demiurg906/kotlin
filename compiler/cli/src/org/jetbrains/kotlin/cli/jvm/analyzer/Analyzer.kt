@@ -5,17 +5,14 @@
 
 package org.jetbrains.kotlin.cli.jvm.analyzer
 
-import com.google.gson.*
+import com.google.gson.GsonBuilder
 import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.AbstractPredicate
 import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.FilePredicate
-import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.Predicate
 import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.VisitorData
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.resolve.BindingContext
-import java.lang.reflect.Type
 
 class Analyzer(
     val title: String,
@@ -35,13 +32,12 @@ class Analyzer(
     }
 
     private fun printResult(result: VisitorData) {
+        val stringVisitorData = IrToStringTransformer.transformIrElementsToString(result)
         val gson = GsonBuilder()
-            .registerTypeAdapter(Predicate::class.java, PredicateJsonConverter())
-            .registerTypeAdapter(IrElement::class.java, IrElementJsonConverter())
             .setPrettyPrinting()
             .create()
         try {
-            val json = gson.toJson(result)
+            val json = gson.toJson(stringVisitorData)
             println(json)
         } catch (e: IllegalArgumentException) {
             e.printStackTrace()
@@ -49,20 +45,10 @@ class Analyzer(
     }
 }
 
-class PredicateJsonConverter : JsonSerializer<Predicate> {
-    override fun serialize(src: Predicate, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
-        return JsonPrimitive(src.toString())
-    }
-}
-
-class IrElementJsonConverter : JsonSerializer<IrElement> {
-    override fun serialize(src: IrElement?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
-        return JsonPrimitive(src.toString())
-    }
-}
 
 fun analyzer(title: String, init: FilePredicate.() -> Unit): Analyzer {
     val predicate = FilePredicate()
     predicate.init()
     return Analyzer(title, predicate)
 }
+
