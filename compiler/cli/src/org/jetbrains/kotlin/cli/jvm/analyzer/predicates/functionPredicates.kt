@@ -41,19 +41,19 @@ open class FunctionDeclarationPredicate: AbstractPredicate() {
     override fun toString(): String = buildString {
         append("Function declaration predicate")
         if (name != null) {
-            appendDelimeter()
+            appendDelimiter()
             append("Name: $name")
         }
         if (numberOfArguments != null) {
-            appendDelimeter()
+            appendDelimiter()
             append("Number of arguments: $numberOfArguments")
         }
         if (visibility != null) {
-            appendDelimeter()
+            appendDelimiter()
             append("Visibility: $visibility")
         }
         if (isInline != null) {
-            appendDelimeter()
+            appendDelimiter()
             if (isInline!!) {
                 append("inline")
             } else {
@@ -77,8 +77,11 @@ open class FunctionDeclarationPredicate: AbstractPredicate() {
             val checkedArguments = mutableMapOf<IrValueParameter, Boolean>()
             val matches: VisitorDataMap = mutableMapOf()
             if (returnTypePredicate != null) {
+                matches[returnTypePredicate!!] = mutableListOf()
                 val result = returnTypePredicate!!.checkType(declaration.returnType, declaration)
-                matches[returnTypePredicate!!] = mutableListOf(result)
+                if (result.matched) {
+                    matches[returnTypePredicate!!]!!.add(result)
+                }
             }
 
             matches.putAll(parameterPredicates.keysToMap { mutableListOf<VisitorData>() })

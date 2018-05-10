@@ -31,7 +31,7 @@ val analyzers = listOf(
 fun companionShortName() = analyzer("companionShortName") {
     var nestedClass: ClassPredicate? = null
 
-    classDefinition {
+    val parent = classDefinition {
         modality = Modality.OPEN
         companionObject {
             nestedClass = classDefinition { }
@@ -39,6 +39,7 @@ fun companionShortName() = analyzer("companionShortName") {
     }
 
     classDefinition {
+        superClass(parent)
         function {
             returnType = TypePredicate(classPredicate = nestedClass)
         }

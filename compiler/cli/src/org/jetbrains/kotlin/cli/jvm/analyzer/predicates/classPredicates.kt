@@ -90,11 +90,11 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
         }
         append(" predicate")
         if (name != null) {
-            appendDelimeter()
+            appendDelimiter()
             append("name: $name")
         }
         if (modality != null) {
-            appendDelimeter()
+            appendDelimiter()
             append("modality: $modality")
         }
     }
@@ -132,7 +132,9 @@ open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isComp
             for (predicate in innerPredicates) {
                 for (statement in declaration.declarations) {
                     val result = predicate.checkIrNode(statement)
-                    matches[predicate]!!.add(result)
+                    if (result.matched) {
+                        matches[predicate]!!.add(result)
+                    }
                 }
             }
 

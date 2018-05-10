@@ -41,15 +41,15 @@ open class VariablePredicate(private val printName: String = "Variable") : Abstr
     override fun toString(): String = buildString {
         append("$printName predicate")
         if (isVal != null) {
-            appendDelimeter()
+            appendDelimiter()
             append("val")
         }
         if (isVar != null) {
-            appendDelimeter()
+            appendDelimiter()
             append("var")
         }
         if (isConst != null) {
-            appendDelimeter()
+            appendDelimiter()
             if (isConst!!) {
                 append("const")
             } else {
@@ -57,7 +57,7 @@ open class VariablePredicate(private val printName: String = "Variable") : Abstr
             }
         }
         if (isLateinit != null) {
-            appendDelimeter()
+            appendDelimiter()
             if (isLateinit!!) {
                 append("lateinit")
             } else {

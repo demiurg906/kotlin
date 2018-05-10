@@ -7,8 +7,9 @@ package org.jetbrains.kotlin.cli.jvm.analyzer.predicates
 
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.types.DeferredType
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.SimpleType
+import org.jetbrains.kotlin.types.WrappedType
 
 class TypePredicate(
     private val typeName: String? = null,
@@ -23,16 +24,21 @@ class TypePredicate(
 
     fun checkType(type: KotlinType, element: IrElement): VisitorData {
         var matched = true
+        val unwrappedType = if (type is WrappedType) {
+            type.unwrap()
+        } else {
+            type
+        }
         if (typeName != null || classPredicate != null) {
             matched = false
             val matchTypeName = typeName != null
             if (typeName != null) {
                 val typeName = this.typeName
-                matched = type.toString() == typeName
+                matched = unwrappedType.toString() == typeName
             }
             if (classPredicate != null) {
-                if (type is DeferredType) {
-                    val typeName = type.delegate.constructor.declarationDescriptor?.name?.asString()
+                if (unwrappedType is SimpleType) {
+                    val typeName = unwrappedType.constructor.declarationDescriptor?.name?.asString()
                     if (typeName != null) {
                         val classNames =
                             classPredicate.allMatchedElements().filter { it is IrClass }.map { (it as IrClass).name.asString() }
@@ -53,10 +59,6 @@ class TypePredicate(
         } else {
             falseVisitorData()
         }
-//        val declarationType = type.toString().split(" ").getOrNull(2) ?: return false
-//        val declarationType = type.toString().split(" ").getOrNull(2) ?: return false
-//        return typeName == declarationType
-
         // type.value.constructor.this$0
         // irClass.symbol.descriptor
     }
@@ -64,11 +66,11 @@ class TypePredicate(
     override fun toString(): String = buildString {
         append("Type predicate")
         if (typeName != null) {
-            appendDelimeter()
+            appendDelimiter()
             append("Type name: $typeName")
         }
         if (classPredicate != null) {
-            appendDelimeter()
+            appendDelimiter()
             append("Class: $classPredicate")
         }
     }

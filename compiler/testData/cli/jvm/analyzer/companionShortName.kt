@@ -4,8 +4,6 @@ open class Bar {
     }
 }
 
-//class A {}
-
 class Foo : Bar() {
-    fun foo(): Bar.Companion.FooBarCompanion = TODO()
+    fun foo(): FooBarCompanion = TODO()
 }

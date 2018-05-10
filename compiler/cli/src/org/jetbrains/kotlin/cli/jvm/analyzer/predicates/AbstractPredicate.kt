@@ -30,7 +30,7 @@ interface Predicate {
             falseVisitorData()
         }
 
-    fun StringBuilder.appendDelimeter(): StringBuilder = append(", ")
+    fun StringBuilder.appendDelimiter(): StringBuilder = append(", ")
 }
 
 abstract class AbstractPredicate : Predicate {

@@ -102,13 +102,10 @@ abstract class AbstractIrAnalyzerTest : AbstractDiagnosticsTestWithStdLib() {
         moduleDescriptor: ModuleDescriptor,
         bindingContext: BindingContext
     ) {
-        val data = analyzers.get(filename)
+        val data = analyzers[filename]
         if (data != null) {
             val (analyzer, expected) = data
-            println("------------${analyzer.title}------------")
             val actual = analyzer.execute(irModule, moduleDescriptor, bindingContext)
-            println("------------")
-            println()
             TestCase.assertEquals(expected, actual.first)
         } else {
             TestCase.fail("analyzer \"$filename\" not founded")
