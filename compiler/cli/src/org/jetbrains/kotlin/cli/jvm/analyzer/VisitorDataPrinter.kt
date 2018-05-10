@@ -18,7 +18,7 @@ data class StringVisitorData(
     val innerPredicates: StringVisitorDataMap
 )
 
-object IrToStringTransformer {
+class IrToStringTransformer {
     private val visitor = IrToStringVisitor()
 
     fun transformIrElementsToString(data: VisitorData): StringVisitorData {

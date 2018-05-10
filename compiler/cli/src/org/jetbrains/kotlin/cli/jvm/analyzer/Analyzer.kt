@@ -18,7 +18,11 @@ class Analyzer(
     val title: String,
     val predicate: AbstractPredicate
 ) {
-    fun execute(irModule: IrModuleFragment, moduleDescriptor: ModuleDescriptor, bindingContext: BindingContext): Pair<Boolean, Map<IrFile, VisitorData>> {
+    fun execute(
+        irModule: IrModuleFragment,
+        moduleDescriptor: ModuleDescriptor,
+        bindingContext: BindingContext
+    ): Pair<Boolean, Map<IrFile, VisitorData>> {
         var result = true
         val resultMap = mutableMapOf<IrFile, VisitorData>()
         for (file in irModule.files) {
@@ -32,7 +36,7 @@ class Analyzer(
     }
 
     private fun printResult(result: VisitorData) {
-        val stringVisitorData = IrToStringTransformer.transformIrElementsToString(result)
+        val stringVisitorData = IrToStringTransformer().transformIrElementsToString(result)
         val gson = GsonBuilder()
             .setPrettyPrinting()
             .create()
