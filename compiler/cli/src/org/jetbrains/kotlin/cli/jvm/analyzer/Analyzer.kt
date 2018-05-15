@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.VisitorData
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 
 class Analyzer(
@@ -21,7 +22,8 @@ class Analyzer(
     fun execute(
         irModule: IrModuleFragment,
         moduleDescriptor: ModuleDescriptor,
-        bindingContext: BindingContext
+        bindingContext: BindingContext,
+        ktFile: KtFile
     ): Pair<Boolean, Map<IrFile, VisitorData>> {
         var result = true
         val resultMap = mutableMapOf<IrFile, VisitorData>()
@@ -29,14 +31,14 @@ class Analyzer(
             val predicateResult = predicate.checkIrNode(file)
 
             resultMap[file] = predicateResult
-            printResult(predicateResult)
+            printResult(predicateResult, ktFile)
             result = result && predicateResult.matched
         }
         return result to resultMap
     }
 
-    private fun printResult(result: VisitorData) {
-        val stringVisitorData = IrToStringTransformer().transformIrElementsToString(result)
+    private fun printResult(result: VisitorData, ktFile: KtFile) {
+        val stringVisitorData = IrToStringTransformer(ktFile).transformIrElementsToString(result)
         val gson = GsonBuilder()
             .setPrettyPrinting()
             .create()

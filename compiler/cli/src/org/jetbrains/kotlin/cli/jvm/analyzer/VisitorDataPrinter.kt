@@ -5,10 +5,11 @@
 
 package org.jetbrains.kotlin.cli.jvm.analyzer
 
+import com.intellij.openapi.util.TextRange
 import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.VisitorData
 import org.jetbrains.kotlin.ir.IrElement
-import org.jetbrains.kotlin.ir.declarations.IrSymbolOwner
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
+import org.jetbrains.kotlin.psi.KtFile
 
 typealias StringVisitorDataMap = Map<String, List<StringVisitorData>>
 
@@ -18,8 +19,8 @@ data class StringVisitorData(
     val innerPredicates: StringVisitorDataMap
 )
 
-class IrToStringTransformer {
-    private val visitor = IrToStringVisitor()
+class IrToStringTransformer(ktFile: KtFile) {
+    private val visitor = IrToStringVisitor(ktFile)
 
     fun transformIrElementsToString(data: VisitorData): StringVisitorData {
         val predicate = data.predicate.toString()
@@ -29,18 +30,26 @@ class IrToStringTransformer {
             "null"
         }
         val innerPredicates = data.innerPredicatesMatches.entries.map { (predicate, data) ->
-            predicate.toString() to data.map { transformIrElementsToString(it)}
+            predicate.toString() to data.map { transformIrElementsToString(it) }
         }.toMap()
         return StringVisitorData(predicate, element, innerPredicates)
     }
 
-    private class IrToStringVisitor : IrElementVisitor<String, Unit> {
+    private class IrToStringVisitor(private val ktFile: KtFile) : IrElementVisitor<String, Unit> {
+        private val document = ktFile.manager.findViewProvider(ktFile.virtualFile)!!.document!!
+
         override fun visitElement(element: IrElement, data: Unit): String {
-            if (element is IrSymbolOwner) {
-                return element.symbol.descriptor.toString()
-            } else {
-                return "Not implemented: $element"
-            }
+            val psiElement = ktFile.findElementAt(element.startOffset) ?: return "ERROR: no element at offset ${element.startOffset}"
+            val offset = psiElement.textOffset
+            val line = document.getLineNumber(offset)
+
+            val startOffset = document.getLineStartOffset(line)
+            val endOffset = document.getLineEndOffset(line)
+            val range = TextRange(startOffset, endOffset)
+
+            val column = offset - startOffset
+            val text = document.getText(range).trim()
+            return "${ktFile.name}:${line + 1}:${column + 1}: $text"
         }
     }
 }

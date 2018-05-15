@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.ir.AbstractIrGeneratorTestCase
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.storage.ExceptionTracker
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
@@ -91,8 +92,12 @@ abstract class AbstractIrAnalyzerTest : AbstractDiagnosticsTestWithStdLib() {
             val moduleDescriptor = moduleDescriptors[module] ?: continue
             val moduleBindingContext = moduleBindings[module] ?: continue
             val irModule = AbstractIrGeneratorTestCase.generateIrModule(ktFiles, moduleDescriptor, moduleBindingContext, true)
-
-            checkOneSource(filename, irModule, moduleDescriptor, moduleBindingContext)
+            val ktFile = ktFiles.find { it.name == "$filename.kt" }
+            if (ktFile != null) {
+                checkOneSource(filename, irModule, moduleDescriptor, moduleBindingContext, ktFile)
+            } else {
+                fail("KtFile $filename not founded")
+            }
         }
     }
 
@@ -100,12 +105,13 @@ abstract class AbstractIrAnalyzerTest : AbstractDiagnosticsTestWithStdLib() {
         filename: String,
         irModule: IrModuleFragment,
         moduleDescriptor: ModuleDescriptor,
-        bindingContext: BindingContext
+        bindingContext: BindingContext,
+        ktFile: KtFile
     ) {
         val data = analyzers[filename]
         if (data != null) {
             val (analyzer, expected) = data
-            val actual = analyzer.execute(irModule, moduleDescriptor, bindingContext)
+            val actual = analyzer.execute(irModule, moduleDescriptor, bindingContext, ktFile)
             TestCase.assertEquals(expected, actual.first)
         } else {
             TestCase.fail("analyzer \"$filename\" not founded")
