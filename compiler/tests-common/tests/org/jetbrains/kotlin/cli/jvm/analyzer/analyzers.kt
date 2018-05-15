@@ -39,6 +39,7 @@ fun companionShortName() = analyzer("companionShortName") {
     }
 
     classDefinition {
+        printResult = true
         superClass(parent)
         function {
             returnType = TypePredicate(classPredicate = nestedClass)
@@ -49,6 +50,7 @@ fun companionShortName() = analyzer("companionShortName") {
 
 fun whileEverywhere() = analyzer("whileEverywhere") {
     function {
+        printResult = true
         body {
             whileLoop {
                 body {
@@ -63,6 +65,7 @@ fun whileEverywhere() = analyzer("whileEverywhere") {
 
 fun functionEverywhere() = analyzer("functionEverywhere") {
     function {
+        printResult = true
         body {
             everywhere {
                 variableDefinition { type = TypePredicate.Int }
@@ -75,6 +78,7 @@ fun functionEverywhere() = analyzer("functionEverywhere") {
 
 fun objectEverywhere() = analyzer("objectEverywhere") {
     objectDefinition {
+        printResult = true
         everywhere {
             variableDefinition { type = TypePredicate.Int }
         }
@@ -83,6 +87,7 @@ fun objectEverywhere() = analyzer("objectEverywhere") {
 
 fun fileEverywhere() = analyzer("fileEverywhere") {
     everywhere {
+        printResult = true
         variableDefinition { type = TypePredicate.Int }
     }
 } to true
@@ -95,6 +100,7 @@ fun classTst() = analyzer("classTst") {
     }
 
     classDefinition {
+        printResult = true
         name = "B"
 
         superClass(i2)
@@ -114,6 +120,7 @@ fun classTst() = analyzer("classTst") {
 
 fun functionDefinition() = analyzer("functionDefinition") {
     function {
+        printResult = true
         numberOfArguments = 2
         argument { type = TypePredicate("Int") }
         argument { type = TypePredicate("A") }
@@ -126,6 +133,7 @@ fun functionDefinition() = analyzer("functionDefinition") {
 
 fun ifThenElse() = analyzer("ifThenElse") {
     function {
+        printResult = true
         body {
             ifCondition {
                 thenBranch {
@@ -141,7 +149,10 @@ fun ifThenElse() = analyzer("ifThenElse") {
 
 
 fun functionName() = analyzer("functionName") {
-    function { name = "foo" }
+    function {
+        printResult = true
+        name = "foo"
+    }
 } to true
 
 
@@ -149,6 +160,7 @@ fun functionCall() = analyzer("functionCall") {
     val foo = function { name = "foo" }
     val baz = function { name = "baz" }
     function {
+        printResult = true
         body {
             functionCall(foo)
             functionCall(baz)
@@ -159,6 +171,7 @@ fun functionCall() = analyzer("functionCall") {
 
 fun forLoop() = analyzer("forLoop") {
     function {
+        printResult = true
         body {
             forLoop {
                 body {
@@ -172,6 +185,7 @@ fun forLoop() = analyzer("forLoop") {
 
 fun variableType() = analyzer("variableType") {
     function {
+        printResult = true
         body {
             variableDefinition { type = TypePredicate.Int }
         }
@@ -181,6 +195,7 @@ fun variableType() = analyzer("variableType") {
 
 fun whileLoop() = analyzer("whileLoop") {
     function {
+        printResult = true
         body {
             whileLoop {
                 body {

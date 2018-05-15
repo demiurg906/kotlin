@@ -22,16 +22,23 @@ data class StringVisitorData(
 class IrToStringTransformer(ktFile: KtFile) {
     private val visitor = IrToStringVisitor(ktFile)
 
-    fun transformIrElementsToString(data: VisitorData): StringVisitorData {
+    fun transformIrElementsToString(data: VisitorData) = transformIrElementsToString(data, topLevel = true)
+
+    private fun transformIrElementsToString(data: VisitorData, topLevel: Boolean): StringVisitorData {
         val predicate = data.predicate.toString()
         val element: String = if (data.element != null) {
             data.element.accept(visitor, Unit)
         } else {
             "null"
         }
-        val innerPredicates = data.innerPredicatesMatches.entries.map { (predicate, data) ->
-            predicate.toString() to data.map { transformIrElementsToString(it) }
-        }.toMap()
+        var entries = data.innerPredicatesMatches.entries.toList()
+        if (topLevel) {
+            entries = entries.filter { (predicate, _) -> predicate.printResult }
+        }
+        val innerPredicates = entries
+            .map { (predicate, data) -> predicate.toString() to data.map { transformIrElementsToString(it, topLevel = false) } }
+            .toMap()
+
         return StringVisitorData(predicate, element, innerPredicates)
     }
 

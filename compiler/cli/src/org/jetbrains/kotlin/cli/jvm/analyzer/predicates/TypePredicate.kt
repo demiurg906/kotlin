@@ -22,6 +22,8 @@ class TypePredicate(
         val String = TypePredicate(typeName = "String")
     }
 
+    override var printResult: Boolean = false
+
     fun checkType(type: KotlinType, element: IrElement): VisitorData {
         var matched = true
         val unwrappedType = if (type is WrappedType) {
@@ -59,8 +61,6 @@ class TypePredicate(
         } else {
             falseVisitorData()
         }
-        // type.value.constructor.this$0
-        // irClass.symbol.descriptor
     }
 
     override fun toString(): String = buildString {

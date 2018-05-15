@@ -21,6 +21,8 @@ data class VisitorData(
 typealias Visitor = IrElementVisitor<VisitorData, Unit>
 
 interface Predicate {
+    var printResult: Boolean
+
     fun falseVisitorData() = VisitorData(this, null, mutableMapOf())
 
     fun matchedPredicatesToVisitorData(element: IrElement, matches: VisitorDataMap) =
@@ -36,7 +38,9 @@ interface Predicate {
 abstract class AbstractPredicate : Predicate {
     abstract val visitor: Visitor
     private val cachedResults = mutableMapOf<IrElement, VisitorData>()
+
     var info: () -> Unit = {}
+    override var printResult: Boolean = false
 
     open fun checkIrNode(element: IrElement): VisitorData {
         if (element in cachedResults) {
