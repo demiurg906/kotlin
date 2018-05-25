@@ -6,9 +6,12 @@
 package org.jetbrains.kotlin.cli.jvm.analyzer.predicates
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallWithIndexedArgumentsBase
+import org.jetbrains.kotlin.ir.util.getArguments
+import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 class IfPredicate : AbstractPredicate() {
     private var thenPredicate: CodeBlockPredicate? = null
@@ -128,11 +131,19 @@ class FunctionCallPredicate(val functionPredicate: FunctionPredicate) : Abstract
     override val visitor: Visitor
         get() = MyVisitor()
 
+    private val argumentPredicates = mutableMapOf<String, Any>()
+
     override fun toString(): String = buildString {
         append("Function call predicate")
     }
 
+    fun argument(name: String, value: Any) {
+        argumentPredicates[name] = value
+    }
+
     inner class MyVisitor : Visitor {
+        private val recursiveCallVisitor = RecursiveCallVisitor()
+
         override fun visitElement(element: IrElement, data: Unit): VisitorData = falseVisitorData()
 
         override fun visitVariable(declaration: IrVariable, data: Unit): VisitorData {
@@ -140,26 +151,52 @@ class FunctionCallPredicate(val functionPredicate: FunctionPredicate) : Abstract
             return checkIrNode(initializer)
         }
 
-        override fun visitCall(expression: IrCall, data: Unit): VisitorData {
-            val calledFunction = expression.symbol.owner
-            val results = mutableListOf(functionPredicate.checkIrNode(calledFunction))
+        inner class CallVisitor : IrElementVisitor<VisitorData?, Unit> {
+            override fun visitElement(element: IrElement, data: Unit): VisitorData? = null
 
-            if (expression is IrCallWithIndexedArgumentsBase) {
-                var i = 0
-                while (true) {
-                    try {
-                        val argument = expression.getValueArgument(i) ?: continue
-                        results.add(checkIrNode(argument))
-                        i += 1
-                    } catch (e: ArrayIndexOutOfBoundsException) {
-                        break
+            override fun visitCall(expression: IrCall, data: Unit): VisitorData? {
+                val calledFunction = expression.symbol.owner as IrFunction
+                val result = functionPredicate.checkIrNode(calledFunction)
+                if (result.matched) {
+                    val argsMap: MutableMap<String, IrElement?> = argumentPredicates.keys.map { it to null }.toMap().toMutableMap()
+                    for ((arg, value) in argumentPredicates) {
+                        for ((descriptor, argument) in expression.getArguments()) {
+                            if (descriptor.name.asString() == arg && argument is IrConst<*> && argument.value == value) {
+                                argsMap[arg] = argument
+                            }
+                        }
+                    }
+                    if (argsMap.values.all { it != null }) {
+                        return result
                     }
                 }
+                return null
             }
-            val goodResults = results.filter(VisitorData::matched)
-            if (goodResults.isNotEmpty()) {
+        }
+
+        inner class RecursiveCallVisitor : IrElementVisitor<List<VisitorData>, Unit> {
+            private val callVisitor = CallVisitor()
+
+            override fun visitElement(element: IrElement, data: Unit): List<VisitorData> = listOf()
+
+            override fun visitCall(expression: IrCall, data: Unit): List<VisitorData> {
+                val results = mutableListOf(expression.accept(callVisitor, Unit))
+                for ((_, argument) in expression.getArguments()) {
+                    results.addAll(argument.accept(this, Unit))
+                }
+                return results.filterNotNull()
+            }
+        }
+
+        override fun visitCall(expression: IrCall, data: Unit): VisitorData {
+            val results = expression.accept(recursiveCallVisitor, Unit)
+            if (results.isNotEmpty()) {
                 info()
-                return VisitorData(this@FunctionCallPredicate, expression, mutableMapOf(this@FunctionCallPredicate to goodResults.toMutableList()))
+                return VisitorData(
+                    this@FunctionCallPredicate,
+                    expression,
+                    mutableMapOf(this@FunctionCallPredicate to results.toMutableList())
+                )
             } else {
                 return falseVisitorData()
             }

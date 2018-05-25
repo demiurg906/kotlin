@@ -10,23 +10,33 @@ import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.TypePredicate
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 
-// Live Template: testana
-
 val analyzers = listOf(
-    classTst(),
-    functionDefinition(),
-    ifThenElse(),
-    functionName(),
-    functionCall(),
-    forLoop(),
-    variableType(),
-    whileLoop(),
+    companionShortName(),
+//    demoTest(),
     fileEverywhere(),
-    whileEverywhere(),
+    forLoop(),
+    functionCall(),
+    functionDefinition(),
     functionEverywhere(),
+    functionName(),
+    ifThenElse(),
     objectEverywhere(),
-    companionShortName()
+    variableType(),
+    whileEverywhere(),
+    whileLoop(),
+    classTst()
 ).map { it.first.title to it }.toMap()
+
+//fun demoTest() = analyzer("demoTest") {
+//    val func = function {
+//        name = "foo"
+//    }
+//
+//    everywhere {
+//        printResult = true
+//        functionCall(func)
+//    }
+//} to true
 
 fun companionShortName() = analyzer("companionShortName") {
     var nestedClass: ClassPredicate? = null
@@ -159,13 +169,23 @@ fun functionName() = analyzer("functionName") {
 
 
 fun functionCall() = analyzer("functionCall") {
-    val foo = function { name = "foo" }
-    val baz = function { name = "baz" }
+    val foo = function {
+        name = "foo"
+        label = "function foo"
+    }
+    val baz = function {
+        name = "baz"
+        label = "function baz"
+    }
     function {
         printResult = true
+        label = "function bar"
         body {
-            functionCall(foo)
-            functionCall(baz)
+            functionCall(foo) { label = "call foo" }
+            functionCall(baz) {
+                label = "call baz"
+                argument("x", 10)
+            }
         }
     }
 } to true

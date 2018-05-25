@@ -11,7 +11,14 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.psi.KtFile
 
-typealias StringVisitorDataMap = Map<String, List<StringVisitorData>>
+
+data class PredicateContent(
+    val name: String,
+    val content: List<StringVisitorData>
+)
+
+//typealias StringVisitorDataMap = Map<String, List<StringVisitorData>>
+typealias StringVisitorDataMap = List<PredicateContent>
 
 data class StringVisitorData(
     val label: String?,
@@ -38,8 +45,7 @@ class IrToStringTransformer(ktFile: KtFile) {
             entries = entries.filter { (predicate, _) -> predicate.printResult }
         }
         val innerPredicates = entries
-            .map { (predicate, data) -> predicate.toString() to data.map { transformIrElementsToString(it, topLevel = false) } }
-            .toMap()
+            .map { (predicate, data) -> PredicateContent(predicate.toString(), data.map { transformIrElementsToString(it, topLevel = false) }) }
 
         return StringVisitorData(label, predicate, element, innerPredicates)
     }

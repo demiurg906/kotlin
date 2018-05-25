@@ -131,6 +131,7 @@ open class FunctionPredicate(private val printName: String = "Function") : Funct
 
     fun body(init: CodeBlockPredicate.() -> Unit): CodeBlockPredicate {
         bodyPredicate = CodeBlockPredicate()
+        bodyPredicate?.label = "function body"
         bodyPredicate?.init()
         return bodyPredicate!!
     }
@@ -147,9 +148,14 @@ open class FunctionPredicate(private val printName: String = "Function") : Funct
             }
 
             val matches: VisitorDataMap = mutableMapOf(this@FunctionPredicate to mutableListOf(declarationResult))
-            if (bodyPredicate != null && declaration.body != null) {
-                val bodyResult = bodyPredicate?.checkIrNode(declaration.body!!)!!
-                matches[bodyPredicate!!] = mutableListOf(bodyResult)
+            if (bodyPredicate != null) {
+                matches[bodyPredicate!!] = mutableListOf()
+                if (declaration.body != null) {
+                    val bodyResult = bodyPredicate?.checkIrNode(declaration.body!!)!!
+                    if (bodyResult.matched) {
+                        matches[bodyPredicate!!] = mutableListOf(bodyResult)
+                    }
+                }
             }
 
             val result = matchedPredicatesToVisitorData(declaration, matches)
