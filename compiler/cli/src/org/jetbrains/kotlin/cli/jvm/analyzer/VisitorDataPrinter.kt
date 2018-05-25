@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.psi.KtFile
 typealias StringVisitorDataMap = Map<String, List<StringVisitorData>>
 
 data class StringVisitorData(
+    val label: String?,
     val predicate: String,
     val element: String,
     val innerPredicates: StringVisitorDataMap
@@ -25,6 +26,7 @@ class IrToStringTransformer(ktFile: KtFile) {
     fun transformIrElementsToString(data: VisitorData) = transformIrElementsToString(data, topLevel = true)
 
     private fun transformIrElementsToString(data: VisitorData, topLevel: Boolean): StringVisitorData {
+        val label = data.predicate.label
         val predicate = data.predicate.toString()
         val element: String = if (data.element != null) {
             data.element.accept(visitor, Unit)
@@ -39,7 +41,7 @@ class IrToStringTransformer(ktFile: KtFile) {
             .map { (predicate, data) -> predicate.toString() to data.map { transformIrElementsToString(it, topLevel = false) } }
             .toMap()
 
-        return StringVisitorData(predicate, element, innerPredicates)
+        return StringVisitorData(label, predicate, element, innerPredicates)
     }
 
     private class IrToStringVisitor(private val ktFile: KtFile) : IrElementVisitor<String, Unit> {

@@ -22,6 +22,7 @@ typealias Visitor = IrElementVisitor<VisitorData, Unit>
 
 interface Predicate {
     var printResult: Boolean
+    var label: String?
 
     fun falseVisitorData() = VisitorData(this, null, mutableMapOf())
 
@@ -41,6 +42,7 @@ abstract class AbstractPredicate : Predicate {
 
     var info: () -> Unit = {}
     override var printResult: Boolean = false
+    override var label: String? = null
 
     open fun checkIrNode(element: IrElement): VisitorData {
         if (element in cachedResults) {

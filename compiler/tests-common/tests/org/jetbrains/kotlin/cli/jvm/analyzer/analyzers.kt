@@ -32,6 +32,7 @@ fun companionShortName() = analyzer("companionShortName") {
     var nestedClass: ClassPredicate? = null
 
     val parent = classDefinition {
+        label = "Parent"
         modality = Modality.OPEN
         companionObject {
             nestedClass = classDefinition { }
@@ -40,6 +41,7 @@ fun companionShortName() = analyzer("companionShortName") {
 
     classDefinition {
         printResult = true
+        label = "Child"
         superClass(parent)
         function {
             returnType = TypePredicate(classPredicate = nestedClass)

@@ -23,6 +23,7 @@ class TypePredicate(
     }
 
     override var printResult: Boolean = false
+    override var label: String? = null
 
     fun checkType(type: KotlinType, element: IrElement): VisitorData {
         var matched = true
