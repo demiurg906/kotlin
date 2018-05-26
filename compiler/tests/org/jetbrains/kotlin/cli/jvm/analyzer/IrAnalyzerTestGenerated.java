@@ -37,6 +37,12 @@ public class IrAnalyzerTestGenerated extends AbstractIrAnalyzerTest {
         doTest(fileName);
     }
 
+    @TestMetadata("demoTest.kt")
+    public void testDemoTest() throws Exception {
+        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/cli/jvm/analyzer/demoTest.kt");
+        doTest(fileName);
+    }
+
     @TestMetadata("fileEverywhere.kt")
     public void testFileEverywhere() throws Exception {
         String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/cli/jvm/analyzer/fileEverywhere.kt");

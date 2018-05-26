@@ -151,6 +151,14 @@ class FunctionCallPredicate(val functionPredicate: FunctionPredicate) : Abstract
             return checkIrNode(initializer)
         }
 
+        override fun visitSetVariable(expression: IrSetVariable, data: Unit): VisitorData {
+            return checkIrNode(expression.value)
+        }
+
+        override fun visitSetField(expression: IrSetField, data: Unit): VisitorData {
+            return checkIrNode(expression.value)
+        }
+
         inner class CallVisitor : IrElementVisitor<VisitorData?, Unit> {
             override fun visitElement(element: IrElement, data: Unit): VisitorData? = null
 

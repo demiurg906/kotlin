@@ -31,13 +31,18 @@ class ValueParameterPredicate : AbstractPredicate() {
             val matches: VisitorDataMap = mutableMapOf()
             if (typePredicate != null) {
                 val result = typePredicate!!.checkType(declaration.type, declaration)
-                matches[typePredicate!!] = mutableListOf(result)
+                val list = mutableListOf<VisitorData>()
+                if (result.matched) {
+                    list += result
+                }
+                matches[typePredicate!!] = list
             }
             val result = matchedPredicatesToVisitorData(declaration, matches)
             if (result.matched) {
                 info()
+                return result
             }
-            return result
+            return falseVisitorData()
         }
     }
 }

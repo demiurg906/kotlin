@@ -72,7 +72,9 @@ abstract class ScopePredicate : AbstractPredicate() {
         }
         val matchedResults = dataList.filter(VisitorData::matched)
         if (matchedResults.isNotEmpty()) {
-            data.innerPredicatesMatches[this@ScopePredicate] = matchedResults.toMutableList()
+            val map = matchedResults.groupBy { it.predicate }.entries.map { (key, value) -> key to value.toMutableList() }.toMap()
+            data.innerPredicatesMatches.putAll(map)
+//            data.innerPredicatesMatches[this@ScopePredicate] = matchedResults.toMutableList()
             return data
         } else {
             return falseVisitorData()

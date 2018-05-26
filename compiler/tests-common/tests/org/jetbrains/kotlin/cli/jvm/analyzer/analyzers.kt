@@ -6,13 +6,14 @@
 package org.jetbrains.kotlin.cli.jvm.analyzer
 
 import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.ClassPredicate
+import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.FunctionPredicate
 import org.jetbrains.kotlin.cli.jvm.analyzer.predicates.TypePredicate
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 
 val analyzers = listOf(
     companionShortName(),
-//    demoTest(),
+    demoTest(),
     fileEverywhere(),
     forLoop(),
     functionCall(),
@@ -27,16 +28,57 @@ val analyzers = listOf(
     classTst()
 ).map { it.first.title to it }.toMap()
 
-//fun demoTest() = analyzer("demoTest") {
-//    val func = function {
-//        name = "foo"
-//    }
-//
-//    everywhere {
-//        printResult = true
-//        functionCall(func)
-//    }
-//} to true
+fun demoTest() = analyzer("demoTest") {
+    val abstractField = classDefinition {
+        printResult = true
+        label = "class AbstractField"
+        name = "AbstractField"
+        modality = Modality.ABSTRACT
+    }
+
+    val field = classDefinition {
+        printResult = true
+        label = "class Field"
+
+        superClass(abstractField)
+        function {
+            numberOfArguments = 2
+            argument { type = TypePredicate.Int }
+            argument { type = TypePredicate.Int }
+        }
+    }
+
+    val fieldType = TypePredicate(classPredicate = field)
+
+    val next = function {
+        printResult = true
+        label = "fun next(...)"
+
+        argument { type = fieldType }
+        returnType = fieldType
+    }
+
+    val goal = function {
+        printResult = true
+        label = "fun runGameOfLive"
+
+        body {
+            everywhere {
+                functionCall(next)
+            }
+        }
+    }
+
+    everywhere {
+        printResult = true
+        label = "Goal"
+
+        functionCall(goal) {
+            argument("steps", 3)
+        }
+    }
+
+} to true
 
 fun companionShortName() = analyzer("companionShortName") {
     var nestedClass: ClassPredicate? = null

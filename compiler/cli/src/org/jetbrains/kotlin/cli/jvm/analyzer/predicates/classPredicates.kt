@@ -14,7 +14,10 @@ import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.utils.keysToMap
 
-open class ClassPredicate(val classKind: ClassKind = ClassKind.CLASS, val isCompanion: Boolean = false) : ScopePredicate() {
+open class ClassPredicate(
+    val classKind: ClassKind = ClassKind.CLASS,
+    private val isCompanion: Boolean = false
+) : ScopePredicate() {
     override val visitor: Visitor
         get() = MyVisitor()
 
