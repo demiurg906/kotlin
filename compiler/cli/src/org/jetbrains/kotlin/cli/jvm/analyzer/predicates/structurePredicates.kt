@@ -35,6 +35,7 @@ class IfPredicate : AbstractPredicate() {
         get() = MyVisitor()
 
     override fun toString(): String = buildString {
+        appendLabel()
         append("If predicate")
     }
 
@@ -75,6 +76,7 @@ abstract class LoopPredicate(private val printName: String) : AbstractPredicate(
     }
 
     override fun toString(): String = buildString {
+        appendLabel()
         append("$printName predicate")
     }
 }
@@ -134,6 +136,7 @@ class FunctionCallPredicate(val functionPredicate: FunctionPredicate) : Abstract
     private val argumentPredicates = mutableMapOf<String, Any>()
 
     override fun toString(): String = buildString {
+        appendLabel()
         append("Function call predicate")
     }
 

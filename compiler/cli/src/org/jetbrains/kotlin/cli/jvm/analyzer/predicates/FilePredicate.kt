@@ -20,6 +20,7 @@ class FilePredicate : ScopePredicate() {
     }
 
     override fun toString(): String = buildString {
+        appendLabel()
         append("File predicate")
     }
 

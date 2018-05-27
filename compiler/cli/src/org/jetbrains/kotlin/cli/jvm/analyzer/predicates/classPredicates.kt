@@ -79,6 +79,7 @@ open class ClassPredicate(
     }
 
     override fun toString(): String = buildString {
+        appendLabel()
         when (classKind) {
             ClassKind.CLASS -> append("Class")
             ClassKind.INTERFACE -> append("Interface")

@@ -65,6 +65,7 @@ class TypePredicate(
     }
 
     override fun toString(): String = buildString {
+        appendLabel()
         append("Type predicate")
         if (typeName != null) {
             appendDelimiter()

@@ -39,6 +39,7 @@ open class FunctionDeclarationPredicate: AbstractPredicate() {
         get() = MyVisitor()
 
     override fun toString(): String = buildString {
+        appendLabel()
         append("Function declaration predicate")
         if (name != null) {
             appendDelimiter()
@@ -137,6 +138,7 @@ open class FunctionPredicate(private val printName: String = "Function") : Funct
     }
 
     override fun toString(): String = buildString {
+        appendLabel()
         append("$printName predicate")
     }
 

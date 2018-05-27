@@ -1,6 +1,5 @@
 /**
  * This is a straightforward implementation of The Game of Life
- * See http://en.wikipedia.org/wiki/Conway's_Game_of_Life
  */
 package life
 
@@ -15,10 +14,12 @@ class Field(
 ) : AbstractField() {
     private val live: Array<Array<Boolean>> = Array(height) { i -> Array(width) { j -> init(i, j) } }
 
-    private fun liveCount(i: Int, j: Int)
-            = if (i in 0..height - 1 &&
-        j in 0..width - 1 &&
-        live[i][j]) 1 else 0
+    private fun liveCount(i: Int, j: Int) =
+        if (
+            i in 0 until height &&
+            j in 0 until width &&
+            live[i][j]
+        ) 1 else 0
 
     // How many neighbors of (i, j) are alive?
     fun liveNeighbors(i: Int, j: Int) =

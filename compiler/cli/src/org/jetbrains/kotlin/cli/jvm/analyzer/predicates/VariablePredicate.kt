@@ -39,6 +39,7 @@ open class VariablePredicate(private val printName: String = "Variable") : Abstr
         get() = MyVisitor()
 
     override fun toString(): String = buildString {
+        appendLabel()
         append("$printName predicate")
         if (isVal != null) {
             appendDelimiter()

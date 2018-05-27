@@ -20,6 +20,7 @@ class ValueParameterPredicate : AbstractPredicate() {
         }
 
     override fun toString(): String = buildString {
+        appendLabel()
         append("Value parameter predicate")
     }
 

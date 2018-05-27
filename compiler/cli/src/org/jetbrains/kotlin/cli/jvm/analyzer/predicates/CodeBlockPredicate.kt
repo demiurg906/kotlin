@@ -50,6 +50,7 @@ class CodeBlockPredicate(private val printName: String = "Code block") : ScopePr
         get() = MyVisitor()
 
     override fun toString(): String = buildString {
+        appendLabel()
         append("$printName predicate")
     }
 

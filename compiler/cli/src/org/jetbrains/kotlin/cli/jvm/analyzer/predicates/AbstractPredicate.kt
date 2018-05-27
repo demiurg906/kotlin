@@ -34,6 +34,13 @@ interface Predicate {
         }
 
     fun StringBuilder.appendDelimiter(): StringBuilder = append(", ")
+
+    fun StringBuilder.appendLabel(): StringBuilder {
+        if (label != null) {
+            append("$label | ")
+        }
+        return this
+    }
 }
 
 abstract class AbstractPredicate : Predicate {

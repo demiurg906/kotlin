@@ -21,7 +21,6 @@ data class PredicateContent(
 typealias StringVisitorDataMap = List<PredicateContent>
 
 data class StringVisitorData(
-    val label: String?,
     val predicate: String,
     val element: String,
     val innerPredicates: StringVisitorDataMap
@@ -33,7 +32,6 @@ class IrToStringTransformer(ktFile: KtFile) {
     fun transformIrElementsToString(data: VisitorData) = transformIrElementsToString(data, topLevel = true)
 
     private fun transformIrElementsToString(data: VisitorData, topLevel: Boolean): StringVisitorData {
-        val label = data.predicate.label
         val predicate = data.predicate.toString()
         val element: String = if (data.element != null) {
             data.element.accept(visitor, Unit)
@@ -47,7 +45,7 @@ class IrToStringTransformer(ktFile: KtFile) {
         val innerPredicates = entries
             .map { (predicate, data) -> PredicateContent(predicate.toString(), data.map { transformIrElementsToString(it, topLevel = false) }) }
 
-        return StringVisitorData(label, predicate, element, innerPredicates)
+        return StringVisitorData(predicate, element, innerPredicates)
     }
 
     private class IrToStringVisitor(private val ktFile: KtFile) : IrElementVisitor<String, Unit> {
