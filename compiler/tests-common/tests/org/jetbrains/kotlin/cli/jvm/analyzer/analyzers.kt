@@ -30,14 +30,13 @@ val analyzers = listOf(
 
 fun demoTest() = analyzer("demoTest") {
     val abstractField = classDefinition {
-        printResult = true
         label = "class AbstractField"
+
         name = "AbstractField"
         modality = Modality.ABSTRACT
     }
 
     val field = classDefinition {
-        printResult = true
         label = "class Field"
 
         superClass(abstractField)
@@ -51,15 +50,13 @@ fun demoTest() = analyzer("demoTest") {
     val fieldType = TypePredicate(classPredicate = field)
 
     val next = function {
-        printResult = true
         label = "fun next(...)"
 
         argument { type = fieldType }
         returnType = fieldType
     }
 
-    val goal = function {
-        printResult = true
+    val run = function {
         label = "fun runGameOfLive"
 
         body {
@@ -70,10 +67,9 @@ fun demoTest() = analyzer("demoTest") {
     }
 
     everywhere {
-        printResult = true
         label = "Goal"
 
-        functionCall(goal) {
+        functionCall(run) {
             argument("steps", 3)
         }
     }
