@@ -16,17 +16,19 @@
 
 package org.jetbrains.kotlin.ir.util
 
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
-import org.jetbrains.kotlin.ir.declarations.IrExternalPackageFragment
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 
-class ExternalDependenciesGenerator(val symbolTable: SymbolTable, val irBuiltIns: IrBuiltIns) {
-
-    private val stubGenerator = DeclarationStubGenerator(symbolTable, IrDeclarationOrigin.IR_EXTERNAL_DECLARATION_STUB)
+class ExternalDependenciesGenerator(
+    moduleDescriptor: ModuleDescriptor,
+    val symbolTable: SymbolTable,
+    val irBuiltIns: IrBuiltIns
+) {
+    private val stubGenerator = DeclarationStubGenerator(
+        moduleDescriptor, symbolTable, IrDeclarationOrigin.IR_EXTERNAL_DECLARATION_STUB, irBuiltIns.languageVersionSettings
+    )
 
     fun generateUnboundSymbolsAsDependencies(irModule: IrModuleFragment) {
         DependencyGenerationTask(irModule).run()
@@ -34,50 +36,33 @@ class ExternalDependenciesGenerator(val symbolTable: SymbolTable, val irBuiltIns
 
     private inner class DependencyGenerationTask(val irModule: IrModuleFragment) {
 
-        private val moduleFragments = HashMap<ModuleDescriptor, IrModuleFragment>()
-        private val packageFragments = HashMap<PackageFragmentDescriptor, IrExternalPackageFragment>()
-
         fun run() {
-            while (true) {
-                val collector = DependenciesCollector()
-                collector.collectTopLevelDescriptorsForUnboundSymbols(symbolTable)
-                if (collector.isEmpty) break
-
-                collector.dependencyModules.mapTo(irModule.dependencyModules) { moduleDescriptor ->
-                    generateModuleStub(collector, moduleDescriptor)
-                }
+            stubGenerator.unboundSymbolGeneration = true
+            ArrayList(symbolTable.unboundClasses).forEach {
+                stubGenerator.generateClassStub(it.descriptor)
             }
+            ArrayList(symbolTable.unboundConstructors).forEach {
+                stubGenerator.generateConstructorStub(it.descriptor)
+            }
+            ArrayList(symbolTable.unboundEnumEntries).forEach {
+                stubGenerator.generateEnumEntryStub(it.descriptor)
+            }
+            ArrayList(symbolTable.unboundFields).forEach {
+                stubGenerator.generatePropertyStub(it.descriptor)
+            }
+            ArrayList(symbolTable.unboundSimpleFunctions).forEach {
+                stubGenerator.generateFunctionStub(it.descriptor)
+            }
+            ArrayList(symbolTable.unboundTypeParameters).forEach {
+                stubGenerator.generateOrGetTypeParameterStub(it.descriptor)
+            }
+
+            assert(symbolTable.unboundClasses.isEmpty())
+            assert(symbolTable.unboundConstructors.isEmpty())
+            assert(symbolTable.unboundEnumEntries.isEmpty())
+            assert(symbolTable.unboundFields.isEmpty())
+            assert(symbolTable.unboundSimpleFunctions.isEmpty())
+            assert(symbolTable.unboundTypeParameters.isEmpty())
         }
-
-        private fun generateModuleStub(collector: DependenciesCollector, moduleDescriptor: ModuleDescriptor): IrModuleFragment =
-            getOrCreateModuleFragment(moduleDescriptor).also { irDependencyModule ->
-                collector.getPackageFragments(moduleDescriptor)
-                    .mapTo(irDependencyModule.externalPackageFragments) { packageFragmentDescriptor ->
-                        generatePackageStub(packageFragmentDescriptor, collector.getTopLevelDescriptors(packageFragmentDescriptor))
-                    }
-            }
-
-        private fun generatePackageStub(
-            packageFragmentDescriptor: PackageFragmentDescriptor,
-            topLevelDescriptors: Collection<DeclarationDescriptor>
-        ): IrExternalPackageFragment =
-            getOrCreatePackageFragment(packageFragmentDescriptor).also { irExternalPackageFragment ->
-                topLevelDescriptors.mapTo(irExternalPackageFragment.declarations) {
-                    stubGenerator.generateMemberStub(it)
-                }
-                irExternalPackageFragment.patchDeclarationParents()
-            }
-
-        private fun getOrCreateModuleFragment(moduleDescriptor: ModuleDescriptor) =
-            moduleFragments.getOrPut(moduleDescriptor) {
-                stubGenerator.generateEmptyModuleFragmentStub(moduleDescriptor, irBuiltIns)
-            }
-
-        private fun getOrCreatePackageFragment(packageFragmentDescriptor: PackageFragmentDescriptor) =
-            packageFragments.getOrPut(packageFragmentDescriptor) {
-                stubGenerator.generateEmptyExternalPackageFragmentStub(packageFragmentDescriptor)
-            }
-
     }
-
 }

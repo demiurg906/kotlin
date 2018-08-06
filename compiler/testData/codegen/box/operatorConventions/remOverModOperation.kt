@@ -1,4 +1,5 @@
-// IGNORE_BACKEND: JS_IR
+// !LANGUAGE: -ProhibitOperatorMod
+
 class A() {
     var x = 5
 

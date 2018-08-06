@@ -96,7 +96,7 @@ open class ModulesApiHistoryJvm(protected val modulesInfo: IncrementalModuleInfo
             return Either.Error("Could not read class list for $jar from $classListFile: $t")
         }
 
-        val classFileDirs = classFiles.groupBy { it.parentFile }
+        val classFileDirs = classFiles.filter { it.exists() && it.parentFile != null }.groupBy { it.parentFile }
         val result = HashSet<File>()
         for ((dir, files) in classFileDirs) {
             val historyEither = getBuildHistoryForDir(dir)
@@ -110,6 +110,15 @@ open class ModulesApiHistoryJvm(protected val modulesInfo: IncrementalModuleInfo
 }
 
 class ModulesApiHistoryAndroid(modulesInfo: IncrementalModuleInfo) : ModulesApiHistoryJvm(modulesInfo) {
+    private val delegate = ModulesApiHistoryJvm(modulesInfo)
+
+    override fun historyFilesForChangedFiles(changedFiles: Set<File>): Either<Set<File>> {
+        val historyFromDelegate = delegate.historyFilesForChangedFiles(changedFiles)
+        if (historyFromDelegate is Either.Success<Set<File>>) return historyFromDelegate
+
+        return super.historyFilesForChangedFiles(changedFiles)
+    }
+
     override fun getBuildHistoryFilesForJar(jar: File): Either<Set<File>> {
         // Module detection is expensive, so we don't don it for jars outside of project dir
         if (!projectRootPath.isParentOf(jar)) return Either.Error("Non-project jar is modified $jar")

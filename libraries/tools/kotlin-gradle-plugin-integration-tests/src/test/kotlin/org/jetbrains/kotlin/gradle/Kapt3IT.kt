@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.gradle
 
 import org.jetbrains.kotlin.gradle.tasks.USING_INCREMENTAL_COMPILATION_MESSAGE
 import org.jetbrains.kotlin.gradle.util.*
+import org.junit.Assert
 import org.junit.Test
 import java.io.File
 import java.util.zip.ZipFile
@@ -28,11 +29,19 @@ abstract class Kapt3BaseIT : BaseGradleIT() {
     }
 
     override fun defaultBuildOptions(): BuildOptions =
-        super.defaultBuildOptions().copy(withDaemon = true)
+        super.defaultBuildOptions().copy(kaptOptions = kaptOptions())
+
+    protected open fun kaptOptions(): KaptOptions =
+        KaptOptions(verbose = true, useWorkers = false)
 
     fun CompiledProject.assertKaptSuccessful() {
         KAPT_SUCCESSFUL_REGEX.findAll(this.output).count() > 0
     }
+}
+
+class Kapt3WorkersIT : Kapt3IT() {
+    override fun kaptOptions(): KaptOptions =
+        super.kaptOptions().copy(useWorkers = true)
 }
 
 open class Kapt3IT : Kapt3BaseIT() {
@@ -346,13 +355,22 @@ open class Kapt3IT : Kapt3BaseIT() {
 
     @Test
     fun testLocationMapping() {
+        fun String.modifyNumbers(fn: (Int) -> Int): String =
+            replace("\\d+".toRegex()) { fn(it.value.toInt()).toString() }
+
         val project = Project("locationMapping", directoryPrefix = "kapt2")
+        val regex = "((Test\\.java)|(test\\.kt)):(\\d+): error: GenError element".toRegex()
+
+        fun CompiledProject.getErrorMessages(): String =
+            regex.findAll(output)
+                .map { it.value }
+                .joinToString("\n") { if (isWindows) it.modifyNumbers { it + 1 } else it }
 
         project.build("build") {
             assertFailed()
 
-            assertContains("Test.java:9: error: GenError element")
-            assertContains("Test.java:17: error: GenError element")
+            val expected = arrayOf(9, 17).joinToString("\n") { "Test.java:$it: error: GenError element" }
+            Assert.assertEquals(expected, getErrorMessages())
         }
 
         project.projectDir.getFileByName("build.gradle").modify {
@@ -362,11 +380,8 @@ open class Kapt3IT : Kapt3BaseIT() {
         project.build("build") {
             assertFailed()
 
-            assertNotContains("Test.java:9: error: GenError element")
-            assertNotContains("Test.java:17: error: GenError element")
-
-            assertContains("test.kt:3: error: GenError element")
-            assertContains("test.kt:7: error: GenError element")
+            val expected = arrayOf(3, 7).joinToString("\n") { "test.kt:$it: error: GenError element" }
+            Assert.assertEquals(expected, getErrorMessages())
         }
     }
 

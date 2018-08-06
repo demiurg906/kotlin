@@ -1,4 +1,4 @@
-// IGNORE_BACKEND: JS_IR
+// IGNORE_BACKEND: JVM_IR
 inline fun test(s: () -> Int): Int =
         try {
             val i = s()

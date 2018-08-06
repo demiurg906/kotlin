@@ -35,7 +35,6 @@ import org.jetbrains.kotlin.test.ConfigurationKind
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.TestJdkKind
 import org.jetbrains.kotlin.test.testFramework.KtUsefulTestCase
-import org.jetbrains.kotlin.util.KotlinFrontEndException
 import org.jetbrains.kotlin.utils.PathUtil
 import org.junit.Assert
 import java.io.File
@@ -312,16 +311,10 @@ class ScriptTemplateTest : KtUsefulTestCase() {
     }
 
     fun testScriptWithNoMatchingTemplate() {
-        try {
-            compileScript("fib.kts", ScriptWithDifferentFileNamePattern::class, null)
-            Assert.fail("should throw compilation error")
-        }
-        catch (e: KotlinFrontEndException) {
-            if (e.message?.contains("Should not parse a script without definition") != true) {
-                // unexpected error
-                throw e
-            }
-        }
+        val messageCollector = TestMessageCollector()
+        val aClass =
+            compileScript("without_params.kts", ScriptWithDifferentFileNamePattern::class, null, messageCollector = messageCollector)
+        Assert.assertNotNull("Compilation failed:\n$messageCollector", aClass)
     }
 
     private fun compileScript(
@@ -354,6 +347,7 @@ class ScriptTemplateTest : KtUsefulTestCase() {
             configuration.put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
             configuration.addKotlinSourceRoot(scriptPath)
             configuration.add(JVMConfigurationKeys.SCRIPT_DEFINITIONS, scriptDefinition)
+            configuration.put(JVMConfigurationKeys.DISABLE_STANDARD_SCRIPT_DEFINITION, true)
             configuration.put(JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY, true)
 
             val environment = KotlinCoreEnvironment.createForTests(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)

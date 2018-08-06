@@ -61,6 +61,8 @@ public class KotlinCommonCodeStyleSettings extends CommonCodeStyleSettings {
 
         if (KotlinStyleGuideCodeStyle.CODE_STYLE_ID.equals(tempDeserialize.CODE_STYLE_DEFAULTS)) {
             KotlinStyleGuideCodeStyle.Companion.applyToCommonSettings(this, true);
+        } else if (KotlinObsoleteCodeStyle.CODE_STYLE_ID.equals(tempDeserialize.CODE_STYLE_DEFAULTS)) {
+            KotlinObsoleteCodeStyle.Companion.applyToCommonSettings(this, true);
         }
 
         readExternalBase(element);
@@ -70,8 +72,12 @@ public class KotlinCommonCodeStyleSettings extends CommonCodeStyleSettings {
     public void writeExternal(Element element) throws WriteExternalException {
         CommonCodeStyleSettings defaultSettings = getDefaultSettings();
 
-        if (defaultSettings != null && KotlinStyleGuideCodeStyle.CODE_STYLE_ID.equals(CODE_STYLE_DEFAULTS)) {
-            KotlinStyleGuideCodeStyle.Companion.applyToCommonSettings(defaultSettings, false);
+        if (defaultSettings != null) {
+            if (KotlinStyleGuideCodeStyle.CODE_STYLE_ID.equals(CODE_STYLE_DEFAULTS)) {
+                KotlinStyleGuideCodeStyle.Companion.applyToCommonSettings(defaultSettings, false);
+            } else if (KotlinObsoleteCodeStyle.CODE_STYLE_ID.equals(CODE_STYLE_DEFAULTS)) {
+                KotlinObsoleteCodeStyle.Companion.applyToCommonSettings(defaultSettings, false);
+            }
         }
 
         writeExternalBase(element, defaultSettings);
@@ -90,7 +96,7 @@ public class KotlinCommonCodeStyleSettings extends CommonCodeStyleSettings {
         }
         //noinspection deprecation
         DefaultJDOMExternalizer.writeExternal(this, element, new SupportedFieldsDiffFilter(this, supportedFields, defaultSettings));
-        @SuppressWarnings("IncompatibleAPI") List<Integer> softMargins = getSoftMargins();
+        List<Integer> softMargins = getSoftMargins();
         serializeInto(softMargins, element);
 
         IndentOptions myIndentOptions = getIndentOptions();
@@ -148,7 +154,6 @@ public class KotlinCommonCodeStyleSettings extends CommonCodeStyleSettings {
             if (setRootSettingsMethod != null) {
                 // Method was introduced in 173
                 setRootSettingsMethod.setAccessible(true);
-                //noinspection IncompatibleAPI
                 setRootSettingsMethod.invoke(commonSettings, getSoftMargins());
             }
         }
@@ -170,7 +175,6 @@ public class KotlinCommonCodeStyleSettings extends CommonCodeStyleSettings {
         }
 
         CommonCodeStyleSettings other = (CommonCodeStyleSettings) obj;
-        //noinspection IncompatibleAPI
         if (!getSoftMargins().equals(other.getSoftMargins())) {
             return false;
         }

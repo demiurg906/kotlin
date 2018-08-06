@@ -24,7 +24,7 @@ abstract class KotlinScriptDefinitionAdapterFromNewAPIBase : KotlinScriptDefinit
 
     protected abstract val scriptDefinition: ScriptDefinition
 
-    protected abstract val scriptFileExtensionWithDot: String
+    abstract val scriptFileExtensionWithDot: String
 
     open val baseClass: KClass<*> by lazy(LazyThreadSafetyMode.PUBLICATION) {
         getScriptingClass(scriptDefinition.compilationConfigurator.defaultConfiguration[ScriptingEnvironmentProperties.baseClass])
@@ -78,6 +78,14 @@ abstract class KotlinScriptDefinitionAdapterFromNewAPIBase : KotlinScriptDefinit
             ScriptExpectedLocation.SourcesOnly,
             ScriptExpectedLocation.TestsOnly
         )
+
+    override val targetClassAnnotations: List<Annotation>
+        get() = scriptDefinition.compilationConfigurator.defaultConfiguration.getOrNull(ScriptCompileConfigurationProperties.generatedClassAnnotations)
+            .orEmpty()
+
+    override val targetMethodAnnotations: List<Annotation>
+        get() = scriptDefinition.compilationConfigurator.defaultConfiguration.getOrNull(ScriptCompileConfigurationProperties.generatedMethodAnnotations)
+            .orEmpty()
 
     private val scriptingClassGetter by lazy(LazyThreadSafetyMode.PUBLICATION) {
         scriptDefinition.properties.getOrNull(ScriptingEnvironmentProperties.getScriptingClass)

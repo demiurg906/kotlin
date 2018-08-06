@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.KtNodeTypes.*
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.core.formatter.KotlinCodeStyleSettings
 import org.jetbrains.kotlin.idea.formatter.NodeIndentStrategy.Companion.strategy
+import org.jetbrains.kotlin.idea.util.requireNode
 import org.jetbrains.kotlin.kdoc.lexer.KDocTokens
 import org.jetbrains.kotlin.kdoc.parser.KDocElementTypes
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -156,7 +157,7 @@ abstract class KotlinCommonBlock(
     private fun List<ASTBlock>.splitAtIndex(index: Int, indent: Indent?, wrap: Wrap?): List<ASTBlock> {
         val operationBlock = this[index]
         val operationSyntheticBlock = SyntheticKotlinBlock(
-            operationBlock.node,
+            operationBlock.requireNode(),
             subList(index, size),
             null, indent, wrap, spacingBuilder
         ) { createSyntheticSpacingNodeBlock(it) }
@@ -177,7 +178,7 @@ abstract class KotlinCommonBlock(
     }
 
     private fun isCallBlock(astBlock: ASTBlock): Boolean {
-        val node = astBlock.node
+        val node = astBlock.requireNode()
         return node.elementType in QUALIFIED_EXPRESSIONS && node.lastChildNode?.elementType == KtNodeTypes.CALL_EXPRESSION
     }
 
@@ -193,9 +194,15 @@ abstract class KotlinCommonBlock(
     private fun splitSubBlocksOnElvis(nodeSubBlocks: List<ASTBlock>): List<ASTBlock> {
         val elvisIndex = nodeSubBlocks.indexOfBlockWithType(ELVIS_SET)
         if (elvisIndex >= 0) {
+            val indent = if (settings.kotlinCustomSettings.CONTINUATION_INDENT_IN_ELVIS) {
+                Indent.getContinuationIndent()
+            } else {
+                Indent.getNormalIndent()
+            }
+
             return nodeSubBlocks.splitAtIndex(
                 elvisIndex,
-                Indent.getContinuationIndent(),
+                indent,
                 null
             )
         }
@@ -260,7 +267,7 @@ abstract class KotlinCommonBlock(
 
         if (type == IF) {
             val elseBlock = mySubBlocks?.getOrNull(newChildIndex)
-            if (elseBlock != null && elseBlock.node.elementType == KtTokens.ELSE_KEYWORD) {
+            if (elseBlock != null && elseBlock.requireNode().elementType == KtTokens.ELSE_KEYWORD) {
                 return ChildAttributes.DELEGATE_TO_NEXT_CHILD
             }
         }
@@ -660,8 +667,9 @@ private val INDENT_RULES = arrayOf(
         .within(KtNodeTypes.BODY).notForType(KtNodeTypes.BLOCK)
         .set(Indent.getNormalIndent()),
 
-    strategy("For the entry in when")
-        .forType(KtNodeTypes.WHEN_ENTRY)
+    strategy("For WHEN content")
+        .within(KtNodeTypes.WHEN)
+        .notForType(RBRACE, LBRACE, WHEN_KEYWORD)
         .set(Indent.getNormalIndent()),
 
     strategy("For single statement in THEN and ELSE")

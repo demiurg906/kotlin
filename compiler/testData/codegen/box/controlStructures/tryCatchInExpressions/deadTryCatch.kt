@@ -1,4 +1,4 @@
-// IGNORE_BACKEND: JS_IR
+// IGNORE_BACKEND: JVM_IR
 inline fun catchAll(x: String, block: () -> Unit): String {
     try {
         block()

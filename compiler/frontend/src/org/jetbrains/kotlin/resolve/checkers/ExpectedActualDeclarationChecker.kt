@@ -92,8 +92,25 @@ object ExpectedActualDeclarationChecker : DeclarationChecker {
         }
     }
 
-    internal fun isOptionalAnnotationClass(descriptor: DeclarationDescriptor): Boolean {
-        return descriptor.annotations.hasAnnotation(OPTIONAL_EXPECTATION_FQ_NAME)
+    @JvmStatic
+    fun isOptionalAnnotationClass(descriptor: DeclarationDescriptor): Boolean =
+        descriptor is ClassDescriptor &&
+                descriptor.kind == ClassKind.ANNOTATION_CLASS &&
+                descriptor.isExpect &&
+                descriptor.annotations.hasAnnotation(OPTIONAL_EXPECTATION_FQ_NAME)
+
+    // TODO: move to some other place which is accessible both from backend-common and js.serializer
+    @JvmStatic
+    fun shouldGenerateExpectClass(descriptor: ClassDescriptor): Boolean {
+        assert(descriptor.isExpect) { "Not an expected class: $descriptor" }
+
+        if (ExpectedActualDeclarationChecker.isOptionalAnnotationClass(descriptor)) {
+            with(ExpectedActualResolver) {
+                return descriptor.findCompatibleActualForExpected(descriptor.module).isEmpty()
+            }
+        }
+
+        return false
     }
 
     private fun ExpectActualTracker.reportExpectActual(expected: MemberDescriptor, actualMembers: Sequence<MemberDescriptor>) {
@@ -135,7 +152,7 @@ object ExpectedActualDeclarationChecker : DeclarationChecker {
             if (compatibility.allStrongIncompatibilities()) return
 
             if (Compatible in compatibility) {
-                if (checkActual && requireActualModifier(descriptor, trace)) {
+                if (checkActual && requireActualModifier(descriptor)) {
                     trace.report(Errors.ACTUAL_MISSING.on(reportOn))
                 }
 
@@ -204,16 +221,14 @@ object ExpectedActualDeclarationChecker : DeclarationChecker {
     //  - annotation constructors, because annotation classes can only have one constructor
     //  - inline class primary constructors, because inline class must have primary constructor
     //  - value parameter inside primary constructor of inline class, because inline class must have one value parameter
-    private fun requireActualModifier(descriptor: MemberDescriptor, trace: BindingTrace): Boolean {
+    private fun requireActualModifier(descriptor: MemberDescriptor): Boolean {
         return !descriptor.isAnnotationConstructor() &&
                 !descriptor.isPrimaryConstructorOfInlineClass() &&
-                !isMainPropertyOfInlineClass(descriptor, trace)
+                !isUnderlyingPropertyOfInlineClass(descriptor)
     }
 
-    private fun isMainPropertyOfInlineClass(descriptor: MemberDescriptor, trace: BindingTrace): Boolean {
-        if (descriptor !is PropertyDescriptor) return false
-        if (!descriptor.containingDeclaration.isInlineClass()) return false
-        return trace.bindingContext[BindingContext.BACKING_FIELD_REQUIRED, descriptor] == true
+    private fun isUnderlyingPropertyOfInlineClass(descriptor: MemberDescriptor): Boolean {
+        return descriptor is PropertyDescriptor && descriptor.isUnderlyingPropertyOfInlineClass()
     }
 
     // This should ideally be handled by CallableMemberDescriptor.Kind, but default constructors have kind DECLARATION and non-empty source.

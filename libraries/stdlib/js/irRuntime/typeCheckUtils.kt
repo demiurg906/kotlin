@@ -5,16 +5,13 @@
 
 package kotlin.js
 
-@kotlin.internal.DynamicExtension
-public fun <T> dynamic.unsafeCast(): T = this
-
 private fun isInterfaceImpl(ctor: dynamic, iface: dynamic): Boolean {
     if (ctor === iface) return true;
 
     val self = ::isInterfaceImpl
     return js(
         """
-    var metadata = ctor.${'$'}metadata${'$'};
+    var metadata = ctor.${"$"}metadata${"$"};
     if (metadata != null) {
         var interfaces = metadata.interfaces;
         for (var i = 0; i < interfaces.length; i++) {
@@ -75,7 +72,7 @@ public fun isInterface(ctor: dynamic, IType: dynamic): Boolean {
 }
 */
 
-inline private fun typeOf(obj: dynamic) = js("typeof obj").unsafeCast<String>()
+fun typeOf(obj: dynamic) = js("typeof obj").unsafeCast<String>()
 
 fun isObject(obj: dynamic): Boolean {
     val objTypeOf = typeOf(obj)
@@ -92,6 +89,10 @@ fun isObject(obj: dynamic): Boolean {
 public fun isArray(obj: Any): Boolean {
     return js("Array.isArray(obj)").unsafeCast<Boolean>()
 }
+
+public fun isArrayish(o: dynamic) =
+    isArray(o) || js("ArrayBuffer.isView(o)").unsafeCast<Boolean>()
+
 
 public fun isChar(c: Any): Boolean {
     return js("throw Error(\"isChar is not implemented\")").unsafeCast<Boolean>()

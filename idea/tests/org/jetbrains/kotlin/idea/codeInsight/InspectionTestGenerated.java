@@ -204,6 +204,11 @@ public class InspectionTestGenerated extends AbstractInspectionTest {
             runTest("idea/testData/inspections/memberVisibilityCanBePrivate/inspectionData/inspections.test");
         }
 
+        @TestMetadata("migrationFromClosedRange/inspectionData/inspections.test")
+        public void testMigrationFromClosedRange_inspectionData_Inspections_test() throws Exception {
+            runTest("idea/testData/inspections/migrationFromClosedRange/inspectionData/inspections.test");
+        }
+
         @TestMetadata("naming/class/inspectionData/inspections.test")
         public void testNaming_class_inspectionData_Inspections_test() throws Exception {
             runTest("idea/testData/inspections/naming/class/inspectionData/inspections.test");
@@ -297,6 +302,11 @@ public class InspectionTestGenerated extends AbstractInspectionTest {
         @TestMetadata("redundantVisibilityModifier/inspectionData/inspections.test")
         public void testRedundantVisibilityModifier_inspectionData_Inspections_test() throws Exception {
             runTest("idea/testData/inspections/redundantVisibilityModifier/inspectionData/inspections.test");
+        }
+
+        @TestMetadata("redundantWith/inspectionData/inspections.test")
+        public void testRedundantWith_inspectionData_Inspections_test() throws Exception {
+            runTest("idea/testData/inspections/redundantWith/inspectionData/inspections.test");
         }
 
         @TestMetadata("reformat/inspectionData/inspections.test")
