@@ -5,7 +5,7 @@ import kotlin.reflect.KClass
 // TODO: переписать на английском
 // базовый интерфейс для всех контекстуальных эффектов
 interface ContextualEffect {
-    val effectClazz: KClass<out ContextualEffect>
+    val effectClass: KClass<out ContextualEffect>
     // ссылки на supplier'а и consumer'а для этого эффекта
     val supplier: KClass<out EffectSupplier>
     val consumer: KClass<out EffectConsumer>

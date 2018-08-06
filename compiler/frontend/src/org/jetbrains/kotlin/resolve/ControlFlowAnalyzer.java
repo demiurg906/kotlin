@@ -19,7 +19,7 @@ package org.jetbrains.kotlin.resolve;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
-import org.jetbrains.kotlin.cfg.ControlFlowInformationProvider;
+import org.jetbrains.kotlin.cfg.variable.ControlFlowInformationProvider;
 import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.descriptors.PropertyAccessorDescriptor;
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor;
@@ -67,8 +67,8 @@ public class ControlFlowAnalyzer {
             KtNamedFunction function = entry.getKey();
             SimpleFunctionDescriptor functionDescriptor = entry.getValue();
             KotlinType expectedReturnType = !function.hasBlockBody() && !function.hasDeclaredReturnType()
-                                               ? NO_EXPECTED_TYPE
-                                               : functionDescriptor.getReturnType();
+                                            ? NO_EXPECTED_TYPE
+                                            : functionDescriptor.getReturnType();
             checkFunction(c, function, expectedReturnType);
         }
         for (Map.Entry<KtProperty, PropertyDescriptor> entry : c.getProperties().entrySet()) {
