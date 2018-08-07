@@ -19,7 +19,8 @@ package org.jetbrains.kotlin.resolve;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
-import org.jetbrains.kotlin.cfg.variable.ControlFlowInformationProvider;
+import org.jetbrains.kotlin.cfg.ControlFlowInformationProvider;
+import org.jetbrains.kotlin.config.LanguageFeature;
 import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.descriptors.PropertyAccessorDescriptor;
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor;
@@ -76,6 +77,10 @@ public class ControlFlowAnalyzer {
             PropertyDescriptor propertyDescriptor = entry.getValue();
             checkProperty(c, property, propertyDescriptor);
         }
+        for (Map.Entry<KtNamedFunction, SimpleFunctionDescriptor> entry : c.getFunctions().entrySet()) {
+            KtNamedFunction function = entry.getKey();
+            checkContextualEffects(c, function);
+        }
     }
 
     private void checkSecondaryConstructor(@NotNull KtSecondaryConstructor constructor) {
@@ -120,5 +125,16 @@ public class ControlFlowAnalyzer {
         }
         controlFlowInformationProvider.checkDeclaration();
         controlFlowInformationProvider.checkFunction(expectedReturnType);
+    }
+
+    private void checkContextualEffects(
+            @NotNull BodiesResolveContext c, @NotNull KtDeclarationWithBody function
+    ) {
+        if (!languageVersionSettings.supportsFeature(LanguageFeature.ContextualEffects)) {
+            return;
+        }
+        ControlFlowInformationProvider controlFlowEffectsInformationProvider =
+                new ControlFlowInformationProvider(function, trace, languageVersionSettings, diagnosticSuppressor);
+        controlFlowEffectsInformationProvider.checkDeclarationContextualEffects();
     }
 }

@@ -6,7 +6,16 @@
 package org.jetbrains.kotlin.contracts.contextual
 
 // интерфейс для решетки над множествами эффектов
-interface EffectLattice<T : ContextualEffect> {
-    fun and(a: Set<T>, b: Set<T>): Set<T>
-    fun or(a: Set<T>, b: Set<T>): Set<T>
+interface EffectLattice {
+    val family: ContextualEffectFamily
+
+    fun and(a: ContextualEffectsHolder, b: ContextualEffectsHolder): ContextualEffectsHolder
+    fun or(a: ContextualEffectsHolder, b: ContextualEffectsHolder): ContextualEffectsHolder
+
+    // TODO: maybe switch semantics of `top` and `bot`
+    // bot `or` x = x
+    fun bot(): ContextualEffectsHolder
+
+    // top `and` x = x
+    fun top(): ContextualEffectsHolder
 }

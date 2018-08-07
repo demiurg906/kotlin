@@ -3,12 +3,12 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.cfg.variable
+package org.jetbrains.kotlin.cfg
 
 import com.intellij.psi.util.PsiTreeUtil.getParentOfType
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.cfg.*
 import org.jetbrains.kotlin.cfg.TailRecursionKind.*
+import org.jetbrains.kotlin.cfg.effects.PseudocodeEffectsData
 import org.jetbrains.kotlin.cfg.pseudocode.Pseudocode
 import org.jetbrains.kotlin.cfg.pseudocode.PseudocodeUtil
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
@@ -20,9 +20,11 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.MarkInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.VariableDeclarationInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.sideEffectFree
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.*
+import org.jetbrains.kotlin.cfg.variable.*
 import org.jetbrains.kotlin.cfg.variable.VariableUseState.*
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSystem
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
@@ -61,6 +63,10 @@ class ControlFlowInformationProvider private constructor(
 
     private val pseudocodeVariablesData by lazy {
         PseudocodeVariablesData(pseudocode, trace.bindingContext)
+    }
+
+    private val pseudocodeEffectsData by lazy {
+        PseudocodeEffectsData(pseudocode, trace.bindingContext)
     }
 
     constructor(
@@ -117,6 +123,24 @@ class ControlFlowInformationProvider private constructor(
         checkDefiniteReturn(expectedReturnType ?: NO_EXPECTED_TYPE, unreachableCode)
 
         markAndCheckTailCalls()
+    }
+
+    fun checkDeclarationContextualEffects() {
+        val descriptor = trace.bindingContext[BindingContext.FUNCTION, subroutine] ?: throw IllegalStateException("must be not null")
+        val allConsumers = ContextualEffectSystem.declaredConsumers(descriptor).groupBy { it.family }
+
+        val controlFlowInfo = pseudocodeEffectsData.controlFlowInfo ?: throw IllegalStateException("must be not null")
+        for ((family, consumers) in allConsumers) {
+            var context = controlFlowInfo[family].getOrElse(family.emptyHolder())
+            for (consumer in consumers) {
+                val (newContext, fine) = consumer.consume(context)
+                context = newContext
+                if (!fine) {
+                    TODO("report warning")
+                }
+            }
+        }
+
     }
 
     private fun collectReturnExpressions(returnedExpressions: MutableCollection<KtElement>) {

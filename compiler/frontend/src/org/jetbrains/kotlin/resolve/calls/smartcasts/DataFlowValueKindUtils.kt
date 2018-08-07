@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.resolve.calls.smartcasts
 
-import org.jetbrains.kotlin.cfg.variable.ControlFlowInformationProvider
+import org.jetbrains.kotlin.cfg.ControlFlowInformationProvider
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.*

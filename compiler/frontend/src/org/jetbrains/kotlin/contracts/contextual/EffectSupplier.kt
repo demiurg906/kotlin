@@ -5,10 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.contextual
 
-// базовый интерфейс для всех supplier'ов эффектов
-// логика всех supplier'ов крайне проста -- просто сделать эффект
-// возможно можно даже в реализации не использовать никаких supplier'ов
-// строчка `supplies MyEffect()` будет просто вызывать конструктор
 interface EffectSupplier {
-    fun supply(): ContextualEffect
+    val family: ContextualEffectFamily
+    fun supply(context: ContextualEffectsHolder): ContextualEffectsHolder
 }
