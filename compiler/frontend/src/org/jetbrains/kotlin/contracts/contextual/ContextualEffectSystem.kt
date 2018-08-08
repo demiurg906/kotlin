@@ -8,9 +8,16 @@ package org.jetbrains.kotlin.contracts.contextual
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 
 object ContextualEffectSystem {
-    fun declaredSuppliers(declaration: FunctionDescriptor): Set<EffectSupplier> = TODO()
-    fun declaredConsumers(declaration: FunctionDescriptor): Set<EffectConsumer> = TODO()
+    fun declaredSuppliers(declaration: FunctionDescriptor): Set<EffectSupplier> = dirtyMockDeclaredSuppliers(declaration)
+    fun declaredConsumers(declaration: FunctionDescriptor): Set<EffectConsumer> = dirtyMockDeclaredConsumers(declaration)
 
+    private val parsers = ContextualEffectFamily.ALL_FAMILIES.map { it.newParser() }
 
+    private fun dirtyMockDeclaredSuppliers(declaration: FunctionDescriptor): Set<EffectSupplier> {
+        return parsers.map { it.parseDeclarationForSupplier(declaration) }.filterNotNull().toSet()
+    }
 
+    private fun dirtyMockDeclaredConsumers(declaration: FunctionDescriptor): Set<EffectConsumer> {
+        return parsers.map { it.parseDeclarationForConsumer(declaration) }.filterNotNull().toSet()
+    }
 }

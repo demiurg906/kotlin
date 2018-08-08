@@ -165,6 +165,42 @@ public class PseudoValueTestGenerated extends AbstractPseudoValueTest {
             }
         }
 
+        @TestMetadata("compiler/testData/cfg/contextualEffects")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class ContextualEffects extends AbstractPseudoValueTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInContextualEffects() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/cfg/contextualEffects"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+            }
+
+            @TestMetadata("compiler/testData/cfg/contextualEffects/exceptions")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class Exceptions extends AbstractPseudoValueTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInExceptions() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/cfg/contextualEffects/exceptions"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+                }
+
+                @TestMetadata("if.kt")
+                public void testIf() throws Exception {
+                    runTest("compiler/testData/cfg/contextualEffects/exceptions/if.kt");
+                }
+
+                @TestMetadata("simpleException.kt")
+                public void testSimpleException() throws Exception {
+                    runTest("compiler/testData/cfg/contextualEffects/exceptions/simpleException.kt");
+                }
+            }
+        }
+
         @TestMetadata("compiler/testData/cfg/controlStructures")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)

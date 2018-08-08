@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.cfg.variable.*
 import org.jetbrains.kotlin.cfg.variable.VariableUseState.*
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSystem
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Diagnostic
@@ -129,7 +130,7 @@ class ControlFlowInformationProvider private constructor(
         val descriptor = trace.bindingContext[BindingContext.FUNCTION, subroutine] ?: throw IllegalStateException("must be not null")
         val allConsumers = ContextualEffectSystem.declaredConsumers(descriptor).groupBy { it.family }
 
-        val controlFlowInfo = pseudocodeEffectsData.controlFlowInfo ?: throw IllegalStateException("must be not null")
+        var controlFlowInfo = pseudocodeEffectsData.controlFlowInfo ?: throw IllegalStateException("must be not null")
         for ((family, consumers) in allConsumers) {
             var context = controlFlowInfo[family].getOrElse(family.emptyHolder())
             for (consumer in consumers) {
@@ -139,8 +140,17 @@ class ControlFlowInformationProvider private constructor(
                     TODO("report warning")
                 }
             }
+            controlFlowInfo = controlFlowInfo.put(family, context)
         }
 
+        val allCheckers = ContextualEffectFamily.ALL_FAMILIES.map { it to it.contextChecker() }
+        for ((family, checker) in allCheckers) {
+            val context = controlFlowInfo[family].firstOrNull() ?: continue
+            val fine = checker.checkContext(context)
+            if (!fine) {
+                TODO("report warning")
+            }
+        }
     }
 
     private fun collectReturnExpressions(returnedExpressions: MutableCollection<KtElement>) {

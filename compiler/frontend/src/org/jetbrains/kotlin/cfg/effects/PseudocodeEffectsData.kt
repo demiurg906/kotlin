@@ -32,13 +32,17 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode, private val bindingConte
             ::update,
             EffectsControlFlowInfo()
         )
-        // TODO: may be problems with sink
+        // TODO: may be problems with sink (or exit?)
         return data[pseudocode.sinkInstruction]?.incoming
     }
 
     private fun merge(instruction: Instruction, incoming: Collection<EffectsControlFlowInfo>): Edges<EffectsControlFlowInfo> {
         // может ли incoming быть пустым?
-        val incomingContext = if (incoming.size > 1) mergeMultipleEdges(incoming) else incoming.first()
+        val incomingContext = when(incoming.size) {
+            0 -> EffectsControlFlowInfo()
+            1 -> incoming.first()
+            else -> mergeMultipleEdges(incoming)
+        }
         val visitor = EffectsInstructionVisitor(incomingContext)
         val outgoingContext = instruction.accept(visitor)
         return Edges(incomingContext, outgoingContext)

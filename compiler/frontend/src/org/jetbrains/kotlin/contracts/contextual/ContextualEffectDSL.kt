@@ -8,4 +8,4 @@ package org.jetbrains.kotlin.contracts.contextual
 // пустой интерфейс, от которого наследуются классы, с помощью которых
 //  пользователь описывает контракт на ContractsDSL
 // этот интерфейс никак не связан с ContextualEffect
-interface ContextualEffectDSL {}
+interface ContextualEffectDSL

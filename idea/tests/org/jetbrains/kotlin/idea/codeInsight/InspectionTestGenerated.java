@@ -359,11 +359,6 @@ public class InspectionTestGenerated extends AbstractInspectionTest {
             runTest("idea/testData/inspections/suspiciousEqualsCombination/inspectionData/inspections.test");
         }
 
-        @TestMetadata("twoSetOfTypeparameters/inspectionData/inspections.test")
-        public void testTwoSetOfTypeparameters_inspectionData_Inspections_test() throws Exception {
-            runTest("idea/testData/inspections/twoSetOfTypeparameters/inspectionData/inspections.test");
-        }
-
         @TestMetadata("unusedEquals/inspectionData/inspections.test")
         public void testUnusedEquals_inspectionData_Inspections_test() throws Exception {
             runTest("idea/testData/inspections/unusedEquals/inspectionData/inspections.test");
