@@ -8,7 +8,5 @@ package org.jetbrains.kotlin.contracts.contextual
 interface EffectConsumer {
     val family: ContextualEffectFamily
 
-    fun consume(context: ContextualEffectsHolder): ConsumeResult
-
-    data class ConsumeResult(val context: ContextualEffectsHolder, val fine: Boolean)
+    fun consume(context: ContextualEffectsHolder): ContextualEffectsHolder
 }

@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.contracts.contextual.EffectConsumer
 class ExceptionEffectConsumer(val exception: String) : EffectConsumer {
     override val family = ContextualEffectFamily.EXCEPTION
 
-    override fun consume(context: ContextualEffectsHolder): EffectConsumer.ConsumeResult {
+    override fun consume(context: ContextualEffectsHolder): ExceptionEffectsHolder{
         if (context !is ExceptionEffectsHolder) {
             throw AssertionError()
         }
@@ -21,8 +21,8 @@ class ExceptionEffectConsumer(val exception: String) : EffectConsumer {
         if (effect in context.effects) {
             val effects = context.effects.toMutableSet()
             effects.remove(effect)
-            return EffectConsumer.ConsumeResult(ExceptionEffectsHolder(effects), true)
+            return ExceptionEffectsHolder(effects)
         }
-        return EffectConsumer.ConsumeResult(context, true)
+        return context
     }
 }

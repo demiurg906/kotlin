@@ -7,4 +7,6 @@ package org.jetbrains.kotlin.contracts.contextual
 
 // some abstract collection (not Collection interface) that holds effects that belongs to one family
 // !!! ContextualEffectsHolder is immutable data structure !!!
-interface ContextualEffectsHolder
+interface ContextualEffectsHolder {
+    val family: ContextualEffectFamily
+}

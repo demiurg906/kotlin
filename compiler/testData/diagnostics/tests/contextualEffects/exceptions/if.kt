@@ -1,17 +1,19 @@
+// !LANGUAGE: +ContextualEffects
+
 fun foo(b: Boolean) {
     // contract { consumes Exception("aaa") }
     if (b) {
         bar()
     } else {
-        val x = 10
+        val <!UNUSED_VARIABLE!>x<!> = 10
     }
 }
 
-fun bad(b: Boolean) {
+<!CONTEXTUAL_EFFECT_WARNING!>fun bad(b: Boolean)<!> {
     if (b) {
         bar()
     } else {
-        val x = 10
+        val <!UNUSED_VARIABLE!>x<!> = 10
     }
 }
 

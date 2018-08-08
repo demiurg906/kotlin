@@ -1044,6 +1044,9 @@ public interface Errors {
     DiagnosticFactory1<KtElement, String> ERROR_IN_CONTRACT_DESCRIPTION = DiagnosticFactory1.create(ERROR);
     DiagnosticFactory0<KtElement> CONTRACT_NOT_ALLOWED = DiagnosticFactory0.create(ERROR);
 
+    // Contextual effects
+    DiagnosticFactory1<PsiElement, String> CONTEXTUAL_EFFECT_WARNING = DiagnosticFactory1.create(WARNING, DECLARATION_SIGNATURE_OR_DEFAULT);
+
     // Error sets
     ImmutableSet<? extends DiagnosticFactory<?>> UNRESOLVED_REFERENCE_DIAGNOSTICS = ImmutableSet.of(
             UNRESOLVED_REFERENCE, NAMED_PARAMETER_NOT_FOUND, UNRESOLVED_REFERENCE_WRONG_RECEIVER);

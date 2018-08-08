@@ -3306,6 +3306,67 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
             }
         }
 
+        @TestMetadata("compiler/testData/diagnostics/tests/contextualEffects")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class ContextualEffects extends AbstractDiagnosticsUsingJavacTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInContextualEffects() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/contextualEffects"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+            }
+
+            @TestMetadata("compiler/testData/diagnostics/tests/contextualEffects/exceptions")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class Exceptions extends AbstractDiagnosticsUsingJavacTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInExceptions() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/contextualEffects/exceptions"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+                }
+
+                @TestMetadata("doWhile.kt")
+                public void testDoWhile() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/doWhile.kt");
+                }
+
+                @TestMetadata("for.kt")
+                public void testFor() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/for.kt");
+                }
+
+                @TestMetadata("if.kt")
+                public void testIf() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/if.kt");
+                }
+
+                @TestMetadata("noIf.kt")
+                public void testNoIf() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/noIf.kt");
+                }
+
+                @TestMetadata("noWhile.kt")
+                public void testNoWhile() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/noWhile.kt");
+                }
+
+                @TestMetadata("simple.kt")
+                public void testSimple() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/simple.kt");
+                }
+
+                @TestMetadata("while.kt")
+                public void testWhile() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/while.kt");
+                }
+            }
+        }
+
         @TestMetadata("compiler/testData/diagnostics/tests/controlFlowAnalysis")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)

@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSystem
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
@@ -130,15 +131,14 @@ class ControlFlowInformationProvider private constructor(
         val descriptor = trace.bindingContext[BindingContext.FUNCTION, subroutine] ?: throw IllegalStateException("must be not null")
         val allConsumers = ContextualEffectSystem.declaredConsumers(descriptor).groupBy { it.family }
 
+        // TODO: переписать вызов диагностик так, чтобы сначала пробегали все consumer'ы
+        // потом все checker'ы, после чего репортились диагностики
         var controlFlowInfo = pseudocodeEffectsData.controlFlowInfo ?: throw IllegalStateException("must be not null")
         for ((family, consumers) in allConsumers) {
             var context = controlFlowInfo[family].getOrElse(family.emptyHolder())
             for (consumer in consumers) {
-                val (newContext, fine) = consumer.consume(context)
+                val newContext = consumer.consume(context)
                 context = newContext
-                if (!fine) {
-                    TODO("report warning")
-                }
             }
             controlFlowInfo = controlFlowInfo.put(family, context)
         }
@@ -146,10 +146,7 @@ class ControlFlowInformationProvider private constructor(
         val allCheckers = ContextualEffectFamily.ALL_FAMILIES.map { it to it.contextChecker() }
         for ((family, checker) in allCheckers) {
             val context = controlFlowInfo[family].firstOrNull() ?: continue
-            val fine = checker.checkContext(context)
-            if (!fine) {
-                TODO("report warning")
-            }
+            report(subroutine, context)
         }
     }
 
@@ -1018,6 +1015,14 @@ class ControlFlowInformationProvider private constructor(
 
     ////////////////////////////////////////////////////////////////////////////////
     // Utility classes and methods
+
+    private fun report(element: KtElement, context: ContextualEffectsHolder) {
+        val checker = context.family.contextChecker()
+        val diagnostics = checker.generateDiagnostics(element, context)
+        for (diagnostic in diagnostics) {
+            trace.report(diagnostic)
+        }
+    }
 
     /**
      * The method provides reporting of the same diagnostic only once for copied instructions

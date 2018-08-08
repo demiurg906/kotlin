@@ -9,6 +9,9 @@ fun bar() {
     // contract { supplies Exception("aaa") }
 }
 
-fun bad() {
-    bar()
+<!CONTEXTUAL_EFFECT_WARNING!>fun bad()<!> {
+    if (false) {
+        bar()
+    }
 }
+
