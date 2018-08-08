@@ -1,22 +1,23 @@
 // !LANGUAGE: +ContextualEffects
 
-fun foo(y: Int) {
-    // contract { consumes Exception("aaa") }
-    var x = y
-    while (x < 10) {
-        bar()
-        x += 1
-    }
+fun supplier() {
+    // contract { supplies Exception("Exception") }
 }
 
-fun bar() {
-    // contract { supplies Exception("aaa") }
+// good
+fun consumer(y: Int) {
+    // contract { consumes Exception("Exception") }
+    var x = y
+    while (x < 10) {
+        supplier()
+        x += 1
+    }
 }
 
 <!CONTEXTUAL_EFFECT_WARNING!>fun bad(y: Int)<!> {
     var x = y
     while (x < 10) {
-        bar()
+        supplier()
         x += 1
     }
 }

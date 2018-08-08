@@ -11,16 +11,26 @@ import org.jetbrains.kotlin.contracts.contextual.EffectSupplier
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 
 class ExceptionEffectParser : ContextualEffectParser {
+    companion object {
+        private const val SUPPLIER = "supplier"
+        private const val CONSUMER = "consumer"
+        private const val EXCEPTION = "Exception"
+    }
+
     override fun parseDeclarationForSupplier(declaration: FunctionDescriptor): EffectSupplier? {
-        if (declaration.name.asString() == "bar") {
-            return ExceptionEffectSupplier("aaa")
+        val name = declaration.name.asString()
+        if (name.startsWith(SUPPLIER)) {
+            val exception = name.split("_").getOrNull(1) ?: EXCEPTION
+            return ExceptionEffectSupplier(exception)
         }
         return null
     }
 
     override fun parseDeclarationForConsumer(declaration: FunctionDescriptor): EffectConsumer? {
-        if (declaration.name.asString() == "foo") {
-            return ExceptionEffectConsumer("aaa")
+        val name = declaration.name.asString()
+        if (name.startsWith(CONSUMER)) {
+            val exception = name.split("_").getOrNull(1) ?: EXCEPTION
+            return ExceptionEffectConsumer(exception)
         }
         return null
     }

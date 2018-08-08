@@ -1,5 +1,5 @@
 package
 
 public fun bad(): kotlin.Unit
-public fun bar(): kotlin.Unit
-public fun foo(): kotlin.Unit
+public fun consumer(): kotlin.Unit
+public fun supplier(): kotlin.Unit

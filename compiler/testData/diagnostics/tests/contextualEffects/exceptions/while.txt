@@ -1,5 +1,5 @@
 package
 
 public fun bad(/*0*/ y: kotlin.Int): kotlin.Unit
-public fun bar(): kotlin.Unit
-public fun foo(/*0*/ y: kotlin.Int): kotlin.Unit
+public fun consumer(/*0*/ y: kotlin.Int): kotlin.Unit
+public fun supplier(): kotlin.Unit

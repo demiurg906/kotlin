@@ -1,9 +1,14 @@
 // !LANGUAGE: +ContextualEffects
 
-fun foo(b: Boolean) {
-    // contract { consumes Exception("aaa") }
+fun supplier() {
+    // contract { supplies Exception("Exception") }
+}
+
+// good
+fun consumer(b: Boolean) {
+    // contract { consumes Exception("Exception") }
     if (b) {
-        bar()
+        supplier()
     } else {
         val <!UNUSED_VARIABLE!>x<!> = 10
     }
@@ -11,12 +16,8 @@ fun foo(b: Boolean) {
 
 <!CONTEXTUAL_EFFECT_WARNING!>fun bad(b: Boolean)<!> {
     if (b) {
-        bar()
+        supplier()
     } else {
         val <!UNUSED_VARIABLE!>x<!> = 10
     }
-}
-
-fun bar() {
-    // contract { supplies Exception("aaa") }
 }

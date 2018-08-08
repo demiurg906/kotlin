@@ -3345,16 +3345,6 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/if.kt");
                 }
 
-                @TestMetadata("noIf.kt")
-                public void testNoIf() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/noIf.kt");
-                }
-
-                @TestMetadata("noWhile.kt")
-                public void testNoWhile() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/noWhile.kt");
-                }
-
                 @TestMetadata("simple.kt")
                 public void testSimple() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/simple.kt");

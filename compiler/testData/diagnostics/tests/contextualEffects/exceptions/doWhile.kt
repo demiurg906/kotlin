@@ -1,31 +1,32 @@
 // !LANGUAGE: +ContextualEffects
 
-fun foo(cond: Boolean) {
-    // contract { consumes Exception("aaa") }
+fun supplier() {
+    // contract { supplies Exception("Exception") }
+}
+
+// good
+fun consumer(cond: Boolean) {
+    // contract { consumes Exception("Exception") }
     var b = cond
     do {
         if (b) {
-            bar()
+            supplier()
             break
         } else {
-            bar()
+            supplier()
         }
         b = true
     } while(!b)
-}
-
-fun bar() {
-    // contract { supplies Exception("aaa") }
 }
 
 <!CONTEXTUAL_EFFECT_WARNING!>fun bad(cond: Boolean)<!> {
     var b = cond
     do {
         if (b) {
-            bar()
+            supplier()
             break
         } else {
-            bar()
+            supplier()
         }
         b = true
     } while(!b)

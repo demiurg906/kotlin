@@ -1,18 +1,19 @@
 // !LANGUAGE: +ContextualEffects
 
-fun foo() {
-    // contract { consumes Exception("aaa") }
-    for (x in 1..10) {
-        bar()
-    }
+fun supplier() {
+    // contract { supplies Exception("Exception") }
 }
 
-fun bar() {
-    // contract { supplies Exception("aaa") }
+// good
+fun consumer() {
+    // contract { consumes Exception("Exception") }
+    for (x in 1..10) {
+        supplier()
+    }
 }
 
 <!CONTEXTUAL_EFFECT_WARNING!>fun bad()<!> {
     for (x in 1..10) {
-        bar()
+        supplier()
     }
 }

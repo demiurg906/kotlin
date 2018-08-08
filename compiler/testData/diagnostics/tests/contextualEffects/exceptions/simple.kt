@@ -1,14 +1,15 @@
 // !LANGUAGE: +ContextualEffects
 
-fun foo() {
-    // contract { consumes Exception("aaa") }
-    bar()
+fun supplier() {
+    // contract { supplies Exception("Exception") }
 }
 
-fun bar() {
-    // contract { supplies Exception("aaa") }
+// good
+fun consumer() {
+    // contract { consumes Exception("Exception") }
+    supplier()
 }
 
 <!CONTEXTUAL_EFFECT_WARNING!>fun bad()<!> {
-    bar()
+    supplier()
 }
