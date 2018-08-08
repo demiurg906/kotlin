@@ -23,7 +23,8 @@ class ContextualEffectFamily(
             1,
             ExceptionEffectLattice,
             { ExceptionEffectHolderChecker() },
-            { ExceptionEffectsHolder() },
+//            { ExceptionEffectsHolder() },
+            ::ExceptionEffectsHolder,
             ::ExceptionEffectParser
         )
 
