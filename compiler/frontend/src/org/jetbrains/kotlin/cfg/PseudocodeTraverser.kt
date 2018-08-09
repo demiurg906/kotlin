@@ -24,34 +24,33 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.LocalFunctionDec
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineEnterInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineSinkInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder.FORWARD
-import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.util.*
 
 enum class LocalFunctionAnalysisStrategy {
-    AnalyseEverything {
+    ANALYSE_EVERYTHING {
         override fun allowFunction(declaration: LocalFunctionDeclarationInstruction) = true
     },
 
-    DoNotAnalyse {
+    DO_NOT_ANALYSE {
         override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean = false
     },
 
-    OnlyNamedFunctions {
+    ONLY_NAMED_FUNCTIONS {
         override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean {
             return declaration.element is KtNamedFunction
         }
     },
 
-    OnlyInlinedLambdas {
+    ONLY_INLINED_LAMBDAS {
         override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean {
             return declaration is InlinedLocalFunctionDeclarationInstruction
         }
     },
 
-    NamedFunctionsAndInlinedLambdas {
+    NAMED_FUNCTIONS_AND_INLINED_LAMBDAS {
         override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean {
-            return OnlyNamedFunctions.allowFunction(declaration) || OnlyInlinedLambdas.allowFunction(declaration)
+            return ONLY_NAMED_FUNCTIONS.allowFunction(declaration) || ONLY_INLINED_LAMBDAS.allowFunction(declaration)
         }
     };
 

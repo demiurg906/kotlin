@@ -30,7 +30,7 @@ class PseudocodeVariableDataCollector(
             instructionDataMergeStrategy,
             { from, to, info -> filterOutVariablesOutOfScope(from, to, info) },
             initialInfo,
-            LocalFunctionAnalysisStrategy.AnalyseEverything
+            LocalFunctionAnalysisStrategy.ANALYSE_EVERYTHING
         )
     }
 

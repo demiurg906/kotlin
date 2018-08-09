@@ -37,7 +37,7 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode, private val bindingConte
             ::merge,
             ::update,
             EffectsControlFlowInfo(),
-            LocalFunctionAnalysisStrategy.NamedFunctionsAndInlinedLambdas
+            LocalFunctionAnalysisStrategy.NAMED_FUNCTIONS_AND_INLINED_LAMBDAS
         )
         return data.filterKeys { it is SubroutineExitInstruction && !it.isError && !it.owner.isInlined }
             .mapKeys { (key, _) -> key.owner.correspondingElement }
