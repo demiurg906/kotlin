@@ -1019,7 +1019,7 @@ class ControlFlowInformationProvider private constructor(
 
     private fun report(element: KtElement, context: ContextualEffectsHolder) {
         val checker = context.family.contextChecker()
-        val diagnostics = checker.generateDiagnostics(element, context)
+        val diagnostics = checker.generateDiagnostics(context).map { CONTEXTUAL_EFFECT_WARNING.on(element, it) }
         for (diagnostic in diagnostics) {
             trace.report(diagnostic)
         }

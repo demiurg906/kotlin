@@ -8,8 +8,10 @@ package org.jetbrains.kotlin.contracts.contextual
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 
 object ContextualEffectSystem {
-    fun declaredSuppliers(declaration: FunctionDescriptor): Set<EffectSupplier> = dirtyMockDeclaredSuppliers(declaration)
-    fun declaredConsumers(declaration: FunctionDescriptor): Set<EffectConsumer> = dirtyMockDeclaredConsumers(declaration)
+    fun declaredSuppliers(declaration: FunctionDescriptor): Set<EffectSupplier> =
+        dirtyMockDeclaredSuppliers(declaration)
+    fun declaredConsumers(declaration: FunctionDescriptor): Set<EffectConsumer> =
+        dirtyMockDeclaredConsumers(declaration)
 
     private val parsers = ContextualEffectFamily.ALL_FAMILIES.map { it.newParser() }
 

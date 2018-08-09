@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.contracts.contextual
 
 import org.jetbrains.kotlin.contracts.description.InvocationKind
-import org.jetbrains.kotlin.metadata.ProtoBuf
 
 // интерфейс для решетки над множествами эффектов
 interface EffectLattice {

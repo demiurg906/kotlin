@@ -5,15 +5,12 @@
 
 package org.jetbrains.kotlin.contracts.contextual
 
-import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.diagnostics.Diagnostic
-
 // checks that holder left after all consumers are done is good
 // TODO: that class should be refactored
 interface ContextualEffectHolderChecker {
     fun checkContext(context: ContextualEffectsHolder)
 
-    fun generateDiagnostics(element: PsiElement, context: ContextualEffectsHolder): List<Diagnostic>
+    fun generateDiagnostics(context: ContextualEffectsHolder): List<String>
 
     // to refactor
     // single place where from other ContextualEffect* classes take family

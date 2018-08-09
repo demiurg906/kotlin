@@ -8,7 +8,8 @@ package org.jetbrains.kotlin.contracts.contextual.impl
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
 
-class ExceptionEffectsHolder(val effects: Set<ExceptionEffect> = setOf()) : ContextualEffectsHolder {
+class ExceptionEffectsHolder(val effects: Set<ExceptionEffect> = setOf()) :
+    ContextualEffectsHolder {
     override val family = ContextualEffectFamily.EXCEPTION
 
     override fun equals(other: Any?): Boolean {
