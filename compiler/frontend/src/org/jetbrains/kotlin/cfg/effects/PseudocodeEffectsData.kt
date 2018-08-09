@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.CallInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.Edges
+import org.jetbrains.kotlin.cfg.pseudocodeTraverser.LocalFunctionAnalysisStrategy
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.collectData
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSystem
@@ -30,10 +31,11 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode, private val bindingConte
             TraversalOrder.FORWARD,
             ::merge,
             ::update,
-            EffectsControlFlowInfo()
+            EffectsControlFlowInfo(),
+            LocalFunctionAnalysisStrategy.DoNotAnalyse
         )
         // TODO: may be problems with sink (or exit?)
-        return data[pseudocode.sinkInstruction]?.incoming
+        return data[pseudocode.exitInstruction]?.incoming
     }
 
     private fun merge(instruction: Instruction, incoming: Collection<EffectsControlFlowInfo>): Edges<EffectsControlFlowInfo> {
