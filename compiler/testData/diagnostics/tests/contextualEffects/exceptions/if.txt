@@ -1,5 +1,9 @@
 package
 
-public fun bad(/*0*/ b: kotlin.Boolean): kotlin.Unit
-public fun consumer(/*0*/ b: kotlin.Boolean): kotlin.Unit
+public fun badA(/*0*/ b: kotlin.Boolean): kotlin.Unit
+public fun badB(/*0*/ b: kotlin.Boolean): kotlin.Unit
+public fun badC(/*0*/ b: kotlin.Boolean): kotlin.Unit
+public fun consumerA(/*0*/ b: kotlin.Boolean): kotlin.Unit
+public fun consumerB(/*0*/ b: kotlin.Boolean): kotlin.Unit
+public fun consumerC(/*0*/ b: kotlin.Boolean): kotlin.Unit
 public fun supplier(): kotlin.Unit

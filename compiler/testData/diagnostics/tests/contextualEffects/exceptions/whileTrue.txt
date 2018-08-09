@@ -1,0 +1,7 @@
+package
+
+public fun consumer1(): kotlin.Unit
+public fun consumer2(): kotlin.Unit
+public fun consumer3(): kotlin.Unit
+public fun consumer4(): kotlin.Unit
+public fun supplier_AAA(): kotlin.Unit

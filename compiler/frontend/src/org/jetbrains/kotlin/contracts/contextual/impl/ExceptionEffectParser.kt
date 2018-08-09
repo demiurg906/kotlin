@@ -17,21 +17,27 @@ class ExceptionEffectParser : ContextualEffectParser {
         private const val EXCEPTION = "Exception"
     }
 
-    override fun parseDeclarationForSupplier(declaration: FunctionDescriptor): EffectSupplier? {
+    override fun parseDeclarationForSupplier(declaration: FunctionDescriptor): List<EffectSupplier> {
         val name = declaration.name.asString()
         if (name.startsWith(SUPPLIER)) {
-            val exception = name.split("_").getOrNull(1) ?: EXCEPTION
-            return ExceptionEffectSupplier(exception)
+            val exceptions = name.split("_").drop(1).toMutableList()
+            if (exceptions.isEmpty()) {
+                exceptions += EXCEPTION
+            }
+            return exceptions.map(::ExceptionEffectSupplier)
         }
-        return null
+        return listOf()
     }
 
-    override fun parseDeclarationForConsumer(declaration: FunctionDescriptor): EffectConsumer? {
+    override fun parseDeclarationForConsumer(declaration: FunctionDescriptor): List<EffectConsumer> {
         val name = declaration.name.asString()
         if (name.startsWith(CONSUMER)) {
-            val exception = name.split("_").getOrNull(1) ?: EXCEPTION
-            return ExceptionEffectConsumer(exception)
+            val exceptions = name.split("_").drop(1).toMutableList()
+            if (exceptions.isEmpty()) {
+                exceptions += EXCEPTION
+            }
+            return exceptions.map(::ExceptionEffectConsumer)
         }
-        return null
+        return listOf()
     }
 }

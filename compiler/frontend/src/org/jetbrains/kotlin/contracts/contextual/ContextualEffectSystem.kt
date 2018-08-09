@@ -14,10 +14,10 @@ object ContextualEffectSystem {
     private val parsers = ContextualEffectFamily.ALL_FAMILIES.map { it.newParser() }
 
     private fun dirtyMockDeclaredSuppliers(declaration: FunctionDescriptor): Set<EffectSupplier> {
-        return parsers.map { it.parseDeclarationForSupplier(declaration) }.filterNotNull().toSet()
+        return parsers.flatMap { it.parseDeclarationForSupplier(declaration) }.toSet()
     }
 
     private fun dirtyMockDeclaredConsumers(declaration: FunctionDescriptor): Set<EffectConsumer> {
-        return parsers.map { it.parseDeclarationForConsumer(declaration) }.filterNotNull().toSet()
+        return parsers.flatMap { it.parseDeclarationForConsumer(declaration) }.toSet()
     }
 }

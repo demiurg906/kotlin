@@ -37,7 +37,6 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode, private val bindingConte
     }
 
     private fun merge(instruction: Instruction, incoming: Collection<EffectsControlFlowInfo>): Edges<EffectsControlFlowInfo> {
-        // может ли incoming быть пустым?
         val incomingContext = when(incoming.size) {
             0 -> EffectsControlFlowInfo()
             1 -> incoming.first()

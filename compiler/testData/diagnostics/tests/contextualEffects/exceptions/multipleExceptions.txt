@@ -1,0 +1,9 @@
+package
+
+public fun bad(): kotlin.Unit
+public fun consumer1_AAA_BBB(): kotlin.Unit
+public fun consumer2_AAA_BBB(): kotlin.Unit
+public fun consumer_AAA_BBB_CCC(): kotlin.Unit
+public fun supplier_AAA(): kotlin.Unit
+public fun supplier_AAA_BBB_CCC(): kotlin.Unit
+public fun supplier_BBB(): kotlin.Unit

@@ -3330,9 +3330,19 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/contextualEffects/exceptions"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
                 }
 
+                @TestMetadata("breakContinueReturn.kt")
+                public void testBreakContinueReturn() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/breakContinueReturn.kt");
+                }
+
                 @TestMetadata("doWhile.kt")
                 public void testDoWhile() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/doWhile.kt");
+                }
+
+                @TestMetadata("elvis.kt")
+                public void testElvis() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/elvis.kt");
                 }
 
                 @TestMetadata("for.kt")
@@ -3345,14 +3355,39 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/if.kt");
                 }
 
+                @TestMetadata("lambda.kt")
+                public void testLambda() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/lambda.kt");
+                }
+
+                @TestMetadata("multipleExceptions.kt")
+                public void testMultipleExceptions() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/multipleExceptions.kt");
+                }
+
                 @TestMetadata("simple.kt")
                 public void testSimple() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/simple.kt");
                 }
 
+                @TestMetadata("when.kt")
+                public void testWhen() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/when.kt");
+                }
+
                 @TestMetadata("while.kt")
                 public void testWhile() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/while.kt");
+                }
+
+                @TestMetadata("whileTrue.kt")
+                public void testWhileTrue() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/whileTrue.kt");
+                }
+
+                @TestMetadata("wtf.kt")
+                public void testWtf() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/wtf.kt");
                 }
             }
         }

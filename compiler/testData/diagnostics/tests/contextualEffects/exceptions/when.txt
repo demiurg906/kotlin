@@ -1,0 +1,10 @@
+package
+
+public fun badA(): kotlin.Unit
+public fun badB(): kotlin.Unit
+public fun badC(): kotlin.Unit
+public fun consumerA(): kotlin.Unit
+public fun consumerB(): kotlin.Unit
+public fun consumerC(): kotlin.Unit
+public fun foo(): kotlin.Unit
+public fun supplier(): kotlin.Unit

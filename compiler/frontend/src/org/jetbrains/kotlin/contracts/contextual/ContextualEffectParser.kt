@@ -8,6 +8,6 @@ package org.jetbrains.kotlin.contracts.contextual
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 
 interface ContextualEffectParser {
-    fun parseDeclarationForSupplier(declaration: FunctionDescriptor): EffectSupplier?
-    fun parseDeclarationForConsumer(declaration: FunctionDescriptor): EffectConsumer?
+    fun parseDeclarationForSupplier(declaration: FunctionDescriptor): List<EffectSupplier>
+    fun parseDeclarationForConsumer(declaration: FunctionDescriptor): List<EffectConsumer>
 }
