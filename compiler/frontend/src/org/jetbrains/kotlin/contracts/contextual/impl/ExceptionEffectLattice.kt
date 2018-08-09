@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.contracts.contextual.impl
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
 import org.jetbrains.kotlin.contracts.contextual.EffectLattice
+import org.jetbrains.kotlin.contracts.description.InvocationKind
 
 object ExceptionEffectLattice : EffectLattice {
     override val family = ContextualEffectFamily.EXCEPTION
@@ -29,5 +30,9 @@ object ExceptionEffectLattice : EffectLattice {
 
     override fun top(): ContextualEffectsHolder {
         TODO("not implemented")
+    }
+
+    override fun updateContextWithInvocationKind(context: ContextualEffectsHolder, invocationKind: InvocationKind): ContextualEffectsHolder {
+        return context
     }
 }

@@ -5,6 +5,9 @@
 
 package org.jetbrains.kotlin.contracts.contextual
 
+import org.jetbrains.kotlin.contracts.description.InvocationKind
+import org.jetbrains.kotlin.metadata.ProtoBuf
+
 // интерфейс для решетки над множествами эффектов
 interface EffectLattice {
     val family: ContextualEffectFamily
@@ -18,4 +21,6 @@ interface EffectLattice {
 
     // top `and` x = x
     fun top(): ContextualEffectsHolder
+
+    fun updateContextWithInvocationKind(context: ContextualEffectsHolder, invocationKind: InvocationKind): ContextualEffectsHolder
 }

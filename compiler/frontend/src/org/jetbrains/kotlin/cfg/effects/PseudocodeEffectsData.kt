@@ -15,12 +15,15 @@ import org.jetbrains.kotlin.cfg.pseudocode.Pseudocode
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.CallInstruction
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.InlinedLocalFunctionDeclarationInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineExitInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.Edges
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.LocalFunctionAnalysisStrategy
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.collectData
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSystem
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -36,15 +39,13 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode, private val bindingConte
             EffectsControlFlowInfo(),
             LocalFunctionAnalysisStrategy.NamedFunctionsAndInlinedLambdas
         )
-        // TODO: may be problems with sink (or exit?)
         return data.filterKeys { it is SubroutineExitInstruction && !it.isError && !it.owner.isInlined }
             .mapKeys { (key, _) -> key.owner.correspondingElement }
             .mapValues { (_, edges) -> edges.outgoing }
-//        return data[pseudocode.exitInstruction]?.incoming
     }
 
     private fun merge(instruction: Instruction, incoming: Collection<EffectsControlFlowInfo>): Edges<EffectsControlFlowInfo> {
-        val incomingContext = when(incoming.size) {
+        val incomingContext = when (incoming.size) {
             0 -> EffectsControlFlowInfo()
             1 -> incoming.first()
             else -> mergeMultipleEdges(incoming)
@@ -66,7 +67,18 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode, private val bindingConte
         return EffectsControlFlowInfo(ImmutableHashMap.ofAll(groupedContexts))
     }
 
-    private fun update(from: Instruction, to: Instruction, info: EffectsControlFlowInfo) = info
+    private fun update(from: Instruction, to: Instruction, info: EffectsControlFlowInfo): EffectsControlFlowInfo {
+        val invocationKind = (to as? InlinedLocalFunctionDeclarationInstruction)?.kind ?: return info
+        return EffectsControlFlowInfo(
+            ImmutableHashMap.ofAll(info.convertToMap().mapValues { (family, context) ->
+                family.lattice.updateContextWithInvocationKind(context, invocationKind)
+            })
+        )
+    }
+
+    private fun EffectsControlFlowInfo.convertToMap(): Map<ContextualEffectFamily, ContextualEffectsHolder> {
+        return iterator().map { it._1 to it._2 }.toList().toMap()
+    }
 
     private inner class EffectsInstructionVisitor(private val controlFlowInfo: EffectsControlFlowInfo) :
         InstructionVisitorWithResult<EffectsControlFlowInfo>() {
@@ -75,7 +87,8 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode, private val bindingConte
 
         override fun visitCallInstruction(instruction: CallInstruction): EffectsControlFlowInfo {
             // TODO: есть ли проблема с вызовом лямбд, лежащих в переменных?
-            val descriptor = instruction.resolvedCall.candidateDescriptor as? FunctionDescriptor ?: TODO("check correctness") // return controlFlowInfo
+            val descriptor =
+                instruction.resolvedCall.candidateDescriptor as? FunctionDescriptor ?: TODO("check correctness") // return controlFlowInfo
             val suppliers = ContextualEffectSystem.declaredSuppliers(descriptor)
             var result = controlFlowInfo
             for (supplier in suppliers) {
