@@ -1,4 +1,0 @@
-package
-
-public fun consumerA(): kotlin.Unit
-public fun supplier(): kotlin.Unit

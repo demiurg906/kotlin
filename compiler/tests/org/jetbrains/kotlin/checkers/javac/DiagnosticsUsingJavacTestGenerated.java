@@ -3355,6 +3355,11 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/if.kt");
                 }
 
+                @TestMetadata("innerFunctions.kt")
+                public void testInnerFunctions() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/innerFunctions.kt");
+                }
+
                 @TestMetadata("lambda.kt")
                 public void testLambda() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/lambda.kt");
@@ -3383,11 +3388,6 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                 @TestMetadata("whileTrue.kt")
                 public void testWhileTrue() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/whileTrue.kt");
-                }
-
-                @TestMetadata("wtf.kt")
-                public void testWtf() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/wtf.kt");
                 }
             }
         }

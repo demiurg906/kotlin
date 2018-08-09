@@ -24,6 +24,8 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.LocalFunctionDec
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineEnterInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineSinkInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder.FORWARD
+import org.jetbrains.kotlin.metadata.ProtoBuf
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.util.*
 
 enum class LocalFunctionAnalysisStrategy {
@@ -33,6 +35,24 @@ enum class LocalFunctionAnalysisStrategy {
 
     DoNotAnalyse {
         override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean = false
+    },
+
+    OnlyNamedFunctions {
+        override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean {
+            return declaration.element is KtNamedFunction
+        }
+    },
+
+    OnlyInlinedLambdas {
+        override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean {
+            return declaration is InlinedLocalFunctionDeclarationInstruction
+        }
+    },
+
+    NamedFunctionsAndInlinedLambdas {
+        override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean {
+            return OnlyNamedFunctions.allowFunction(declaration) || OnlyInlinedLambdas.allowFunction(declaration)
+        }
     };
 
     abstract fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean
@@ -124,6 +144,8 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
                 subroutinePseudocode.getLastInstruction(traversalOrder)
             val previousValue = edgesMap[instruction]
             val newValue = edgesMap[lastInstruction]
+            // TODO: вот сюда можно добавить invocationKind, что позволит каждому типу эффектов
+            // самим решать, что делать в такой ситуации
             val updatedValue = newValue?.let {
                 Edges(updateEdge(lastInstruction, instruction, it.incoming), updateEdge(lastInstruction, instruction, it.outgoing))
             }

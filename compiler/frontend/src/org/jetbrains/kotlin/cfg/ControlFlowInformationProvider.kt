@@ -128,25 +128,26 @@ class ControlFlowInformationProvider private constructor(
     }
 
     fun checkDeclarationContextualEffects() {
-        val descriptor = trace.bindingContext[BindingContext.FUNCTION, subroutine] ?: throw IllegalStateException("must be not null")
-        val allConsumers = ContextualEffectSystem.declaredConsumers(descriptor).groupBy { it.family }
+        val controlFlowInfos = pseudocodeEffectsData.controlFlowInfos
+        for ((declaration, cfi) in controlFlowInfos) {
+            val descriptor = trace.bindingContext[BindingContext.FUNCTION, declaration] ?: throw IllegalStateException("must be not null")
+            val allConsumers = ContextualEffectSystem.declaredConsumers(descriptor).groupBy { it.family }
 
-        // TODO: переписать вызов диагностик так, чтобы сначала пробегали все consumer'ы
-        // потом все checker'ы, после чего репортились диагностики
-        var controlFlowInfo = pseudocodeEffectsData.controlFlowInfo ?: throw IllegalStateException("must be not null")
-        for ((family, consumers) in allConsumers) {
-            var context = controlFlowInfo[family].getOrElse(family.emptyHolder())
-            for (consumer in consumers) {
-                val newContext = consumer.consume(context)
-                context = newContext
+            var controlFlowInfo = cfi
+            for ((family, consumers) in allConsumers) {
+                var context = controlFlowInfo[family].getOrElse(family.emptyHolder())
+                for (consumer in consumers) {
+                    val newContext = consumer.consume(context)
+                    context = newContext
+                }
+                controlFlowInfo = controlFlowInfo.put(family, context)
             }
-            controlFlowInfo = controlFlowInfo.put(family, context)
-        }
 
-        val allCheckers = ContextualEffectFamily.ALL_FAMILIES.map { it to it.contextChecker() }
-        for ((family, checker) in allCheckers) {
-            val context = controlFlowInfo[family].firstOrNull() ?: continue
-            report(subroutine, context)
+            val allCheckers = ContextualEffectFamily.ALL_FAMILIES.map { it to it.contextChecker() }
+            for ((family, checker) in allCheckers) {
+                val context = controlFlowInfo[family].firstOrNull() ?: continue
+                report(declaration, context)
+            }
         }
     }
 
