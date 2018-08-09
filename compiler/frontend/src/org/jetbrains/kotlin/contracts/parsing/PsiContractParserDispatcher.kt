@@ -26,11 +26,11 @@ import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptio
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONDITIONAL_EFFECT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONSUMES_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL_EFFECT
-import org.jetbrains.kotlin.contracts.parsing.effects.PsiCallsEffectParser
-import org.jetbrains.kotlin.contracts.parsing.effects.PsiConditionalEffectParser
-import org.jetbrains.kotlin.contracts.parsing.effects.PsiReturnsEffectParser
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.SUPPLIES_EFFECT
+import org.jetbrains.kotlin.contracts.parsing.effects.*
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
@@ -49,7 +49,9 @@ internal class PsiContractParserDispatcher(val trace: BindingTrace, val contract
         RETURNS_EFFECT to PsiReturnsEffectParser(trace, this),
         RETURNS_NOT_NULL_EFFECT to PsiReturnsEffectParser(trace, this),
         CALLS_IN_PLACE_EFFECT to PsiCallsEffectParser(trace, this),
-        CONDITIONAL_EFFECT to PsiConditionalEffectParser(trace, this)
+        CONDITIONAL_EFFECT to PsiConditionalEffectParser(trace, this),
+        SUPPLIES_EFFECT to PsiSuppliesEffectParser(trace, this),
+        CONSUMES_EFFECT to PsiConsumesEffectParser(trace, this)
     )
 
     fun parseContract(expression: KtExpression?, ownerDescriptor: FunctionDescriptor): ContractDescription? {

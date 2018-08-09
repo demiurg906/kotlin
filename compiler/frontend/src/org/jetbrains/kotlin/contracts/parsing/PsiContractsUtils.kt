@@ -48,6 +48,8 @@ object ContractsDslNames {
     val RETURNS_EFFECT = Name.identifier("Returns")
     val RETURNS_NOT_NULL_EFFECT = Name.identifier("ReturnsNotNull")
     val CALLS_IN_PLACE_EFFECT = Name.identifier("CallsInPlace")
+    val SUPPLIES_EFFECT = Name.identifier("Supplies")
+    val CONSUMES_EFFECT = Name.identifier("Consumes")
 
     // Structure-defining calls
     val CONTRACT = Name.identifier("contract")

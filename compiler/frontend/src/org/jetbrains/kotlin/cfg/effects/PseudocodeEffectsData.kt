@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.cfg.pseudocodeTraverser.LocalFunctionAnalysisStrateg
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.collectData
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSystem
+import org.jetbrains.kotlin.contracts.ContextualEffectSystem
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.psi.KtElement

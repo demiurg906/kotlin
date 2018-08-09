@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.cfg.variable.VariableUseState.*
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSystem
+import org.jetbrains.kotlin.contracts.ContextualEffectSystem
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Diagnostic

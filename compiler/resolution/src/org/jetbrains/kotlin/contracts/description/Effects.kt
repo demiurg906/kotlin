@@ -16,6 +16,8 @@
 
 package org.jetbrains.kotlin.contracts.description
 
+import org.jetbrains.kotlin.contracts.contextual.EffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.EffectSupplier
 import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
 
@@ -67,3 +69,21 @@ enum class InvocationKind {
 
 fun InvocationKind.isDefinitelyVisited(): Boolean = this == InvocationKind.EXACTLY_ONCE || this == InvocationKind.AT_LEAST_ONCE
 fun InvocationKind.canBeRevisited(): Boolean = this == InvocationKind.UNKNOWN || this == InvocationKind.AT_LEAST_ONCE
+
+
+/**
+* Effect which specifies, that subroutine supplies contextual effect via [supplier]
+*/
+class SuppliesContextualEffectDeclaration(val supplier: EffectSupplier) : EffectDeclaration {
+    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R =
+        contractDescriptionVisitor.visitSuppliesContextualEffectDeclaration(this, data)
+}
+
+
+/**
+ * Effect which specifies, that subroutine consumes contextual effect via [consumer]
+ */
+class ConsumesContextualEffectDeclaration(val consumer: EffectConsumer) : EffectDeclaration {
+    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R =
+        contractDescriptionVisitor.visitConsumesContextualEffectDeclaration(this, data)
+}

@@ -83,6 +83,8 @@ class ContractSerializer {
 
         private fun contractExpressionProto(contractDescriptionElement: ContractDescriptionElement, contractDescription: ContractDescription): ProtoBuf.Expression.Builder {
             return contractDescriptionElement.accept(object : ContractDescriptionVisitor<ProtoBuf.Expression.Builder, Unit> {
+                // TODO: add contextual contracts serialization
+
                 override fun visitLogicalOr(logicalOr: LogicalOr, data: Unit): ProtoBuf.Expression.Builder {
                     val leftBuilder = logicalOr.left.accept(this, data)
 

@@ -73,6 +73,14 @@ class ContractDescriptionRenderer(private val builder: StringBuilder) : Contract
         builder.append(variableReference.descriptor.name)
     }
 
+    override fun visitSuppliesContextualEffectDeclaration(suppliesEffect: SuppliesContextualEffectDeclaration, data: Unit) {
+        builder.append(suppliesEffect.supplier)
+    }
+
+    override fun visitConsumesContextualEffectDeclaration(consumesEffect: ConsumesContextualEffectDeclaration, data: Unit) {
+        builder.append(consumesEffect.consumer)
+    }
+
     private fun ContractDescriptionElement.isAtom(): Boolean =
         this is VariableReference || this is ConstantReference || this is IsNullPredicate || this is IsInstancePredicate
 

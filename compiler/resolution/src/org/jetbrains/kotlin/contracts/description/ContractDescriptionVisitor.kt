@@ -31,6 +31,10 @@ interface ContractDescriptionVisitor<out R, in D> {
 
     fun visitReturnsEffectDeclaration(returnsEffect: ReturnsEffectDeclaration, data: D): R = visitEffectDeclaration(returnsEffect, data)
     fun visitCallsEffectDeclaration(callsEffect: CallsEffectDeclaration, data: D): R = visitEffectDeclaration(callsEffect, data)
+    fun visitSuppliesContextualEffectDeclaration(suppliesEffect: SuppliesContextualEffectDeclaration, data: D): R =
+        visitEffectDeclaration(suppliesEffect, data)
+    fun visitConsumesContextualEffectDeclaration(consumesEffect: ConsumesContextualEffectDeclaration, data: D): R =
+        visitEffectDeclaration(consumesEffect, data)
 
     // Expressions
     fun visitBooleanExpression(booleanExpression: BooleanExpression, data: D): R = visitContractDescriptionElement(booleanExpression, data)
@@ -52,4 +56,6 @@ interface ContractDescriptionVisitor<out R, in D> {
     fun visitVariableReference(variableReference: VariableReference, data: D): R = visitValue(variableReference, data)
     fun visitBooleanVariableReference(booleanVariableReference: BooleanVariableReference, data: D): R =
         visitVariableReference(booleanVariableReference, data)
+
+
 }

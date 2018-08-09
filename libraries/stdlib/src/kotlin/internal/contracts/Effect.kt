@@ -34,3 +34,19 @@ internal interface ReturnsNotNull : SimpleEffect
 @ContractsDsl
 @SinceKotlin("1.2")
 internal interface CallsInPlace : SimpleEffect
+
+@ContractsDsl
+@SinceKotlin("1.2")
+internal interface ContextualEffectDescription
+
+@ContractsDsl
+@SinceKotlin("1.2")
+internal interface Supplies : SimpleEffect
+
+@ContractsDsl
+@SinceKotlin("1.2")
+internal interface Consumes : SimpleEffect
+
+// contextual effects
+@ContractsDsl
+class ExceptionEffectDescription(val exception: String) : ContextualEffectDescription
