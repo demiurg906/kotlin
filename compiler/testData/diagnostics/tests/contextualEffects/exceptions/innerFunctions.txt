@@ -1,11 +1,17 @@
 package
 
-public fun bad2(): kotlin.Unit
-public fun bad3(): kotlin.Unit
-public fun consumer1(): kotlin.Unit
-public fun consumer2(): kotlin.Unit
-public fun good1(): kotlin.Unit
+public fun bad_1(): kotlin.Unit
+@kotlin.Suppress(names = {"INVISIBLE_MEMBER"}) public fun bad_2(): kotlin.Unit
+    Consumer of IOException
+
+public fun bad_3(): kotlin.Unit
+public fun good_1(): kotlin.Unit
+@kotlin.Suppress(names = {"INVISIBLE_MEMBER"}) public fun good_2(): kotlin.Unit
+    Consumer of IOException
+
 @kotlin.Suppress(names = {"INVISIBLE_MEMBER", "INVISIBLE_REFERENCE"}) public inline fun myRun(/*0*/ block: () -> kotlin.Unit): kotlin.Unit
     CallsInPlace(block, EXACTLY_ONCE)
 
-public fun supplier(): kotlin.Unit
+@kotlin.Suppress(names = {"INVISIBLE_MEMBER"}) public fun supplier(): kotlin.Unit
+    Supplier of FileNotFoundException
+

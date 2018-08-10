@@ -1,9 +1,0 @@
-package
-
-public fun bad(): kotlin.Unit
-@kotlin.Suppress(names = {"INVISIBLE_MEMBER"}) public fun good(): kotlin.Unit
-    Consumer of RuntimeException
-
-@kotlin.Suppress(names = {"INVISIBLE_MEMBER"}) public fun supplier(): kotlin.Unit
-    Supplier of RuntimeException
-

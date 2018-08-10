@@ -1,10 +1,8 @@
 // !LANGUAGE: +ContextualEffects +UseCallsInPlaceEffect +AllowContractsForCustomFunctions
 
 import kotlin.internal.contracts.*
-
-fun supplier() {
-    // contract { supplies Exception("Exception") }
-}
+import java.io.FileNotFoundException
+import java.io.IOException
 
 @Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 inline fun myRun(block: () -> Unit) {
@@ -14,33 +12,49 @@ inline fun myRun(block: () -> Unit) {
     block()
 }
 
-// bad
-fun consumer1() {
+@Suppress("INVISIBLE_MEMBER")
+fun supplier() {
+    contract {
+        supplies(ExceptionEffectDescription<FileNotFoundException>())
+    }
+    throw FileNotFoundException()
+}
+
+fun bad_1() {
     <!CONTEXTUAL_EFFECT_WARNING!>fun func()<!> {
         supplier()
     }
 }
 
-fun bad2() {
-    // contract { consumes Exception("Exception") }
+@Suppress("INVISIBLE_MEMBER")
+fun bad_2() {
+    contract {
+        consumes(ExceptionEffectDescription<IOException>())
+    }
     <!CONTEXTUAL_EFFECT_WARNING!>fun func()<!> {
         supplier()
     }
+    supplier()
 }
 
-fun good1() {
-    fun consumerInner() {
-        // contract { consumes Exception("Exception") }
+fun good_1() {
+    @Suppress("INVISIBLE_MEMBER")
+    fun func() {
+        contract {
+            consumes(ExceptionEffectDescription<IOException>())
+        }
         supplier()
     }
 }
 
-// good
-fun consumer2() {
-    // contract { consumes Exception("Exception") }
+@Suppress("INVISIBLE_MEMBER")
+fun good_2() {
+    contract {
+        consumes(ExceptionEffectDescription<IOException>())
+    }
     myRun { supplier() }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING!>fun bad3()<!> {
+<!CONTEXTUAL_EFFECT_WARNING!>fun bad_3()<!> {
     myRun { supplier() }
 }

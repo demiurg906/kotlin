@@ -1,14 +1,24 @@
-// !LANGUAGE: +ContextualEffects
+// !LANGUAGE: +ContextualEffects +AllowContractsForCustomFunctions
+
+import kotlin.internal.contracts.*
+import java.io.FileNotFoundException
+import java.io.IOException
 
 fun foo() {}
 
+@Suppress("INVISIBLE_MEMBER")
 fun supplier() {
-    // contract { supplies Exception("Exception") }
+    contract {
+        supplies(ExceptionEffectDescription<FileNotFoundException>())
+    }
+    throw FileNotFoundException()
 }
 
-// good
-fun consumerA() {
-    // contract { consumes Exception("Exception") }
+@Suppress("INVISIBLE_MEMBER")
+fun good_1() {
+    contract {
+        consumes(ExceptionEffectDescription<IOException>())
+    }
     val x: Int = 10
     when (x) {
         in 0..3 -> supplier()
@@ -17,9 +27,11 @@ fun consumerA() {
     }
 }
 
-// good
-fun consumerB() {
-    // contract { consumes Exception("Exception") }
+@Suppress("INVISIBLE_MEMBER")
+fun good_2() {
+    contract {
+        consumes(ExceptionEffectDescription<IOException>())
+    }
     val x: Int = 10
     when (x) {
         in 0..3 -> supplier()
@@ -28,9 +40,11 @@ fun consumerB() {
     }
 }
 
-// good
-fun consumerC() {
-    // contract { consumes Exception("Exception") }
+@Suppress("INVISIBLE_MEMBER")
+fun good_3() {
+    contract {
+        consumes(ExceptionEffectDescription<IOException>())
+    }
     val x: Int = 10
     when (x) {
         in 0..3 -> foo()
@@ -39,7 +53,7 @@ fun consumerC() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING!>fun badA()<!> {
+<!CONTEXTUAL_EFFECT_WARNING!>fun bad_1()<!> {
     val x: Int = 10
     when (x) {
         in 0..3 -> supplier()
@@ -48,7 +62,7 @@ fun consumerC() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING!>fun badB()<!> {
+<!CONTEXTUAL_EFFECT_WARNING!>fun bad_2()<!> {
     val x: Int = 10
     when (x) {
         in 0..3 -> supplier()
@@ -57,7 +71,7 @@ fun consumerC() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING!>fun badC()<!> {
+<!CONTEXTUAL_EFFECT_WARNING!>fun bad_3()<!> {
     val x: Int = 10
     when (x) {
         in 0..3 -> foo()

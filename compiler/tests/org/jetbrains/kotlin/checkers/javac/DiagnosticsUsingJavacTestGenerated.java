@@ -3318,11 +3318,6 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/contextualEffects"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
             }
 
-            @TestMetadata("parsing.kt")
-            public void testParsing() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/contextualEffects/parsing.kt");
-            }
-
             @TestMetadata("compiler/testData/diagnostics/tests/contextualEffects/exceptions")
             @TestDataPath("$PROJECT_ROOT")
             @RunWith(JUnit3RunnerWithInners.class)

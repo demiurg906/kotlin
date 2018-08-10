@@ -1,7 +1,9 @@
 package
 
-public fun badA(): kotlin.Unit
-public fun badB(): kotlin.Unit
-public fun consumerA(): kotlin.Unit
-public fun consumerB(): kotlin.Unit
-public fun supplier(): kotlin.Unit
+@kotlin.Suppress(names = {"INVISIBLE_MEMBER"}) public fun good_1(): kotlin.Unit
+    Consumer of IOException
+
+public fun good_2(): kotlin.Unit
+@kotlin.Suppress(names = {"INVISIBLE_MEMBER"}) public fun supplier(): kotlin.Unit
+    Supplier of FileNotFoundException
+

@@ -1,37 +1,44 @@
-// !LANGUAGE: +ContextualEffects
+// !LANGUAGE: +ContextualEffects +AllowContractsForCustomFunctions
 
-fun supplier_AAA() {
-    // contract { supplies Exception("Exception") }
+import kotlin.internal.contracts.*
+import java.io.FileNotFoundException
+
+@Suppress("INVISIBLE_MEMBER")
+fun supplier() {
+    contract {
+        supplies(ExceptionEffectDescription<FileNotFoundException>())
+    }
+    throw FileNotFoundException()
 }
 
-// good
-fun consumer1() {
+@Suppress("UNREACHABLE_CODE")
+fun good_1() {
     while (true) {
         break
-        <!UNREACHABLE_CODE!>supplier_AAA()<!>
+        supplier()
     }
 }
 
-// good
-fun consumer2() {
+@Suppress("UNREACHABLE_CODE")
+fun good_2() {
     while (true) {
         continue
-        <!UNREACHABLE_CODE!>supplier_AAA()<!>
+        supplier()
     }
 }
 
-// good
-fun consumer3() {
+@Suppress("UNREACHABLE_CODE")
+fun good_3() {
     do {
         break
-        <!UNREACHABLE_CODE!>supplier_AAA()<!>
-    } while (<!UNREACHABLE_CODE!>true<!>)
+        supplier()
+    } while (true)
 }
 
-// good
-fun consumer4() {
+@Suppress("UNREACHABLE_CODE")
+fun good_4() {
     do {
         continue
-        <!UNREACHABLE_CODE!>supplier_AAA()<!>
+        supplier()
     } while (true)
 }

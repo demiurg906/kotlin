@@ -1,7 +1,9 @@
 package
 
-public fun consumer1(): kotlin.Unit
-public fun consumer2(): kotlin.Unit
-public fun consumer3(): kotlin.Unit
-public fun consumer4(): kotlin.Unit
-public fun supplier_AAA(): kotlin.Unit
+@kotlin.Suppress(names = {"UNREACHABLE_CODE"}) public fun good_1(): kotlin.Unit
+@kotlin.Suppress(names = {"UNREACHABLE_CODE"}) public fun good_2(): kotlin.Unit
+@kotlin.Suppress(names = {"UNREACHABLE_CODE"}) public fun good_3(): kotlin.Unit
+@kotlin.Suppress(names = {"UNREACHABLE_CODE"}) public fun good_4(): kotlin.Unit
+@kotlin.Suppress(names = {"INVISIBLE_MEMBER"}) public fun supplier(): kotlin.Unit
+    Supplier of FileNotFoundException
+

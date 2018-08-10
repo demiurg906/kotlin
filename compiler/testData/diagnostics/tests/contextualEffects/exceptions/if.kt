@@ -1,48 +1,36 @@
-// !LANGUAGE: +ContextualEffects
+// !LANGUAGE: +ContextualEffects +AllowContractsForCustomFunctions
 
+import kotlin.internal.contracts.*
+import java.io.FileNotFoundException
+import java.io.IOException
+
+val b = false
+
+@Suppress("INVISIBLE_MEMBER")
 fun supplier() {
-    // contract { supplies Exception("Exception") }
+    contract {
+        supplies(ExceptionEffectDescription<FileNotFoundException>())
+    }
+    throw FileNotFoundException()
 }
 
-// good
-fun consumerA(b: Boolean) {
-    // contract { consumes Exception("Exception") }
+@Suppress("INVISIBLE_MEMBER", "UNUSED_VARIABLE")
+fun good_1() {
+    contract {
+        consumes(ExceptionEffectDescription<IOException>())
+    }
     if (b) {
         supplier()
     } else {
-        val <!UNUSED_VARIABLE!>x<!> = 10
+        val x = 10
     }
 }
 
-// good
-fun consumerB(b: Boolean) {
-    // contract { consumes Exception("Exception") }
-    if (b) {
-        supplier()
-    } else {
-        supplier()
+@Suppress("INVISIBLE_MEMBER")
+fun good_2() {
+    contract {
+        consumes(ExceptionEffectDescription<IOException>())
     }
-}
-
-// good
-fun consumerC(b: Boolean) {
-    // contract { consumes Exception("Exception") }
-    if (b) {
-        val <!UNUSED_VARIABLE!>x<!> = 10
-    } else {
-        supplier()
-    }
-}
-
-<!CONTEXTUAL_EFFECT_WARNING!>fun badA(b: Boolean)<!> {
-    if (b) {
-        supplier()
-    } else {
-        val <!UNUSED_VARIABLE!>x<!> = 10
-    }
-}
-
-<!CONTEXTUAL_EFFECT_WARNING!>fun badB(b: Boolean)<!> {
     if (b) {
         supplier()
     } else {
@@ -50,10 +38,40 @@ fun consumerC(b: Boolean) {
     }
 }
 
-// good
-<!CONTEXTUAL_EFFECT_WARNING!>fun badC(b: Boolean)<!> {
+@Suppress("INVISIBLE_MEMBER", "UNUSED_VARIABLE")
+fun good_3() {
+    contract {
+        consumes(ExceptionEffectDescription<IOException>())
+    }
     if (b) {
-        val <!UNUSED_VARIABLE!>x<!> = 10
+        val x = 10
+    } else {
+        supplier()
+    }
+}
+
+
+<!CONTEXTUAL_EFFECT_WARNING!>@Suppress("UNUSED_VARIABLE")
+fun bad_1()<!> {
+    if (b) {
+        supplier()
+    } else {
+        val x = 10
+    }
+}
+
+<!CONTEXTUAL_EFFECT_WARNING!>fun bad_2()<!> {
+    if (b) {
+        supplier()
+    } else {
+        supplier()
+    }
+}
+
+<!CONTEXTUAL_EFFECT_WARNING!>@Suppress("UNUSED_VARIABLE")
+fun bad_3()<!> {
+    if (b) {
+        val x = 10
     } else {
         supplier()
     }

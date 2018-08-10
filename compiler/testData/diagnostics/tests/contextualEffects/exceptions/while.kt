@@ -1,12 +1,22 @@
-// !LANGUAGE: +ContextualEffects
+// !LANGUAGE: +ContextualEffects +AllowContractsForCustomFunctions
 
+import kotlin.internal.contracts.*
+import java.io.FileNotFoundException
+import java.io.IOException
+
+@Suppress("INVISIBLE_MEMBER")
 fun supplier() {
-    // contract { supplies Exception("Exception") }
+    contract {
+        supplies(ExceptionEffectDescription<FileNotFoundException>())
+    }
+    throw FileNotFoundException()
 }
 
-// good
-fun consumer(y: Int) {
-    // contract { consumes Exception("Exception") }
+@Suppress("INVISIBLE_MEMBER")
+fun good_1(y: Int) {
+    contract {
+        consumes(ExceptionEffectDescription<IOException>())
+    }
     var x = y
     while (x < 10) {
         supplier()
@@ -14,7 +24,7 @@ fun consumer(y: Int) {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING!>fun bad(y: Int)<!> {
+<!CONTEXTUAL_EFFECT_WARNING!>fun bad_1(y: Int)<!> {
     var x = y
     while (x < 10) {
         supplier()
