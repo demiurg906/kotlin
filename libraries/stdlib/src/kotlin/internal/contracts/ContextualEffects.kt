@@ -7,3 +7,5 @@ package kotlin.internal.contracts
 
 import kotlin.internal.ContractsDsl
 
+@ContractsDsl
+class ExceptionEffectDescription(val exception: String) : ContextualEffectDescription
