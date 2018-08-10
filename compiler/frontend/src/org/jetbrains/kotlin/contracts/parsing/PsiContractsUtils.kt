@@ -16,10 +16,8 @@
 
 package org.jetbrains.kotlin.contracts.parsing
 
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONSUMES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONTRACT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONTRACTS_DSL_ANNOTATION_FQN
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.EFFECT
@@ -27,6 +25,9 @@ import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.IMPLIES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.INVOCATION_KIND_ENUM
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.SUPPLIES
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
@@ -59,6 +60,8 @@ object ContractsDslNames {
     val RETURNS = Name.identifier("returns")
     val RETURNS_NOT_NULL = Name.identifier("returnsNotNull")
     val CALLS_IN_PLACE = Name.identifier("callsInPlace")
+    val SUPPLIES = Name.identifier("supplies")
+    val CONSUMES = Name.identifier("consumes")
 
     // enum class InvocationKind
     val INVOCATION_KIND_ENUM = Name.identifier("InvocationKind")
@@ -83,6 +86,10 @@ fun DeclarationDescriptor.isEffectDescriptor(): Boolean = equalsDslDescriptor(EF
 fun DeclarationDescriptor.isCallsInPlaceEffectDescriptor(): Boolean = equalsDslDescriptor(CALLS_IN_PLACE)
 
 fun DeclarationDescriptor.isInvocationKindEnum(): Boolean = equalsDslDescriptor(INVOCATION_KIND_ENUM)
+
+fun DeclarationDescriptor.isSuppliesEffectDescriptor(): Boolean = equalsDslDescriptor(SUPPLIES)
+
+fun DeclarationDescriptor.isConsumesEffectDescriptor(): Boolean = equalsDslDescriptor(CONSUMES)
 
 fun DeclarationDescriptor.isEqualsDescriptor(): Boolean =
     this is FunctionDescriptor && this.name == Name.identifier("equals") && // fast checks
