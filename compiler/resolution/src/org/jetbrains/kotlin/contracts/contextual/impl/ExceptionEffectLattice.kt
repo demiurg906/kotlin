@@ -21,7 +21,7 @@ object ExceptionEffectLattice : EffectLattice {
         if (a !is ExceptionEffectsHolder || b !is ExceptionEffectsHolder) {
             throw IllegalArgumentException()
         }
-        return ExceptionEffectsHolder(a.effects + b.effects)
+        return ExceptionEffectsHolder(a.exceptions + b.exceptions)
     }
 
     override fun bot(): ContextualEffectsHolder {

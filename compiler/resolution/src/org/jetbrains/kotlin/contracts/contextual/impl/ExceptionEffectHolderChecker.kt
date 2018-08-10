@@ -16,6 +16,6 @@ class ExceptionEffectHolderChecker : ContextualEffectHolderChecker {
         if (context !is ExceptionEffectsHolder) {
             throw IllegalArgumentException()
         }
-        return context.effects.map { "unchecked exception ${it.exception}" }
+        return context.exceptions.map { "Unchecked exception: $it" }
     }
 }

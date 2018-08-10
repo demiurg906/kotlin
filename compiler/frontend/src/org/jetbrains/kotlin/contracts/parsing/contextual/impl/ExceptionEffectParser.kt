@@ -16,11 +16,12 @@ import org.jetbrains.kotlin.contracts.parsing.isSuppliesEffectDescriptor
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtVisitor
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
-
-typealias ExceptionType = String
+import org.jetbrains.kotlin.types.KotlinType
 
 class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParser {
     companion object {
@@ -43,7 +44,7 @@ class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParse
         return ExceptionEffectConsumer(exception)
     }
 
-    private fun parseDeclaration(declaration: KtCallExpression, checker: CallableDescriptor.() -> Boolean): ExceptionType? {
+    private fun parseDeclaration(declaration: KtCallExpression, checker: CallableDescriptor.() -> Boolean): KotlinType? {
         val resolvedCall = declaration.getResolvedCall(context) ?: return null
         val descriptor = resolvedCall.resultingDescriptor
 
@@ -53,29 +54,18 @@ class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParse
         return argumentExpression.accept(PsiExceptionDefinitionParser(context), Unit)
     }
 
-    internal class PsiExceptionDefinitionParser(val context: BindingContext) : KtVisitor<ExceptionType?, Unit>() {
-        override fun visitKtElement(element: KtElement, data: Unit?): ExceptionType? = null
+    internal class PsiExceptionDefinitionParser(val context: BindingContext) : KtVisitor<KotlinType?, Unit>() {
+        override fun visitKtElement(element: KtElement, data: Unit?): KotlinType? = null
 
-        override fun visitCallExpression(expression: KtCallExpression, data: Unit?): ExceptionType? {
+        override fun visitCallExpression(expression: KtCallExpression, data: Unit?): KotlinType? {
             val resolvedCall = expression.getResolvedCall(context) ?: return null
             val descriptor = resolvedCall.resultingDescriptor
 
             val constructorName = (descriptor as? ClassConstructorDescriptor)?.constructedClass?.name?.asString() ?: return null
             if (constructorName != EFFECT_NAME) return null
 
-            val argumentExpression = resolvedCall.firstArgumentAsExpressionOrNull() ?: return null
-
-            return argumentExpression.accept(PsiStringParser(context), Unit)
+            return resolvedCall.typeArguments.values.firstOrNull()
         }
 
-    }
-
-    internal class PsiStringParser(val context: BindingContext) : KtVisitor<String?, Unit>() {
-        override fun visitKtElement(element: KtElement, data: Unit?): String? = null
-
-        override fun visitStringTemplateExpression(expression: KtStringTemplateExpression, data: Unit?): String? {
-            if (expression.entries.isEmpty()) return null
-            return expression.entries.joinToString("") { it.text }
-        }
     }
 }

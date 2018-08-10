@@ -7,8 +7,9 @@ package org.jetbrains.kotlin.contracts.contextual.impl
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
+import org.jetbrains.kotlin.types.KotlinType
 
-class ExceptionEffectsHolder(val effects: Set<ExceptionEffect> = setOf()) : ContextualEffectsHolder {
+class ExceptionEffectsHolder(val exceptions: Set<KotlinType> = setOf()) : ContextualEffectsHolder {
     override val family = ContextualEffectFamily.EXCEPTION
 
     override fun equals(other: Any?): Boolean {
@@ -17,14 +18,14 @@ class ExceptionEffectsHolder(val effects: Set<ExceptionEffect> = setOf()) : Cont
 
         other as ExceptionEffectsHolder
 
-        if (effects != other.effects) return false
+        if (exceptions != other.exceptions) return false
         if (family != other.family) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = effects.hashCode()
+        var result = exceptions.hashCode()
         result = 31 * result + family.hashCode()
         return result
     }
