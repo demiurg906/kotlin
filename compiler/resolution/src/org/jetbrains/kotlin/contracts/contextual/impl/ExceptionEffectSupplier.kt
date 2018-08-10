@@ -23,4 +23,8 @@ class ExceptionEffectSupplier(val exception: String) : EffectSupplier {
             ExceptionEffectsHolder(context.effects + effect)
         }
     }
+
+    override fun toString(): String {
+        return "Supplier of $exception"
+    }
 }

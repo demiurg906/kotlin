@@ -25,4 +25,8 @@ class ExceptionEffectConsumer(val exception: String) : EffectConsumer {
         }
         return context
     }
+
+    override fun toString(): String {
+        return "Consumer of $exception"
+    }
 }

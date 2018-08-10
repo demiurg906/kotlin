@@ -18,6 +18,9 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingTrace
 
+/**
+ * Parses T ([EffectSupplier] or [EffectConsumer] from psi declaration
+ */
 internal abstract class PsiContextualEffectParser<T : Any>(
     trace: BindingTrace,
     dispatcher: PsiContractParserDispatcher,

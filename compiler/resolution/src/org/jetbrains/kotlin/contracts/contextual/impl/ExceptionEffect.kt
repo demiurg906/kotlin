@@ -26,6 +26,4 @@ class ExceptionEffect(val exception: String) {
     override fun hashCode(): Int {
         return exception.hashCode()
     }
-
-
 }

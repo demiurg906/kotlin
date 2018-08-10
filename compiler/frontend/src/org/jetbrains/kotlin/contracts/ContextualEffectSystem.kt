@@ -16,8 +16,11 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.resolve.BindingContext
 
 object ContextualEffectSystem {
+    // list of all registered ContextualEffectParsers in compiler
+    val ALL_PARSERS: List<(BindingContext) -> ContextualEffectParser> = listOf(::ExceptionEffectParser)
+
     fun declaredSuppliers(declaration: FunctionDescriptor): Set<EffectSupplier> {
-        val contractDescription = declaration.getUserData(ContractProviderKey)?.getContractDescription() ?: return emptySet()
+        val contractDescription = extractContractDescription(declaration) ?: return emptySet()
         return contractDescription.effects
             .filter { it is SuppliesContextualEffectDeclaration }
             .map { (it as SuppliesContextualEffectDeclaration).supplier }
@@ -25,23 +28,13 @@ object ContextualEffectSystem {
     }
 
     fun declaredConsumers(declaration: FunctionDescriptor): Set<EffectConsumer> {
-        val contractDescription = declaration.getUserData(ContractProviderKey)?.getContractDescription() ?: return emptySet()
+        val contractDescription = extractContractDescription(declaration) ?: return emptySet()
         return contractDescription.effects
             .filter { it is ConsumesContextualEffectDeclaration }
             .map { (it as ConsumesContextualEffectDeclaration).consumer }
             .toSet()
     }
 
-    val ALL_PARSERS: List<(BindingContext) -> ContextualEffectParser> =
-        listOf({ context -> ExceptionEffectParser(context) })
-
-//    private val parsers = ContextualEffectFamily.ALL_FAMILIES.map { it.newParser() }
-
-//    private fun dirtyMockDeclaredSuppliers(declaration: FunctionDescriptor): Set<EffectSupplier> {
-//        return parsers.flatMap { it.parseDeclarationForSupplier(declaration) }.toSet()
-//    }
-//
-//    private fun dirtyMockDeclaredConsumers(declaration: FunctionDescriptor): Set<EffectConsumer> {
-//        return parsers.flatMap { it.parseDeclarationForConsumer(declaration) }.toSet()
-//    }
+    private fun extractContractDescription(declaration: FunctionDescriptor) =
+        declaration.getUserData(ContractProviderKey)?.getContractDescription()
 }

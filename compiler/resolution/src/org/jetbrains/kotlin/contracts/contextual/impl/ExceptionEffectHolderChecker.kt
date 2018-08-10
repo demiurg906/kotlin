@@ -18,11 +18,4 @@ class ExceptionEffectHolderChecker : ContextualEffectHolderChecker {
         }
         return context.effects.map { "unchecked exception ${it.exception}" }
     }
-
-    override fun checkContext(context: ContextualEffectsHolder) {
-//        if (context !is ExceptionEffectsHolder) {
-//            throw AssertionError()
-//        }
-//        return context.effects.isEmpty()
-    }
 }

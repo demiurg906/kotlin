@@ -14,8 +14,6 @@ class ContextualEffectFamily(
     val lattice: EffectLattice,
     val contextChecker: () -> ContextualEffectHolderChecker,
     val emptyHolder: () -> ContextualEffectsHolder
-    // dirty, used only for prototyping
-//    val newParser: () -> ContextualEffectParser
 ) {
     companion object {
         val EXCEPTION = ContextualEffectFamily(
@@ -23,7 +21,6 @@ class ContextualEffectFamily(
             ExceptionEffectLattice,
             { ExceptionEffectHolderChecker() },
             { ExceptionEffectsHolder() }
-//            ::ExceptionEffectParser
         )
 
         val ALL_FAMILIES = listOf(EXCEPTION)

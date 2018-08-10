@@ -5,15 +5,9 @@
 
 package org.jetbrains.kotlin.contracts.contextual
 
-// checks that holder left after all consumers are done is good
-// TODO: that class should be refactored
 interface ContextualEffectHolderChecker {
-    fun checkContext(context: ContextualEffectsHolder)
-
-    fun generateDiagnostics(context: ContextualEffectsHolder): List<String>
-
-    // to refactor
-    // single place where from other ContextualEffect* classes take family
-    // should be refactored after prototyping CEsystem will be completed
     val family: ContextualEffectFamily
+
+    /* looks at context and generates warning messages if needed */
+    fun generateDiagnostics(context: ContextualEffectsHolder): List<String>
 }

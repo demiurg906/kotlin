@@ -7,5 +7,6 @@ package org.jetbrains.kotlin.contracts.contextual
 
 interface EffectSupplier {
     val family: ContextualEffectFamily
+
     fun supply(context: ContextualEffectsHolder): ContextualEffectsHolder
 }

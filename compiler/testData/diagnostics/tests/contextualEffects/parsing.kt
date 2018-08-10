@@ -18,7 +18,7 @@ fun good() {
     supplier()
 }
 
-fun bad() {
+<!CONTEXTUAL_EFFECT_WARNING!>fun bad()<!> {
     supplier()
 }
 
