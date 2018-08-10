@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.collectData
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.ContextualEffectSystem
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -76,7 +76,7 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode, private val bindingConte
         )
     }
 
-    private fun EffectsControlFlowInfo.convertToMap(): Map<ContextualEffectFamily, ContextualEffectsHolder> {
+    private fun EffectsControlFlowInfo.convertToMap(): Map<ContextualEffectFamily, ContextualEffectsContext> {
         return iterator().map { it._1 to it._2 }.toList().toMap()
     }
 
@@ -93,7 +93,7 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode, private val bindingConte
             var result = controlFlowInfo
             for (supplier in suppliers) {
                 val family = supplier.family
-                val context = result[family].getOrElse(family.emptyHolder)
+                val context = result[family].getOrElse(family.emptyContext)
                 result = result.put(family, supplier.supply(context))
             }
             return result

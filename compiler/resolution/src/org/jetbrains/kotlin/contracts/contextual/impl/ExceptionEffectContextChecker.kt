@@ -5,15 +5,15 @@
 
 package org.jetbrains.kotlin.contracts.contextual.impl
 
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectContextChecker
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectHolderChecker
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 
-class ExceptionEffectHolderChecker : ContextualEffectHolderChecker {
+class ExceptionEffectContextChecker : ContextualEffectContextChecker {
     override val family = ContextualEffectFamily.EXCEPTION
 
-    override fun generateDiagnostics(context: ContextualEffectsHolder): List<String> {
-        if (context !is ExceptionEffectsHolder) {
+    override fun generateDiagnostics(context: ContextualEffectsContext): List<String> {
+        if (context !is ExceptionEffectsContext) {
             throw IllegalArgumentException()
         }
         return context.exceptions.map { "Unchecked exception: $it" }

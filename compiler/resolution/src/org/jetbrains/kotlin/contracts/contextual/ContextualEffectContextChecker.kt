@@ -5,8 +5,9 @@
 
 package org.jetbrains.kotlin.contracts.contextual
 
-interface EffectSupplier {
+interface ContextualEffectContextChecker {
     val family: ContextualEffectFamily
 
-    fun supply(context: ContextualEffectsHolder): ContextualEffectsHolder
+    /* looks at context and generates warning messages if needed */
+    fun generateDiagnostics(context: ContextualEffectsContext): List<String>
 }

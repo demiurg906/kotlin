@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.ContextualEffectSystem
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
@@ -135,7 +135,7 @@ class ControlFlowInformationProvider private constructor(
 
             var controlFlowInfo = cfi
             for ((family, consumers) in allConsumers) {
-                var context = controlFlowInfo[family].getOrElse(family.emptyHolder())
+                var context = controlFlowInfo[family].getOrElse(family.emptyContext())
                 for (consumer in consumers) {
                     val newContext = consumer.consume(context)
                     context = newContext
@@ -1017,7 +1017,7 @@ class ControlFlowInformationProvider private constructor(
     ////////////////////////////////////////////////////////////////////////////////
     // Utility classes and methods
 
-    private fun report(element: KtElement, context: ContextualEffectsHolder) {
+    private fun report(element: KtElement, context: ContextualEffectsContext) {
         val checker = context.family.contextChecker()
         val diagnostics = checker.generateDiagnostics(context).map { CONTEXTUAL_EFFECT_WARNING.on(element, it) }
         for (diagnostic in diagnostics) {

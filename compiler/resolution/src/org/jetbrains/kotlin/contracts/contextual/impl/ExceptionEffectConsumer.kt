@@ -5,17 +5,17 @@
 
 package org.jetbrains.kotlin.contracts.contextual.impl
 
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
-import org.jetbrains.kotlin.contracts.contextual.EffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 
-class ExceptionEffectConsumer(private val consumedExceptionType: KotlinType) : EffectConsumer {
+class ExceptionEffectConsumer(private val consumedExceptionType: KotlinType) : ContextualEffectConsumer {
     override val family = ContextualEffectFamily.EXCEPTION
 
-    override fun consume(context: ContextualEffectsHolder): ExceptionEffectsHolder {
-        if (context !is ExceptionEffectsHolder) {
+    override fun consume(context: ContextualEffectsContext): ExceptionEffectsContext {
+        if (context !is ExceptionEffectsContext) {
             throw AssertionError()
         }
 
@@ -25,7 +25,7 @@ class ExceptionEffectConsumer(private val consumedExceptionType: KotlinType) : E
                 newContext += exceptionType
             }
         }
-        return ExceptionEffectsHolder(newContext)
+        return ExceptionEffectsContext(newContext)
     }
 
     override fun toString(): String {

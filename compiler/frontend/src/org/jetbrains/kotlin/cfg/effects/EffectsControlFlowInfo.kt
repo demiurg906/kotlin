@@ -14,10 +14,10 @@ import org.jetbrains.kotlin.cfg.ControlFlowInfo
 import org.jetbrains.kotlin.cfg.ImmutableHashMap
 import org.jetbrains.kotlin.cfg.ImmutableMap
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 
-class EffectsControlFlowInfo(map: ImmutableMap<ContextualEffectFamily, ContextualEffectsHolder> = ImmutableHashMap.empty()) :
-    ControlFlowInfo<EffectsControlFlowInfo, ContextualEffectFamily, ContextualEffectsHolder>(map) {
+class EffectsControlFlowInfo(map: ImmutableMap<ContextualEffectFamily, ContextualEffectsContext> = ImmutableHashMap.empty()) :
+    ControlFlowInfo<EffectsControlFlowInfo, ContextualEffectFamily, ContextualEffectsContext>(map) {
 
-    override fun copy(newMap: ImmutableMap<ContextualEffectFamily, ContextualEffectsHolder>) = EffectsControlFlowInfo(newMap)
+    override fun copy(newMap: ImmutableMap<ContextualEffectFamily, ContextualEffectsContext>) = EffectsControlFlowInfo(newMap)
 }

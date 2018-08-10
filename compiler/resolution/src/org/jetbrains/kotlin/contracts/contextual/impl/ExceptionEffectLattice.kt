@@ -6,33 +6,33 @@
 package org.jetbrains.kotlin.contracts.contextual.impl
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
-import org.jetbrains.kotlin.contracts.contextual.EffectLattice
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectLattice
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 
-object ExceptionEffectLattice : EffectLattice {
+object ExceptionEffectLattice : ContextualEffectLattice {
     override val family = ContextualEffectFamily.EXCEPTION
 
-    override fun and(a: ContextualEffectsHolder, b: ContextualEffectsHolder): ContextualEffectsHolder {
+    override fun and(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext {
         TODO("not implemented")
     }
 
-    override fun or(a: ContextualEffectsHolder, b: ContextualEffectsHolder): ContextualEffectsHolder {
-        if (a !is ExceptionEffectsHolder || b !is ExceptionEffectsHolder) {
+    override fun or(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext {
+        if (a !is ExceptionEffectsContext || b !is ExceptionEffectsContext) {
             throw IllegalArgumentException()
         }
-        return ExceptionEffectsHolder(a.exceptions + b.exceptions)
+        return ExceptionEffectsContext(a.exceptions + b.exceptions)
     }
 
-    override fun bot(): ContextualEffectsHolder {
-        return ExceptionEffectsHolder()
+    override fun bot(): ContextualEffectsContext {
+        return ExceptionEffectsContext()
     }
 
-    override fun top(): ContextualEffectsHolder {
+    override fun top(): ContextualEffectsContext {
         TODO("not implemented")
     }
 
-    override fun updateContextWithInvocationKind(context: ContextualEffectsHolder, invocationKind: InvocationKind): ContextualEffectsHolder {
+    override fun updateContextWithInvocationKind(context: ContextualEffectsContext, invocationKind: InvocationKind): ContextualEffectsContext {
         return context
     }
 }

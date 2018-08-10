@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.contracts.parsing.contextual.impl
 
-import org.jetbrains.kotlin.contracts.contextual.EffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.EffectSupplier
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.contextual.impl.ExceptionEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.impl.ExceptionEffectSupplier
 import org.jetbrains.kotlin.contracts.parsing.contextual.ContextualEffectParser
@@ -28,7 +28,7 @@ class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParse
         private const val EFFECT_NAME = "ExceptionEffectDescription"
     }
 
-    override fun parseDeclarationForSupplier(declaration: KtCallExpression): EffectSupplier? {
+    override fun parseDeclarationForSupplier(declaration: KtCallExpression): ContextualEffectSupplier? {
         val exception = parseDeclaration(
             declaration,
             DeclarationDescriptor::isSuppliesEffectDescriptor
@@ -36,7 +36,7 @@ class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParse
         return ExceptionEffectSupplier(exception)
     }
 
-    override fun parseDeclarationForConsumer(declaration: KtCallExpression): EffectConsumer? {
+    override fun parseDeclarationForConsumer(declaration: KtCallExpression): ContextualEffectConsumer? {
         val exception = parseDeclaration(
             declaration,
             DeclarationDescriptor::isConsumesEffectDescriptor

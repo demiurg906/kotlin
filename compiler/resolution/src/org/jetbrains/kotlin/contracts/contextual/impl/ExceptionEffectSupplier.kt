@@ -6,21 +6,21 @@
 package org.jetbrains.kotlin.contracts.contextual.impl
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
-import org.jetbrains.kotlin.contracts.contextual.EffectSupplier
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.types.KotlinType
 
-class ExceptionEffectSupplier(private val exceptionType: KotlinType) : EffectSupplier {
+class ExceptionEffectSupplier(private val exceptionType: KotlinType) : ContextualEffectSupplier {
     override val family = ContextualEffectFamily.EXCEPTION
 
-    override fun supply(context: ContextualEffectsHolder): ContextualEffectsHolder {
-        if (context !is ExceptionEffectsHolder) {
+    override fun supply(context: ContextualEffectsContext): ContextualEffectsContext {
+        if (context !is ExceptionEffectsContext) {
             throw AssertionError()
         }
         return if (exceptionType in context.exceptions) {
             context
         } else {
-            ExceptionEffectsHolder(context.exceptions + exceptionType)
+            ExceptionEffectsContext(context.exceptions + exceptionType)
         }
     }
 

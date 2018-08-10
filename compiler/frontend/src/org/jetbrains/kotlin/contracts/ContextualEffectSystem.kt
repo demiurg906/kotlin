@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.contracts
 
-import org.jetbrains.kotlin.contracts.contextual.EffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.EffectSupplier
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.description.ConsumesContextualEffectDeclaration
 import org.jetbrains.kotlin.contracts.description.ContractProviderKey
 import org.jetbrains.kotlin.contracts.description.SuppliesContextualEffectDeclaration
@@ -19,7 +19,7 @@ object ContextualEffectSystem {
     // list of all registered ContextualEffectParsers in compiler
     val ALL_PARSERS: List<(BindingContext) -> ContextualEffectParser> = listOf(::ExceptionEffectParser)
 
-    fun declaredSuppliers(declaration: FunctionDescriptor): Set<EffectSupplier> {
+    fun declaredSuppliers(declaration: FunctionDescriptor): Set<ContextualEffectSupplier> {
         val contractDescription = extractContractDescription(declaration) ?: return emptySet()
         return contractDescription.effects
             .filter { it is SuppliesContextualEffectDeclaration }
@@ -27,7 +27,7 @@ object ContextualEffectSystem {
             .toSet()
     }
 
-    fun declaredConsumers(declaration: FunctionDescriptor): Set<EffectConsumer> {
+    fun declaredConsumers(declaration: FunctionDescriptor): Set<ContextualEffectConsumer> {
         val contractDescription = extractContractDescription(declaration) ?: return emptySet()
         return contractDescription.effects
             .filter { it is ConsumesContextualEffectDeclaration }

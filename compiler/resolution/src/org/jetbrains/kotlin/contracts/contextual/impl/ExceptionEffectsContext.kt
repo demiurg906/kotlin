@@ -6,17 +6,17 @@
 package org.jetbrains.kotlin.contracts.contextual.impl
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsHolder
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.types.KotlinType
 
-class ExceptionEffectsHolder(val exceptions: Set<KotlinType> = setOf()) : ContextualEffectsHolder {
+class ExceptionEffectsContext(val exceptions: Set<KotlinType> = setOf()) : ContextualEffectsContext {
     override val family = ContextualEffectFamily.EXCEPTION
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as ExceptionEffectsHolder
+        other as ExceptionEffectsContext
 
         if (exceptions != other.exceptions) return false
         if (family != other.family) return false

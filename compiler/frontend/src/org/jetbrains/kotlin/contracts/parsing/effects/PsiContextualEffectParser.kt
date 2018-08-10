@@ -6,8 +6,8 @@
 package org.jetbrains.kotlin.contracts.parsing.effects
 
 import org.jetbrains.kotlin.contracts.ContextualEffectSystem
-import org.jetbrains.kotlin.contracts.contextual.EffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.EffectSupplier
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.description.ConsumesContextualEffectDeclaration
 import org.jetbrains.kotlin.contracts.description.EffectDeclaration
 import org.jetbrains.kotlin.contracts.description.SuppliesContextualEffectDeclaration
@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingTrace
 
 /**
- * Parses T ([EffectSupplier] or [EffectConsumer] from psi declaration
+ * Parses T ([ContextualEffectSupplier] or [ContextualEffectConsumer]) from psi declaration
  */
 internal abstract class PsiContextualEffectParser<T : Any>(
     trace: BindingTrace,
@@ -43,7 +43,7 @@ internal abstract class PsiContextualEffectParser<T : Any>(
 internal class PsiConsumesEffectParser(
     trace: BindingTrace,
     dispatcher: PsiContractParserDispatcher
-) : PsiContextualEffectParser<EffectConsumer>(
+) : PsiContextualEffectParser<ContextualEffectConsumer>(
     trace,
     dispatcher,
     ::ConsumesContextualEffectDeclaration,
@@ -53,7 +53,7 @@ internal class PsiConsumesEffectParser(
 internal class PsiSuppliesEffectParser(
     trace: BindingTrace,
     dispatcher: PsiContractParserDispatcher
-) : PsiContextualEffectParser<EffectSupplier>(
+) : PsiContextualEffectParser<ContextualEffectSupplier>(
     trace,
     dispatcher,
     ::SuppliesContextualEffectDeclaration,

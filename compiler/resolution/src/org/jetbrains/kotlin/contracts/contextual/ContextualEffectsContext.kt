@@ -5,9 +5,8 @@
 
 package org.jetbrains.kotlin.contracts.contextual
 
-interface ContextualEffectHolderChecker {
+// some abstract collection (not Collection interface) that holds effects that belongs to one family
+// !!! ContextualEffectsContext is immutable data structure !!!
+interface ContextualEffectsContext {
     val family: ContextualEffectFamily
-
-    /* looks at context and generates warning messages if needed */
-    fun generateDiagnostics(context: ContextualEffectsHolder): List<String>
 }

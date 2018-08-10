@@ -5,11 +5,11 @@
 
 package org.jetbrains.kotlin.contracts.parsing.contextual
 
-import org.jetbrains.kotlin.contracts.contextual.EffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.EffectSupplier
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
 import org.jetbrains.kotlin.psi.KtCallExpression
 
 interface ContextualEffectParser {
-    fun parseDeclarationForSupplier(declaration: KtCallExpression): EffectSupplier?
-    fun parseDeclarationForConsumer(declaration: KtCallExpression): EffectConsumer?
+    fun parseDeclarationForSupplier(declaration: KtCallExpression): ContextualEffectSupplier?
+    fun parseDeclarationForConsumer(declaration: KtCallExpression): ContextualEffectConsumer?
 }

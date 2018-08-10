@@ -8,19 +8,19 @@ package org.jetbrains.kotlin.contracts.contextual
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 
 // интерфейс для решетки над множествами эффектов
-interface EffectLattice {
+interface ContextualEffectLattice {
     val family: ContextualEffectFamily
 
-    fun and(a: ContextualEffectsHolder, b: ContextualEffectsHolder): ContextualEffectsHolder
-    fun or(a: ContextualEffectsHolder, b: ContextualEffectsHolder): ContextualEffectsHolder
+    fun and(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext
+    fun or(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext
 
     // TODO: maybe switch semantics of `top` and `bot`
     // bot `or` x = x
-    fun bot(): ContextualEffectsHolder
+    fun bot(): ContextualEffectsContext
 
     // top `and` x = x
-    fun top(): ContextualEffectsHolder
+    fun top(): ContextualEffectsContext
 
     // ad hoc solution for current implementation of CFA of `call in place` lambdas
-    fun updateContextWithInvocationKind(context: ContextualEffectsHolder, invocationKind: InvocationKind): ContextualEffectsHolder
+    fun updateContextWithInvocationKind(context: ContextualEffectsContext, invocationKind: InvocationKind): ContextualEffectsContext
 }

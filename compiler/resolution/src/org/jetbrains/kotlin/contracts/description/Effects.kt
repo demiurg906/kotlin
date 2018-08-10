@@ -16,8 +16,8 @@
 
 package org.jetbrains.kotlin.contracts.description
 
-import org.jetbrains.kotlin.contracts.contextual.EffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.EffectSupplier
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
 
@@ -74,7 +74,7 @@ fun InvocationKind.canBeRevisited(): Boolean = this == InvocationKind.UNKNOWN ||
 /**
 * Effect which specifies, that subroutine supplies contextual effect via [supplier]
 */
-class SuppliesContextualEffectDeclaration(val supplier: EffectSupplier) : EffectDeclaration {
+class SuppliesContextualEffectDeclaration(val supplier: ContextualEffectSupplier) : EffectDeclaration {
     override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R =
         contractDescriptionVisitor.visitSuppliesContextualEffectDeclaration(this, data)
 }
@@ -83,7 +83,7 @@ class SuppliesContextualEffectDeclaration(val supplier: EffectSupplier) : Effect
 /**
  * Effect which specifies, that subroutine consumes contextual effect via [consumer]
  */
-class ConsumesContextualEffectDeclaration(val consumer: EffectConsumer) : EffectDeclaration {
+class ConsumesContextualEffectDeclaration(val consumer: ContextualEffectConsumer) : EffectDeclaration {
     override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R =
         contractDescriptionVisitor.visitConsumesContextualEffectDeclaration(this, data)
 }

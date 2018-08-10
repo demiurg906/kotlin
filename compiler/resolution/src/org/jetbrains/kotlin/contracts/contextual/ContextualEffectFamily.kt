@@ -5,22 +5,22 @@
 
 package org.jetbrains.kotlin.contracts.contextual
 
-import org.jetbrains.kotlin.contracts.contextual.impl.ExceptionEffectHolderChecker
+import org.jetbrains.kotlin.contracts.contextual.impl.ExceptionEffectContextChecker
 import org.jetbrains.kotlin.contracts.contextual.impl.ExceptionEffectLattice
-import org.jetbrains.kotlin.contracts.contextual.impl.ExceptionEffectsHolder
+import org.jetbrains.kotlin.contracts.contextual.impl.ExceptionEffectsContext
 
 class ContextualEffectFamily(
     val id: Int,
-    val lattice: EffectLattice,
-    val contextChecker: () -> ContextualEffectHolderChecker,
-    val emptyHolder: () -> ContextualEffectsHolder
+    val lattice: ContextualEffectLattice,
+    val contextChecker: () -> ContextualEffectContextChecker,
+    val emptyContext: () -> ContextualEffectsContext
 ) {
     companion object {
         val EXCEPTION = ContextualEffectFamily(
             1,
             ExceptionEffectLattice,
-            { ExceptionEffectHolderChecker() },
-            { ExceptionEffectsHolder() }
+            { ExceptionEffectContextChecker() },
+            { ExceptionEffectsContext() }
         )
 
         val ALL_FAMILIES = listOf(EXCEPTION)

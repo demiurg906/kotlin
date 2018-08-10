@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.contracts.contextual
 
-interface EffectConsumer {
+interface ContextualEffectSupplier {
     val family: ContextualEffectFamily
 
-    fun consume(context: ContextualEffectsHolder): ContextualEffectsHolder
+    fun supply(context: ContextualEffectsContext): ContextualEffectsContext
 }
