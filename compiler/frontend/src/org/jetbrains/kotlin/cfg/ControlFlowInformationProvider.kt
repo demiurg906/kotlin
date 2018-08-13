@@ -129,30 +129,28 @@ class ControlFlowInformationProvider private constructor(
     }
 
     private fun checkContextualEffects() {
-        val controlFlowInfos = pseudocodeEffectsData.controlFlowInfos
-        for ((declaration, cfi) in controlFlowInfos) {
-            val descriptor = trace.bindingContext[BindingContext.FUNCTION, declaration] ?: throw AssertionError("must be not null")
-            val allConsumersByFamily = ContextualEffectSystem.declaredConsumers(descriptor).groupBy { it.family }
+        var controlFlowInfo = pseudocodeEffectsData.controlFlowInfo ?: return
 
-            // TODO: separate
-            var controlFlowInfo = cfi
-            for ((family, consumers) in allConsumersByFamily) {
-                var context = controlFlowInfo[family].getOrElse(family.emptyContext)
-                for (consumer in consumers) {
-                    val newContext = consumer.consume(context)
-                    context = newContext
-                }
-                controlFlowInfo = controlFlowInfo.put(family, context)
+        val descriptor = trace.bindingContext[BindingContext.FUNCTION, subroutine] ?: throw AssertionError("must be not null")
+        val allConsumersByFamily = ContextualEffectSystem.declaredConsumers(descriptor).groupBy { it.family }
+
+        // TODO: separate
+        for ((family, consumers) in allConsumersByFamily) {
+            var context = controlFlowInfo[family].getOrElse(family.emptyContext)
+            for (consumer in consumers) {
+                val newContext = consumer.consume(context)
+                context = newContext
             }
+            controlFlowInfo = controlFlowInfo.put(family, context)
+        }
 
 
-            val allCheckersByFamily = ContextualEffectFamily.ALL_FAMILIES.map { it to it.contextChecker }
-            for ((family, checker) in allCheckersByFamily) {
-                val context = controlFlowInfo[family].firstOrNull() ?: continue
-                val diagnostics = checker.generateDiagnostics(context).map { CONTEXTUAL_EFFECT_WARNING.on(declaration, it) }
-                for (diagnostic in diagnostics) {
-                    trace.report(diagnostic)
-                }
+        val allCheckersByFamily = ContextualEffectFamily.ALL_FAMILIES.map { it to it.contextChecker }
+        for ((family, checker) in allCheckersByFamily) {
+            val context = controlFlowInfo[family].firstOrNull() ?: continue
+            val diagnostics = checker.generateDiagnostics(context).map { CONTEXTUAL_EFFECT_WARNING.on(subroutine, it) }
+            for (diagnostic in diagnostics) {
+                trace.report(diagnostic)
             }
         }
     }

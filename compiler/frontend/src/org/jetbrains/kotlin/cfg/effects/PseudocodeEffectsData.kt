@@ -16,21 +16,19 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.CallInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.InlinedLocalFunctionDeclarationInstruction
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineExitInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.Edges
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.LocalFunctionAnalysisStrategy
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.collectData
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.ContextualEffectSystem
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.psi.KtElement
 
 class PseudocodeEffectsData(val pseudocode: Pseudocode) {
-    val controlFlowInfos: Map<KtElement, EffectsControlFlowInfo> = computeEffectsControlFlowInfo(pseudocode)
+    val controlFlowInfo: EffectsControlFlowInfo? = computeEffectsControlFlowInfo(pseudocode)
 
-    private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): Map<KtElement, EffectsControlFlowInfo> {
+    private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): EffectsControlFlowInfo? {
         val data = pseudocode.collectData(
             TraversalOrder.FORWARD,
             ::merge,
@@ -38,9 +36,7 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode) {
             EffectsControlFlowInfo(),
             LocalFunctionAnalysisStrategy.ONLY_INLINED_LAMBDAS
         )
-        return data.filterKeys { it is SubroutineExitInstruction && !it.isError && !it.owner.isInlined }
-            .mapKeys { (key, _) -> key.owner.correspondingElement }
-            .mapValues { (_, edges) -> edges.outgoing }
+        return data[pseudocode.exitInstruction]?.incoming
     }
 
     private fun merge(instruction: Instruction, incoming: Collection<EffectsControlFlowInfo>): Edges<EffectsControlFlowInfo> {
