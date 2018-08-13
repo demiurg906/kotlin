@@ -10,15 +10,13 @@ import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.contextual.impl.ExceptionEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.impl.ExceptionEffectSupplier
 import org.jetbrains.kotlin.contracts.parsing.contextual.ContextualEffectParser
-import org.jetbrains.kotlin.contracts.parsing.firstArgumentAsExpressionOrNull
 import org.jetbrains.kotlin.contracts.parsing.isConsumesEffectDescriptor
 import org.jetbrains.kotlin.contracts.parsing.isSuppliesEffectDescriptor
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtVisitor
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.types.KotlinType
@@ -28,7 +26,7 @@ class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParse
         private const val EFFECT_NAME = "ExceptionEffectDescription"
     }
 
-    override fun parseDeclarationForSupplier(declaration: KtCallExpression): ContextualEffectSupplier? {
+    override fun parseDeclarationForSupplier(declaration: KtExpression): ContextualEffectSupplier? {
         val exception = getExceptionType(
             declaration,
             DeclarationDescriptor::isSuppliesEffectDescriptor
@@ -36,7 +34,7 @@ class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParse
         return ExceptionEffectSupplier(exception)
     }
 
-    override fun parseDeclarationForConsumer(declaration: KtCallExpression): ContextualEffectConsumer? {
+    override fun parseDeclarationForConsumer(declaration: KtExpression): ContextualEffectConsumer? {
         val exception = getExceptionType(
             declaration,
             DeclarationDescriptor::isConsumesEffectDescriptor
@@ -44,28 +42,14 @@ class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParse
         return ExceptionEffectConsumer(exception)
     }
 
-    private fun getExceptionType(declaration: KtCallExpression, checker: CallableDescriptor.() -> Boolean): KotlinType? {
-        val resolvedCall = declaration.getResolvedCall(context) ?: return null
+    private fun getExceptionType(expression: KtExpression, checker: CallableDescriptor.() -> Boolean): KotlinType? {
+        if (expression !is KtCallExpression) return null
+        val resolvedCall = expression.getResolvedCall(context) ?: return null
         val descriptor = resolvedCall.resultingDescriptor
 
-        if (!descriptor.checker()) return null
+        val constructorName = (descriptor as? ClassConstructorDescriptor)?.constructedClass?.name?.asString() ?: return null
+        if (constructorName != EFFECT_NAME) return null
 
-        val argumentExpression = resolvedCall.firstArgumentAsExpressionOrNull() ?: return null
-        // TODO: delete visitor
-        return argumentExpression.accept(PsiExceptionDefinitionParser(context), Unit)
-    }
-
-    internal class PsiExceptionDefinitionParser(val context: BindingContext) : KtVisitor<KotlinType?, Unit>() {
-        override fun visitKtElement(element: KtElement, data: Unit?): KotlinType? = null
-
-        override fun visitCallExpression(expression: KtCallExpression, data: Unit?): KotlinType? {
-            val resolvedCall = expression.getResolvedCall(context) ?: return null
-            val descriptor = resolvedCall.resultingDescriptor
-
-            val constructorName = (descriptor as? ClassConstructorDescriptor)?.constructedClass?.name?.asString() ?: return null
-            if (constructorName != EFFECT_NAME) return null
-
-            return resolvedCall.typeArguments.values.firstOrNull()
-        }
+        return resolvedCall.typeArguments.values.firstOrNull()
     }
 }
