@@ -24,9 +24,8 @@ import org.jetbrains.kotlin.cfg.variable.*
 import org.jetbrains.kotlin.cfg.variable.VariableUseState.*
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.ContextualEffectSystem
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
@@ -68,7 +67,7 @@ class ControlFlowInformationProvider private constructor(
     }
 
     private val pseudocodeEffectsData by lazy {
-        PseudocodeEffectsData(pseudocode, trace.bindingContext)
+        PseudocodeEffectsData(pseudocode)
     }
 
     constructor(
@@ -125,17 +124,20 @@ class ControlFlowInformationProvider private constructor(
         checkDefiniteReturn(expectedReturnType ?: NO_EXPECTED_TYPE, unreachableCode)
 
         markAndCheckTailCalls()
+
+        checkContextualEffects()
     }
 
-    fun checkDeclarationContextualEffects() {
+    private fun checkContextualEffects() {
         val controlFlowInfos = pseudocodeEffectsData.controlFlowInfos
         for ((declaration, cfi) in controlFlowInfos) {
-            val descriptor = trace.bindingContext[BindingContext.FUNCTION, declaration] ?: throw IllegalStateException("must be not null")
-            val allConsumers = ContextualEffectSystem.declaredConsumers(descriptor).groupBy { it.family }
+            val descriptor = trace.bindingContext[BindingContext.FUNCTION, declaration] ?: throw AssertionError("must be not null")
+            val allConsumersByFamily = ContextualEffectSystem.declaredConsumers(descriptor).groupBy { it.family }
 
+            // TODO: separate
             var controlFlowInfo = cfi
-            for ((family, consumers) in allConsumers) {
-                var context = controlFlowInfo[family].getOrElse(family.emptyContext())
+            for ((family, consumers) in allConsumersByFamily) {
+                var context = controlFlowInfo[family].getOrElse(family.emptyContext)
                 for (consumer in consumers) {
                     val newContext = consumer.consume(context)
                     context = newContext
@@ -143,10 +145,14 @@ class ControlFlowInformationProvider private constructor(
                 controlFlowInfo = controlFlowInfo.put(family, context)
             }
 
-            val allCheckers = ContextualEffectFamily.ALL_FAMILIES.map { it to it.contextChecker() }
-            for ((family, checker) in allCheckers) {
+
+            val allCheckersByFamily = ContextualEffectFamily.ALL_FAMILIES.map { it to it.contextChecker }
+            for ((family, checker) in allCheckersByFamily) {
                 val context = controlFlowInfo[family].firstOrNull() ?: continue
-                report(declaration, context)
+                val diagnostics = checker.generateDiagnostics(context).map { CONTEXTUAL_EFFECT_WARNING.on(declaration, it) }
+                for (diagnostic in diagnostics) {
+                    trace.report(diagnostic)
+                }
             }
         }
     }
@@ -1016,14 +1022,6 @@ class ControlFlowInformationProvider private constructor(
 
     ////////////////////////////////////////////////////////////////////////////////
     // Utility classes and methods
-
-    private fun report(element: KtElement, context: ContextualEffectsContext) {
-        val checker = context.family.contextChecker()
-        val diagnostics = checker.generateDiagnostics(context).map { CONTEXTUAL_EFFECT_WARNING.on(element, it) }
-        for (diagnostic in diagnostics) {
-            trace.report(diagnostic)
-        }
-    }
 
     /**
      * The method provides reporting of the same diagnostic only once for copied instructions

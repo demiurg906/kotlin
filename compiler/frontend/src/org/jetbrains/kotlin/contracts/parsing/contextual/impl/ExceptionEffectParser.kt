@@ -29,7 +29,7 @@ class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParse
     }
 
     override fun parseDeclarationForSupplier(declaration: KtCallExpression): ContextualEffectSupplier? {
-        val exception = parseDeclaration(
+        val exception = getExceptionType(
             declaration,
             DeclarationDescriptor::isSuppliesEffectDescriptor
         ) ?: return null
@@ -37,20 +37,21 @@ class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParse
     }
 
     override fun parseDeclarationForConsumer(declaration: KtCallExpression): ContextualEffectConsumer? {
-        val exception = parseDeclaration(
+        val exception = getExceptionType(
             declaration,
             DeclarationDescriptor::isConsumesEffectDescriptor
         ) ?: return null
         return ExceptionEffectConsumer(exception)
     }
 
-    private fun parseDeclaration(declaration: KtCallExpression, checker: CallableDescriptor.() -> Boolean): KotlinType? {
+    private fun getExceptionType(declaration: KtCallExpression, checker: CallableDescriptor.() -> Boolean): KotlinType? {
         val resolvedCall = declaration.getResolvedCall(context) ?: return null
         val descriptor = resolvedCall.resultingDescriptor
 
         if (!descriptor.checker()) return null
 
         val argumentExpression = resolvedCall.firstArgumentAsExpressionOrNull() ?: return null
+        // TODO: delete visitor
         return argumentExpression.accept(PsiExceptionDefinitionParser(context), Unit)
     }
 
@@ -66,6 +67,5 @@ class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParse
 
             return resolvedCall.typeArguments.values.firstOrNull()
         }
-
     }
 }

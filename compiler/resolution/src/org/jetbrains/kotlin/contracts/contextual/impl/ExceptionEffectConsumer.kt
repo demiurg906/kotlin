@@ -6,13 +6,12 @@
 package org.jetbrains.kotlin.contracts.contextual.impl
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 
 class ExceptionEffectConsumer(private val consumedExceptionType: KotlinType) : ContextualEffectConsumer {
-    override val family = ContextualEffectFamily.EXCEPTION
+    override val family = ExceptionEffectFamily()
 
     override fun consume(context: ContextualEffectsContext): ExceptionEffectsContext {
         if (context !is ExceptionEffectsContext) {
@@ -20,6 +19,7 @@ class ExceptionEffectConsumer(private val consumedExceptionType: KotlinType) : C
         }
 
         val newContext = mutableSetOf<KotlinType>()
+        // TODO: filterTo
         for (exceptionType in context.exceptions) {
             if (!exceptionType.isSubtypeOf(consumedExceptionType)) {
                 newContext += exceptionType

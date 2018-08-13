@@ -5,28 +5,10 @@
 
 package org.jetbrains.kotlin.contracts.contextual.impl
 
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.types.KotlinType
 
-class ExceptionEffectsContext(val exceptions: Set<KotlinType> = setOf()) : ContextualEffectsContext {
-    override val family = ContextualEffectFamily.EXCEPTION
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ExceptionEffectsContext
-
-        if (exceptions != other.exceptions) return false
-        if (family != other.family) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = exceptions.hashCode()
-        result = 31 * result + family.hashCode()
-        return result
-    }
+data class ExceptionEffectsContext(val exceptions: Set<KotlinType> = setOf()) : ContextualEffectsContext {
+    override val family = ExceptionEffectFamily()
+    // TODO: check equality with javaClass
 }

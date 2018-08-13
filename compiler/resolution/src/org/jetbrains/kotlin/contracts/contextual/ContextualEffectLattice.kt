@@ -14,7 +14,6 @@ interface ContextualEffectLattice {
     fun and(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext
     fun or(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext
 
-    // TODO: maybe switch semantics of `top` and `bot`
     // bot `or` x = x
     fun bot(): ContextualEffectsContext
 

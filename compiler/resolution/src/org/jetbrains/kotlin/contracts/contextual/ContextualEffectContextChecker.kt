@@ -8,6 +8,8 @@ package org.jetbrains.kotlin.contracts.contextual
 interface ContextualEffectContextChecker {
     val family: ContextualEffectFamily
 
-    /* looks at context and generates warning messages if needed */
+    /**
+     * looks at [context] and generates warning messages if needed
+     * */
     fun generateDiagnostics(context: ContextualEffectsContext): List<String>
 }

@@ -6,11 +6,10 @@
 package org.jetbrains.kotlin.contracts.contextual.impl
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectContextChecker
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 
-class ExceptionEffectContextChecker : ContextualEffectContextChecker {
-    override val family = ContextualEffectFamily.EXCEPTION
+object ExceptionEffectContextChecker : ContextualEffectContextChecker {
+    override val family = ExceptionEffectFamily()
 
     override fun generateDiagnostics(context: ContextualEffectsContext): List<String> {
         if (context !is ExceptionEffectsContext) {
