@@ -5,8 +5,17 @@
 
 package org.jetbrains.kotlin.contracts.contextual
 
-interface ContextualEffectConsumer {
-    val family: ContextualEffectFamily
+import org.jetbrains.kotlin.contracts.description.ContractDescriptionVisitor
+import org.jetbrains.kotlin.contracts.description.EffectDeclaration
 
-    fun consume(context: ContextualEffectsContext): ContextualEffectsContext
+/**
+ * Effect which specifies, that subroutine consumes contextual effect
+ */
+abstract class ContextualEffectConsumer : EffectDeclaration {
+    abstract val family: ContextualEffectFamily
+
+    abstract fun consume(context: ContextualEffectsContext): ContextualEffectsContext
+
+    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R =
+        contractDescriptionVisitor.visitConsumesContextualEffectDeclaration(this, data)
 }

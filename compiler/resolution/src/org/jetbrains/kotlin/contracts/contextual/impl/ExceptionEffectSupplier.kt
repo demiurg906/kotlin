@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.types.KotlinType
 
-class ExceptionEffectSupplier(private val exceptionType: KotlinType) : ContextualEffectSupplier {
+class ExceptionEffectSupplier(private val exceptionType: KotlinType) : ContextualEffectSupplier() {
     override val family = ExceptionEffectFamily()
 
     override fun supply(context: ContextualEffectsContext): ContextualEffectsContext {

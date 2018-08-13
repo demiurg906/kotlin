@@ -16,6 +16,8 @@
 
 package org.jetbrains.kotlin.contracts.description
 
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.description.expressions.*
 
 class ContractDescriptionRenderer(private val builder: StringBuilder) : ContractDescriptionVisitor<Unit, Unit> {
@@ -73,12 +75,12 @@ class ContractDescriptionRenderer(private val builder: StringBuilder) : Contract
         builder.append(variableReference.descriptor.name)
     }
 
-    override fun visitSuppliesContextualEffectDeclaration(suppliesEffect: SuppliesContextualEffectDeclaration, data: Unit) {
-        builder.append(suppliesEffect.supplier)
+    override fun visitSuppliesContextualEffectDeclaration(suppliesEffect: ContextualEffectSupplier, data: Unit) {
+        builder.append(suppliesEffect)
     }
 
-    override fun visitConsumesContextualEffectDeclaration(consumesEffect: ConsumesContextualEffectDeclaration, data: Unit) {
-        builder.append(consumesEffect.consumer)
+    override fun visitConsumesContextualEffectDeclaration(consumesEffect: ContextualEffectConsumer, data: Unit) {
+        builder.append(consumesEffect)
     }
 
     private fun ContractDescriptionElement.isAtom(): Boolean =

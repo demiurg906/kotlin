@@ -8,9 +8,7 @@ package org.jetbrains.kotlin.contracts.parsing.effects
 import org.jetbrains.kotlin.contracts.ContextualEffectSystem
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
-import org.jetbrains.kotlin.contracts.description.ConsumesContextualEffectDeclaration
 import org.jetbrains.kotlin.contracts.description.EffectDeclaration
-import org.jetbrains.kotlin.contracts.description.SuppliesContextualEffectDeclaration
 import org.jetbrains.kotlin.contracts.parsing.AbstractPsiEffectParser
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
 import org.jetbrains.kotlin.contracts.parsing.contextual.ContextualEffectParser
@@ -21,22 +19,20 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 /**
  * Parses T ([ContextualEffectSupplier] or [ContextualEffectConsumer]) from psi declaration
  */
-internal abstract class PsiContextualEffectParser<T : Any>(
+internal abstract class PsiContextualEffectParser<T : EffectDeclaration>(
     trace: BindingTrace,
     dispatcher: PsiContractParserDispatcher,
-    private val effectDeclarationConstructor: (T) -> EffectDeclaration,
     private val parseFunction: (ContextualEffectParser, KtCallExpression) -> T?
 ) : AbstractPsiEffectParser(trace, dispatcher) {
     override fun tryParseEffect(expression: KtExpression): EffectDeclaration? {
         if (expression !is KtCallExpression) {
             return null
         }
-        val entity = ContextualEffectSystem.ALL_PARSERS.asSequence()
+        return ContextualEffectSystem.ALL_PARSERS.asSequence()
             .map { it(trace.bindingContext) }
             .map { parser -> parseFunction(parser, expression) }
             .filterNotNull()
-            .firstOrNull() ?: return null
-        return effectDeclarationConstructor(entity)
+            .firstOrNull()
     }
 }
 
@@ -46,7 +42,6 @@ internal class PsiConsumesEffectParser(
 ) : PsiContextualEffectParser<ContextualEffectConsumer>(
     trace,
     dispatcher,
-    ::ConsumesContextualEffectDeclaration,
     ContextualEffectParser::parseDeclarationForConsumer
 )
 
@@ -56,6 +51,5 @@ internal class PsiSuppliesEffectParser(
 ) : PsiContextualEffectParser<ContextualEffectSupplier>(
     trace,
     dispatcher,
-    ::SuppliesContextualEffectDeclaration,
     ContextualEffectParser::parseDeclarationForSupplier
 )

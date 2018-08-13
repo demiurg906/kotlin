@@ -7,10 +7,8 @@ package org.jetbrains.kotlin.contracts
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
-import org.jetbrains.kotlin.contracts.description.ConsumesContextualEffectDeclaration
 import org.jetbrains.kotlin.contracts.description.ContractDescription
 import org.jetbrains.kotlin.contracts.description.ContractProviderKey
-import org.jetbrains.kotlin.contracts.description.SuppliesContextualEffectDeclaration
 import org.jetbrains.kotlin.contracts.parsing.contextual.ContextualEffectParser
 import org.jetbrains.kotlin.contracts.parsing.contextual.impl.ExceptionEffectParser
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -24,16 +22,12 @@ object ContextualEffectSystem {
 
     fun declaredSuppliers(declaration: FunctionDescriptor): List<ContextualEffectSupplier> {
         val contractDescription = declaration.contractDescription ?: return emptyList()
-        return contractDescription.effects
-            .filter { it is SuppliesContextualEffectDeclaration }
-            .map { (it as SuppliesContextualEffectDeclaration).supplier }
+        return contractDescription.effects.mapNotNull { it as? ContextualEffectSupplier }
     }
 
     fun declaredConsumers(declaration: FunctionDescriptor): List<ContextualEffectConsumer> {
         val contractDescription = declaration.contractDescription ?: return emptyList()
-        return contractDescription.effects
-            .filter { it is ConsumesContextualEffectDeclaration }
-            .map { (it as ConsumesContextualEffectDeclaration).consumer }
+        return contractDescription.effects.mapNotNull { it as? ContextualEffectConsumer }
     }
 
     private val FunctionDescriptor.contractDescription: ContractDescription?
