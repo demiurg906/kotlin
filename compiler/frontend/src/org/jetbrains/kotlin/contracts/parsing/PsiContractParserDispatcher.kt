@@ -27,6 +27,8 @@ import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONDITIONAL_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONSUMES_EFFECT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDE_CONSUMES
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDE_SUPPLIES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.SUPPLIES_EFFECT
@@ -51,7 +53,9 @@ internal class PsiContractParserDispatcher(val trace: BindingTrace, val contract
         CALLS_IN_PLACE_EFFECT to PsiCallsEffectParser(trace, this),
         CONDITIONAL_EFFECT to PsiConditionalEffectParser(trace, this),
         SUPPLIES_EFFECT to PsiSuppliesEffectParser(trace, this),
-        CONSUMES_EFFECT to PsiConsumesEffectParser(trace, this)
+        CONSUMES_EFFECT to PsiConsumesEffectParser(trace, this),
+        PROVIDE_SUPPLIES to PsiProvideSuppliesEffectParser(trace, this),
+        PROVIDE_CONSUMES to PsiProvideConsumesEffectParser(trace, this)
     )
 
     fun parseContract(expression: KtExpression?, ownerDescriptor: FunctionDescriptor): ContractDescription? {

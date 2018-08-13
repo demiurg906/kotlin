@@ -51,6 +51,8 @@ object ContractsDslNames {
     val CALLS_IN_PLACE_EFFECT = Name.identifier("CallsInPlace")
     val SUPPLIES_EFFECT = Name.identifier("Supplies")
     val CONSUMES_EFFECT = Name.identifier("Consumes")
+    val PROVIDE_SUPPLIES = Name.identifier("ProvideSupplies")
+    val PROVIDE_CONSUMES = Name.identifier("ProvideConsumes")
 
     // Structure-defining calls
     val CONTRACT = Name.identifier("contract")

@@ -37,12 +37,20 @@ internal interface CallsInPlace : SimpleEffect
 
 @ContractsDsl
 @SinceKotlin("1.2")
-internal interface ContextualEffectDescription : Effect
+internal interface ContextualEffectDescription
 
 @ContractsDsl
 @SinceKotlin("1.2")
-internal interface Supplies : SimpleEffect
+internal interface Supplies : Effect
 
 @ContractsDsl
 @SinceKotlin("1.2")
-internal interface Consumes : SimpleEffect
+internal interface Consumes : Effect
+
+@ContractsDsl
+@SinceKotlin("1.2")
+internal interface ProvideSupplies : Effect
+
+@ContractsDsl
+@SinceKotlin("1.2")
+internal interface ProvideConsumes : Effect

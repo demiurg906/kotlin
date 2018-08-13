@@ -17,6 +17,9 @@ internal interface ContractBuilder {
     @ContractsDsl fun <R> callsInPlace(lambda: Function<R>, kind: InvocationKind = InvocationKind.UNKNOWN): CallsInPlace
     @ContractsDsl fun supplies(effect: ContextualEffectDescription): Supplies
     @ContractsDsl fun consumes(effect: ContextualEffectDescription): Consumes
+
+    @ContractsDsl fun supplies(block: () -> Unit, effect: ContextualEffectDescription): ProvideSupplies
+    @ContractsDsl fun consumes(block: () -> Unit, effect: ContextualEffectDescription): ProvideConsumes
 }
 
 @ContractsDsl
