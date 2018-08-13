@@ -1,4 +1,5 @@
 // !LANGUAGE: +ContextualEffects +AllowContractsForCustomFunctions
+// !DIAGNOSTICS: -INVISIBLE_MEMBER
 
 import kotlin.internal.contracts.*
 import java.io.FileNotFoundException

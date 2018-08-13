@@ -1,9 +1,9 @@
 // !LANGUAGE: +ContextualEffects +AllowContractsForCustomFunctions
+// !DIAGNOSTICS: -INVISIBLE_MEMBER -UNREACHABLE_CODE
 
 import kotlin.internal.contracts.*
 import java.io.FileNotFoundException
 
-@Suppress("INVISIBLE_MEMBER")
 fun supplier() {
     contract {
         supplies(ExceptionEffectDescription<FileNotFoundException>())
@@ -11,7 +11,6 @@ fun supplier() {
     throw FileNotFoundException()
 }
 
-@Suppress("UNREACHABLE_CODE")
 fun good_1() {
     while (true) {
         break
@@ -19,7 +18,6 @@ fun good_1() {
     }
 }
 
-@Suppress("UNREACHABLE_CODE")
 fun good_2() {
     while (true) {
         continue
@@ -27,7 +25,6 @@ fun good_2() {
     }
 }
 
-@Suppress("UNREACHABLE_CODE")
 fun good_3() {
     do {
         break
@@ -35,7 +32,6 @@ fun good_3() {
     } while (true)
 }
 
-@Suppress("UNREACHABLE_CODE")
 fun good_4() {
     do {
         continue

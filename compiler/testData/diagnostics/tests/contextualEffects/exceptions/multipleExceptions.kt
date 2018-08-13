@@ -1,4 +1,5 @@
 // !LANGUAGE: +ContextualEffects +AllowContractsForCustomFunctions
+// !DIAGNOSTICS: -INVISIBLE_MEMBER
 
 import kotlin.internal.contracts.*
 import java.io.FileNotFoundException
@@ -6,7 +7,6 @@ import java.io.IOException
 import java.lang.ArithmeticException
 import java.lang.IllegalArgumentException
 
-@Suppress("INVISIBLE_MEMBER")
 fun supplier_AAA() {
     contract {
         supplies(ExceptionEffectDescription<FileNotFoundException>())
@@ -14,7 +14,6 @@ fun supplier_AAA() {
     throw FileNotFoundException()
 }
 
-@Suppress("INVISIBLE_MEMBER")
 fun supplier_BBB() {
     contract {
         supplies(ExceptionEffectDescription<ArithmeticException>())
@@ -22,7 +21,6 @@ fun supplier_BBB() {
     throw FileNotFoundException()
 }
 
-@Suppress("INVISIBLE_MEMBER")
 fun supplier_AAA_BBB_CCC() {
     contract {
         supplies(ExceptionEffectDescription<FileNotFoundException>())
@@ -32,7 +30,6 @@ fun supplier_AAA_BBB_CCC() {
     throw FileNotFoundException()
 }
 
-@Suppress("INVISIBLE_MEMBER")
 fun good_1() {
     contract {
         consumes(ExceptionEffectDescription<FileNotFoundException>())
@@ -44,7 +41,6 @@ fun good_1() {
     supplier_AAA_BBB_CCC()
 }
 
-@Suppress("INVISIBLE_MEMBER")
 fun good_2() {
     contract {
         consumes(ExceptionEffectDescription<FileNotFoundException>())
@@ -59,8 +55,7 @@ fun good_2() {
     supplier_AAA_BBB_CCC()
 }
 
-<!CONTEXTUAL_EFFECT_WARNING!>@Suppress("INVISIBLE_MEMBER")
-fun bad_2()<!> {
+<!CONTEXTUAL_EFFECT_WARNING!>fun bad_2()<!> {
     contract {
         consumes(ExceptionEffectDescription<FileNotFoundException>())
         consumes(ExceptionEffectDescription<ArithmeticException>())

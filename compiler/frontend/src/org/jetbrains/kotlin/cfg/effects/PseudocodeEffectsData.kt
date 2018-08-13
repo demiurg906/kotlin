@@ -26,10 +26,9 @@ import org.jetbrains.kotlin.contracts.ContextualEffectSystem
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.resolve.BindingContext
 
-class PseudocodeEffectsData(val pseudocode: Pseudocode, private val bindingContext: BindingContext) {
-    val controlFlowInfos = computeEffectsControlFlowInfo(pseudocode)
+class PseudocodeEffectsData(val pseudocode: Pseudocode) {
+    val controlFlowInfos: Map<KtElement, EffectsControlFlowInfo> = computeEffectsControlFlowInfo(pseudocode)
 
     private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): Map<KtElement, EffectsControlFlowInfo> {
         val data = pseudocode.collectData(
@@ -37,7 +36,7 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode, private val bindingConte
             ::merge,
             ::update,
             EffectsControlFlowInfo(),
-            LocalFunctionAnalysisStrategy.NAMED_FUNCTIONS_AND_INLINED_LAMBDAS
+            LocalFunctionAnalysisStrategy.ONLY_INLINED_LAMBDAS
         )
         return data.filterKeys { it is SubroutineExitInstruction && !it.isError && !it.owner.isInlined }
             .mapKeys { (key, _) -> key.owner.correspondingElement }
@@ -45,6 +44,7 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode, private val bindingConte
     }
 
     private fun merge(instruction: Instruction, incoming: Collection<EffectsControlFlowInfo>): Edges<EffectsControlFlowInfo> {
+        // TODO откуда приходит size == 0
         val incomingContext = when (incoming.size) {
             0 -> EffectsControlFlowInfo()
             1 -> incoming.first()
@@ -56,10 +56,12 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode, private val bindingConte
     }
 
     private fun mergeMultipleEdges(incoming: Collection<EffectsControlFlowInfo>): EffectsControlFlowInfo {
+        // TODO: introduce vals
         val groupedContexts = incoming
             .flatMap { context -> context.iterator().map { it._1 to it._2 } }
             .groupBy { (family, _) -> family }
             .mapValues { it.value.map { (_, contexts) -> contexts } }
+
             .mapValues { (family, contexts) ->
                 val lattice = family.lattice
                 contexts.fold(lattice.bot(), lattice::or)
@@ -88,7 +90,7 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode, private val bindingConte
         override fun visitCallInstruction(instruction: CallInstruction): EffectsControlFlowInfo {
             // TODO: есть ли проблема с вызовом лямбд, лежащих в переменных?
             val descriptor =
-                instruction.resolvedCall.candidateDescriptor as? FunctionDescriptor ?: TODO("check correctness") // return controlFlowInfo
+                instruction.resolvedCall.resultingDescriptor as? FunctionDescriptor ?: TODO("check correctness") // return controlFlowInfo
             val suppliers = ContextualEffectSystem.declaredSuppliers(descriptor)
             var result = controlFlowInfo
             for (supplier in suppliers) {

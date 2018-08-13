@@ -143,8 +143,6 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
                 subroutinePseudocode.getLastInstruction(traversalOrder)
             val previousValue = edgesMap[instruction]
             val newValue = edgesMap[lastInstruction]
-            // TODO: вот сюда можно добавить invocationKind, что позволит каждому типу эффектов
-            // самим решать, что делать в такой ситуации
             val updatedValue = newValue?.let {
                 Edges(updateEdge(lastInstruction, instruction, it.incoming), updateEdge(lastInstruction, instruction, it.outgoing))
             }

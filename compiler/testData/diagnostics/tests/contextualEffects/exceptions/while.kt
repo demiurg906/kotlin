@@ -1,10 +1,10 @@
 // !LANGUAGE: +ContextualEffects +AllowContractsForCustomFunctions
+// !DIAGNOSTICS: -INVISIBLE_MEMBER
 
 import kotlin.internal.contracts.*
 import java.io.FileNotFoundException
 import java.io.IOException
 
-@Suppress("INVISIBLE_MEMBER")
 fun supplier() {
     contract {
         supplies(ExceptionEffectDescription<FileNotFoundException>())
@@ -12,7 +12,6 @@ fun supplier() {
     throw FileNotFoundException()
 }
 
-@Suppress("INVISIBLE_MEMBER")
 fun good_1(y: Int) {
     contract {
         consumes(ExceptionEffectDescription<IOException>())

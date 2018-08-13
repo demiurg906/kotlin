@@ -1,18 +1,18 @@
 package
 
 public val b: kotlin.Boolean = false
-@kotlin.Suppress(names = {"UNUSED_VARIABLE"}) public fun bad_1(): kotlin.Unit
+public fun bad_1(): kotlin.Unit
 public fun bad_2(): kotlin.Unit
-@kotlin.Suppress(names = {"UNUSED_VARIABLE"}) public fun bad_3(): kotlin.Unit
-@kotlin.Suppress(names = {"INVISIBLE_MEMBER", "UNUSED_VARIABLE"}) public fun good_1(): kotlin.Unit
+public fun bad_3(): kotlin.Unit
+public fun good_1(): kotlin.Unit
     Consumer of IOException
 
-@kotlin.Suppress(names = {"INVISIBLE_MEMBER"}) public fun good_2(): kotlin.Unit
+public fun good_2(): kotlin.Unit
     Consumer of IOException
 
-@kotlin.Suppress(names = {"INVISIBLE_MEMBER", "UNUSED_VARIABLE"}) public fun good_3(): kotlin.Unit
+public fun good_3(): kotlin.Unit
     Consumer of IOException
 
-@kotlin.Suppress(names = {"INVISIBLE_MEMBER"}) public fun supplier(): kotlin.Unit
+public fun supplier(): kotlin.Unit
     Supplier of FileNotFoundException
 
