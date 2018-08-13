@@ -11,6 +11,8 @@ import org.jetbrains.kotlin.cfg.ImmutableHashMap
 import org.jetbrains.kotlin.cfg.ImmutableMap
 import org.jetbrains.kotlin.cfg.ReadOnlyControlFlowInfo
 import org.jetbrains.kotlin.descriptors.VariableDescriptor
+import org.jetbrains.kotlin.util.javaslang.component1
+import org.jetbrains.kotlin.util.javaslang.component2
 
 typealias ReadOnlyUseVariableControlFlowInfo = ReadOnlyControlFlowInfo<VariableDescriptor, VariableUseState>
 typealias VariableControlFlowInfo<S, D> = ControlFlowInfo<S, VariableDescriptor, D>
@@ -40,10 +42,6 @@ class InitVariableControlFlowInfo(map: ImmutableMap<VariableDescriptor, Variable
         return false
     }
 }
-
-
-operator fun <T> Tuple2<T, *>.component1(): T = _1()
-operator fun <T> Tuple2<*, T>.component2(): T = _2()
 
 class UseVariableControlFlowInfo(map: ImmutableMap<VariableDescriptor, VariableUseState> = ImmutableHashMap.empty()) :
     VariableControlFlowInfo<UseVariableControlFlowInfo, VariableUseState>(map),
