@@ -10943,9 +10943,19 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 runTest("compiler/testData/diagnostics/tests/inlineClasses/basicInlineClassDeclarationDisabled.kt");
             }
 
+            @TestMetadata("delegatedPropertyInInlineClass.kt")
+            public void testDelegatedPropertyInInlineClass() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/inlineClasses/delegatedPropertyInInlineClass.kt");
+            }
+
             @TestMetadata("identityComparisonWithInlineClasses.kt")
             public void testIdentityComparisonWithInlineClasses() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/inlineClasses/identityComparisonWithInlineClasses.kt");
+            }
+
+            @TestMetadata("inlineClassCannotImplementInterfaceByDelegation.kt")
+            public void testInlineClassCannotImplementInterfaceByDelegation() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/inlineClasses/inlineClassCannotImplementInterfaceByDelegation.kt");
             }
 
             @TestMetadata("inlineClassDeclarationCheck.kt")
@@ -13139,6 +13149,11 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
 
                 public void testAllFilesPresentInHeaderClass() throws Exception {
                     KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/multiplatform/headerClass"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+                }
+
+                @TestMetadata("baseExpectClassWithoutConstructor.kt")
+                public void testBaseExpectClassWithoutConstructor() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/multiplatform/headerClass/baseExpectClassWithoutConstructor.kt");
                 }
 
                 @TestMetadata("classKinds.kt")
@@ -18930,6 +18945,16 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 runTest("compiler/testData/diagnostics/tests/smartCasts/elvisRHS.kt");
             }
 
+            @TestMetadata("enumEntryMembers_after.kt")
+            public void testEnumEntryMembers_after() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/smartCasts/enumEntryMembers_after.kt");
+            }
+
+            @TestMetadata("enumEntryMembers_before.kt")
+            public void testEnumEntryMembers_before() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/smartCasts/enumEntryMembers_before.kt");
+            }
+
             @TestMetadata("equals.kt")
             public void testEquals() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/smartCasts/equals.kt");
@@ -19892,6 +19917,16 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 @TestMetadata("WhileTrueWithBreakInIfCondition.kt")
                 public void testWhileTrueWithBreakInIfCondition() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/smartCasts/loops/WhileTrueWithBreakInIfCondition.kt");
+                }
+
+                @TestMetadata("whileWithAssertInConditionAndBreakAfter.kt")
+                public void testWhileWithAssertInConditionAndBreakAfter() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/smartCasts/loops/whileWithAssertInConditionAndBreakAfter.kt");
+                }
+
+                @TestMetadata("whileWithAssertInConditionAndBreakBefore.kt")
+                public void testWhileWithAssertInConditionAndBreakBefore() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/smartCasts/loops/whileWithAssertInConditionAndBreakBefore.kt");
                 }
             }
 

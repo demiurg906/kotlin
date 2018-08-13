@@ -16,6 +16,11 @@
 
 package org.jetbrains.kotlin.cfg
 
+import org.jetbrains.kotlin.descriptors.VariableDescriptor
+import org.jetbrains.kotlin.util.javaslang.ImmutableHashMap
+import org.jetbrains.kotlin.util.javaslang.ImmutableMap
+import org.jetbrains.kotlin.util.javaslang.component1
+import org.jetbrains.kotlin.util.javaslang.component2
 typealias ImmutableMap<K, V> = javaslang.collection.Map<K, V>
 typealias ImmutableHashMap<K, V> = javaslang.collection.HashMap<K, V>
 
