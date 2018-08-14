@@ -33,3 +33,8 @@ object ContextualEffectSystem {
     private val FunctionDescriptor.contractDescription: ContractDescription?
         get() = getUserData(ContractProviderKey)?.getContractDescription()
 }
+
+data class ContextualBindingInfo(
+    val suppliers: List<ContextualEffectSupplier> = listOf(),
+    val consumers: List<ContextualEffectConsumer> = listOf()
+)

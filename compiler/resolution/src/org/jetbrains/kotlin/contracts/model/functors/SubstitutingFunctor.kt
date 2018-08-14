@@ -16,15 +16,11 @@
 
 package org.jetbrains.kotlin.contracts.model.functors
 
+import org.jetbrains.kotlin.contracts.model.*
 import org.jetbrains.kotlin.contracts.model.structure.ESCalls
-import org.jetbrains.kotlin.contracts.model.structure.ESReturns
 import org.jetbrains.kotlin.contracts.model.structure.ESConstant
-import org.jetbrains.kotlin.contracts.model.ESValue
+import org.jetbrains.kotlin.contracts.model.structure.ESReturns
 import org.jetbrains.kotlin.contracts.model.structure.ESVariable
-import org.jetbrains.kotlin.contracts.model.ConditionalEffect
-import org.jetbrains.kotlin.contracts.model.ESEffect
-import org.jetbrains.kotlin.contracts.model.SimpleEffect
-import org.jetbrains.kotlin.contracts.model.Computation
 import org.jetbrains.kotlin.contracts.model.visitors.Substitutor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueDescriptor
@@ -54,8 +50,18 @@ class SubstitutingFunctor(private val basicEffects: List<ESEffect>, private val 
                 }
 
                 is ESCalls -> {
-                    val subsitutionForCallable = substitutions[effect.callable] as? ESValue ?: continue@effectsLoop
-                    substitutedClauses += ESCalls(subsitutionForCallable, effect.kind)
+                    val substitutionForCallable = substitutions[effect.callable] as? ESValue ?: continue@effectsLoop
+                    substitutedClauses += ESCalls(substitutionForCallable, effect.kind)
+                }
+
+                is SuppliesEffect -> {
+                    val substitutionForCallable = substitutions[effect.callable] as? ESValue ?: continue@effectsLoop
+                    substitutedClauses += SuppliesEffect(substitutionForCallable, effect.supplier)
+                }
+
+                is ConsumesEffect-> {
+                    val substitutionForCallable = substitutions[effect.callable] as? ESValue ?: continue@effectsLoop
+                    substitutedClauses += ConsumesEffect(substitutionForCallable, effect.consumer)
                 }
 
                 else -> substitutedClauses += effect

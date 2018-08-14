@@ -18,20 +18,17 @@ package org.jetbrains.kotlin.contracts
 
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.contracts.model.structure.ESCalls
-import org.jetbrains.kotlin.contracts.model.structure.ESReturns
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
+import org.jetbrains.kotlin.contracts.model.*
 import org.jetbrains.kotlin.contracts.model.functors.EqualsFunctor
-import org.jetbrains.kotlin.contracts.model.structure.ESConstant
-import org.jetbrains.kotlin.contracts.model.structure.UNKNOWN_COMPUTATION
-import org.jetbrains.kotlin.contracts.model.structure.lift
-import org.jetbrains.kotlin.contracts.model.ESEffect
-import org.jetbrains.kotlin.contracts.model.Computation
-import org.jetbrains.kotlin.contracts.model.MutableContextInfo
+import org.jetbrains.kotlin.contracts.model.structure.*
 import org.jetbrains.kotlin.contracts.model.visitors.InfoCollector
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
@@ -90,10 +87,38 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
         if (callExpression is KtDeclaration) return
 
         val resultingContextInfo = getContextInfoWhen(ESReturns(ESConstant.WILDCARD), callExpression, bindingTrace, moduleDescriptor)
-        for (effect in resultingContextInfo.firedEffects) {
-            val callsEffect = effect as? ESCalls ?: continue
-            val lambdaExpression = (callsEffect.callable as? ESLambda)?.lambda ?: continue
-            bindingTrace.record(BindingContext.LAMBDA_INVOCATIONS, lambdaExpression, callsEffect.kind)
+        val contextualEntities =
+            mutableMapOf<KtLambdaExpression, Pair<MutableList<ContextualEffectSupplier>, MutableList<ContextualEffectConsumer>>>()
+
+        fun emptyEntity() = mutableListOf<ContextualEffectSupplier>() to mutableListOf<ContextualEffectConsumer>()
+
+        loop@ for (effect in resultingContextInfo.firedEffects) {
+            when (effect) {
+                is ESCalls -> {
+                    val lambdaExpression = (effect.callable as? ESLambda)?.lambda ?: continue@loop
+                    bindingTrace.record(BindingContext.LAMBDA_INVOCATIONS, lambdaExpression, effect.kind)
+                }
+                // TODO: refactor
+                is SuppliesEffect -> {
+                    val lambdaExpression = (effect.callable as? ESLambda)?.lambda ?: continue@loop
+                    if (lambdaExpression !in contextualEntities) {
+                        contextualEntities[lambdaExpression] = emptyEntity()
+                    }
+                    contextualEntities[lambdaExpression]?.first?.add(effect.supplier)
+                }
+                is ConsumesEffect -> {
+                    val lambdaExpression = (effect.callable as? ESLambda)?.lambda ?: continue@loop
+                    if (lambdaExpression !in contextualEntities) {
+                        contextualEntities[lambdaExpression] = emptyEntity()
+                    }
+                    contextualEntities[lambdaExpression]?.second?.add(effect.consumer)
+                }
+            }
+        }
+
+        for ((lambda, entities) in contextualEntities) {
+            val (suppliers, consumers) = entities
+            bindingTrace.record(BindingContext.CONTEXTUAL_EFFECTS, lambda, ContextualBindingInfo(suppliers, consumers))
         }
     }
 

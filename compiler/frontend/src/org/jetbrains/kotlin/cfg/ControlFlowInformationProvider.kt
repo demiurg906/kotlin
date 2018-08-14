@@ -67,7 +67,7 @@ class ControlFlowInformationProvider private constructor(
     }
 
     private val pseudocodeEffectsData by lazy {
-        PseudocodeEffectsData(pseudocode)
+        PseudocodeEffectsData(pseudocode, trace.bindingContext)
     }
 
     constructor(
@@ -132,17 +132,18 @@ class ControlFlowInformationProvider private constructor(
         var controlFlowInfo = pseudocodeEffectsData.controlFlowInfo ?: return
 
         val descriptor = trace.bindingContext[BindingContext.FUNCTION, subroutine] ?: throw AssertionError("must be not null")
-        val allConsumersByFamily = ContextualEffectSystem.declaredConsumers(descriptor).groupBy { it.family }
-
-        // TODO: separate
-        for ((family, consumers) in allConsumersByFamily) {
-            var context = controlFlowInfo[family].getOrElse(family.emptyContext)
-            for (consumer in consumers) {
-                val newContext = consumer.consume(context)
-                context = newContext
-            }
-            controlFlowInfo = controlFlowInfo.put(family, context)
-        }
+        controlFlowInfo = pseudocodeEffectsData.applyConsumers(controlFlowInfo, ContextualEffectSystem.declaredConsumers(descriptor))
+//        val allConsumersByFamily = ContextualEffectSystem.declaredConsumers(descriptor).groupBy { it.family }
+//
+//        // TODO: separate
+//        for ((family, consumers) in allConsumersByFamily) {
+//            var context = controlFlowInfo[family].getOrElse(family.emptyContext)
+//            for (consumer in consumers) {
+//                val newContext = consumer.consume(context)
+//                context = newContext
+//            }
+//            controlFlowInfo = controlFlowInfo.put(family, context)
+//        }
 
 
         val allCheckersByFamily = ContextualEffectFamily.ALL_FAMILIES.map { it to it.contextChecker }

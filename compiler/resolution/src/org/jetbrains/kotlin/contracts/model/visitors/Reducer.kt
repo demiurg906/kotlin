@@ -44,6 +44,8 @@ class Reducer : ESExpressionVisitor<ESExpression?> {
                 // Leave everything else as is
                 return effect
             }
+            is SuppliesEffect -> return effect
+            is ConsumesEffect -> return effect
         }
     }
 

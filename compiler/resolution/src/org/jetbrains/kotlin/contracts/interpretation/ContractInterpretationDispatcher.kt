@@ -19,12 +19,12 @@ package org.jetbrains.kotlin.contracts.interpretation
 import org.jetbrains.kotlin.contracts.description.*
 import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
-import org.jetbrains.kotlin.contracts.model.functors.SubstitutingFunctor
-import org.jetbrains.kotlin.contracts.model.structure.ESConstant
-import org.jetbrains.kotlin.contracts.model.structure.ESVariable
 import org.jetbrains.kotlin.contracts.model.ESEffect
 import org.jetbrains.kotlin.contracts.model.ESExpression
 import org.jetbrains.kotlin.contracts.model.Functor
+import org.jetbrains.kotlin.contracts.model.functors.SubstitutingFunctor
+import org.jetbrains.kotlin.contracts.model.structure.ESConstant
+import org.jetbrains.kotlin.contracts.model.structure.ESVariable
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 
 /**
@@ -36,7 +36,9 @@ class ContractInterpretationDispatcher {
     private val conditionalEffectInterpreter = ConditionalEffectInterpreter(this)
     private val effectsInterpreters: List<EffectDeclarationInterpreter> = listOf(
         ReturnsEffectInterpreter(this),
-        CallsEffectInterpreter(this)
+        CallsEffectInterpreter(this),
+        SuppliesEffectInterpreter(this),
+        ConsumesEffectInterpreter(this)
     )
 
     fun resolveFunctor(functionDescriptor: FunctionDescriptor): Functor? {

@@ -75,9 +75,8 @@ class BlockSuppliesContextualEffectDeclaration(
     val variableReference: VariableReference,
     val supplier: ContextualEffectSupplier
 ) : EffectDeclaration {
-    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
-        TODO()
-    }
+    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D) =
+        contractDescriptionVisitor.visitBlockSuppliesContextualEffectDeclaration(this, data)
 }
 
 
@@ -85,8 +84,7 @@ class BlockConsumesContextualEffectDeclaration(
     val variableReference: VariableReference,
     val consumer: ContextualEffectConsumer
 ) : EffectDeclaration {
-    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
-        TODO()
-    }
+    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D) =
+        contractDescriptionVisitor.visitBlockConsumesContextualEffectDeclaration(this, data)
 }
 

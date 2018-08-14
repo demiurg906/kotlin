@@ -24,36 +24,28 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.LocalFunctionDec
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineEnterInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineSinkInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder.FORWARD
-import org.jetbrains.kotlin.psi.KtNamedFunction
 import java.util.*
 
 enum class LocalFunctionAnalysisStrategy {
     ANALYSE_EVERYTHING {
+        override val isolatedLocalFunctions = false
         override fun allowFunction(declaration: LocalFunctionDeclarationInstruction) = true
     },
 
-    DO_NOT_ANALYSE {
-        override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean = false
-    },
-
-    ONLY_NAMED_FUNCTIONS {
-        override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean {
-            return declaration.element is KtNamedFunction
-        }
-    },
+//    DO_NOT_ANALYSE {
+//        override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean = false
+//        override val isolatedLocalFunctions: Boolean = TODO("Not implemented")
+//    },
 
     ONLY_INLINED_LAMBDAS {
+        override val isolatedLocalFunctions = true
+
         override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean {
             return declaration is InlinedLocalFunctionDeclarationInstruction
         }
-    },
-
-    NAMED_FUNCTIONS_AND_INLINED_LAMBDAS {
-        override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean {
-            return ONLY_NAMED_FUNCTIONS.allowFunction(declaration) || ONLY_INLINED_LAMBDAS.allowFunction(declaration)
-        }
     };
 
+    abstract val isolatedLocalFunctions: Boolean
     abstract fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean
 }
 
@@ -127,8 +119,9 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
         if (!isLocal && isStart)
             continue
 
-        val previousInstructions =
-            getPreviousIncludingSubGraphInstructions(instruction, traversalOrder, startInstruction, previousSubGraphInstructions)
+        val previousInstructions = if (isStart && isLocal && localFunctionAnalysisStrategy.isolatedLocalFunctions)
+            listOf()
+        else getPreviousIncludingSubGraphInstructions(instruction, traversalOrder, startInstruction, previousSubGraphInstructions)
 
         if (instruction is LocalFunctionDeclarationInstruction && localFunctionAnalysisStrategy.allowFunction(instruction)) {
             val subroutinePseudocode = instruction.body
@@ -145,7 +138,19 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
             val newValue = edgesMap[lastInstruction]
             val updatedValue = newValue?.let {
                 Edges(updateEdge(lastInstruction, instruction, it.incoming), updateEdge(lastInstruction, instruction, it.outgoing))
+            }?.let { edges ->
+                // if local function was analysed as isolated
+                // there is need to merge exit edges of local function
+                // and previous edge before function call
+                if (localFunctionAnalysisStrategy.isolatedLocalFunctions) {
+                    val incoming = previousInstructions.mapNotNull { edgesMap[it]?.outgoing }.toMutableList()
+                    incoming.add(edges.outgoing)
+                    mergeEdges(instruction, incoming)
+                } else {
+                    edges
+                }
             }
+
             updateEdgeDataForInstruction(instruction, previousValue, updatedValue, edgesMap, changed)
             continue
         }

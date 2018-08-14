@@ -33,9 +33,17 @@ interface ContractDescriptionVisitor<out R, in D> {
 
     fun visitReturnsEffectDeclaration(returnsEffect: ReturnsEffectDeclaration, data: D): R = visitEffectDeclaration(returnsEffect, data)
     fun visitCallsEffectDeclaration(callsEffect: CallsEffectDeclaration, data: D): R = visitEffectDeclaration(callsEffect, data)
+
     fun visitSuppliesContextualEffectDeclaration(suppliesEffect: ContextualEffectSupplier, data: D): R =
         visitEffectDeclaration(suppliesEffect, data)
+
     fun visitConsumesContextualEffectDeclaration(consumesEffect: ContextualEffectConsumer, data: D): R =
+        visitEffectDeclaration(consumesEffect, data)
+
+    fun visitBlockSuppliesContextualEffectDeclaration(suppliesEffect: BlockSuppliesContextualEffectDeclaration, data: D): R =
+        visitEffectDeclaration(suppliesEffect, data)
+
+    fun visitBlockConsumesContextualEffectDeclaration(consumesEffect: BlockConsumesContextualEffectDeclaration, data: D): R =
         visitEffectDeclaration(consumesEffect, data)
 
     // Expressions

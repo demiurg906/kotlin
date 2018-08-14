@@ -16,6 +16,9 @@
 
 package org.jetbrains.kotlin.contracts.model
 
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
+
 sealed class ESEffect {
     /**
      * Returns:
@@ -43,5 +46,12 @@ class ConditionalEffect(val condition: ESExpression, val simpleEffect: SimpleEff
     override fun isImplies(other: ESEffect): Boolean? = null
 }
 
+// Contextual effects
+data class SuppliesEffect(val callable: ESValue, val supplier: ContextualEffectSupplier) : ESEffect() {
+    override fun isImplies(other: ESEffect): Boolean? = null
+}
 
 
+data class ConsumesEffect(val callable: ESValue, val consumer: ContextualEffectConsumer) : ESEffect() {
+    override fun isImplies(other: ESEffect): Boolean? = null
+}

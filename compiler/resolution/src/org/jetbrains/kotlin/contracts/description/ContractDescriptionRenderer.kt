@@ -83,6 +83,18 @@ class ContractDescriptionRenderer(private val builder: StringBuilder) : Contract
         builder.append(consumesEffect)
     }
 
+    override fun visitBlockSuppliesContextualEffectDeclaration(suppliesEffect: BlockSuppliesContextualEffectDeclaration, data: Unit) {
+        builder.append(suppliesEffect.variableReference.accept(this, data))
+            .append(" supplies ")
+            .append(suppliesEffect.supplier.accept(this, data))
+    }
+
+    override fun visitBlockConsumesContextualEffectDeclaration(consumesEffect: BlockConsumesContextualEffectDeclaration, data: Unit) {
+        builder.append(consumesEffect.variableReference.accept(this, data))
+            .append(" consumes ")
+            .append(consumesEffect.consumer.accept(this, data))
+    }
+
     private fun ContractDescriptionElement.isAtom(): Boolean =
         this is VariableReference || this is ConstantReference || this is IsNullPredicate || this is IsInstancePredicate
 

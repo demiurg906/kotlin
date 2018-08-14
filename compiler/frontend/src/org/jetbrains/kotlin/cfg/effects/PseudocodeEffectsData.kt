@@ -21,11 +21,17 @@ import org.jetbrains.kotlin.cfg.pseudocodeTraverser.LocalFunctionAnalysisStrateg
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.collectData
 import org.jetbrains.kotlin.contracts.ContextualEffectSystem
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.resolve.BindingContext
 
-class PseudocodeEffectsData(val pseudocode: Pseudocode) {
+class PseudocodeEffectsData(
+    val pseudocode: Pseudocode,
+    val bindingContext: BindingContext
+) {
     val controlFlowInfo: EffectsControlFlowInfo? = computeEffectsControlFlowInfo(pseudocode)
 
     private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): EffectsControlFlowInfo? {
@@ -67,11 +73,29 @@ class PseudocodeEffectsData(val pseudocode: Pseudocode) {
 
     private fun update(from: Instruction, to: Instruction, info: EffectsControlFlowInfo): EffectsControlFlowInfo {
         val invocationKind = (to as? InlinedLocalFunctionDeclarationInstruction)?.kind ?: return info
-        return EffectsControlFlowInfo(
+        val context = EffectsControlFlowInfo(
             ImmutableHashMap.ofAll(info.convertToMap().mapValues { (family, context) ->
                 family.lattice.updateContextWithInvocationKind(context, invocationKind)
             })
         )
+        val lambda = to.element.parent as? KtLambdaExpression ?: return context
+        val consumers = bindingContext[BindingContext.CONTEXTUAL_EFFECTS, lambda]?.consumers ?: return context
+        return applyConsumers(context, consumers)
+    }
+
+    fun applyConsumers(controlFlowInfo: EffectsControlFlowInfo, allConsumers: List<ContextualEffectConsumer>): EffectsControlFlowInfo {
+        var cfi = controlFlowInfo
+        val allConsumersByFamily = allConsumers.groupBy { it.family }
+
+        for ((family, consumers) in allConsumersByFamily) {
+            var context = cfi[family].getOrElse(family.emptyContext)
+            for (consumer in consumers) {
+                val newContext = consumer.consume(context)
+                context = newContext
+            }
+            cfi = cfi.put(family, context)
+        }
+        return cfi
     }
 
     private fun EffectsControlFlowInfo.convertToMap(): Map<ContextualEffectFamily, ContextualEffectsContext> {
