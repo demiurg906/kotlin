@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 
 class ExceptionEffectConsumer(private val consumedExceptionType: KotlinType) : ContextualEffectConsumer() {
-    override val family = ExceptionEffectFamily()
+    override val family = ExceptionEffectFamily
 
     override fun consume(context: ContextualEffectsContext): ExceptionEffectsContext {
         if (context !is ExceptionEffectsContext) {

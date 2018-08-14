@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.contracts.contextual
 
 interface ContextualEffectContextChecker {
-    val family: ContextualEffectFamily
+//    val family: ContextualEffectFamily
 
     /**
      * looks at [context] and generates warning messages if needed

@@ -9,8 +9,6 @@ import org.jetbrains.kotlin.contracts.contextual.ContextualEffectContextChecker
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 
 object ExceptionEffectContextChecker : ContextualEffectContextChecker {
-    override val family = ExceptionEffectFamily()
-
     override fun generateDiagnostics(context: ContextualEffectsContext): List<String> {
         if (context !is ExceptionEffectsContext) {
             throw IllegalArgumentException()

@@ -10,8 +10,6 @@ import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 
 object ExceptionEffectLattice : ContextualEffectLattice {
-    override val family = ExceptionEffectFamily()
-
     override fun and(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext {
         TODO("not implemented")
     }

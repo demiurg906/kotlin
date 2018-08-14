@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.contracts.description.InvocationKind
 
 // интерфейс для решетки над множествами эффектов
 interface ContextualEffectLattice {
-    val family: ContextualEffectFamily
+//    val family: ContextualEffectFamily
 
     fun and(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext
     fun or(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext

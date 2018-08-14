@@ -14,6 +14,6 @@ abstract class ContextualEffectFamily {
     abstract val emptyContext: ContextualEffectsContext
 
     companion object {
-        val ALL_FAMILIES = listOf(ExceptionEffectFamily())
+        val ALL_FAMILIES by lazy { listOf(ExceptionEffectFamily) }
     }
 }
