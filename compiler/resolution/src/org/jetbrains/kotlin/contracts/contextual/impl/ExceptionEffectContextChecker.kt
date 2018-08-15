@@ -13,6 +13,6 @@ object ExceptionEffectContextChecker : ContextualEffectContextChecker {
         if (context !is ExceptionEffectsContext) {
             throw IllegalArgumentException()
         }
-        return context.exceptions.map { "Unchecked exception: $it" }
+        return context.exceptions.map { "Unchecked exception: $it" }.sorted()
     }
 }
