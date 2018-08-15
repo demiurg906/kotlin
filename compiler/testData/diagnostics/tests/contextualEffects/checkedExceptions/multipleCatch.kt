@@ -25,20 +25,13 @@ fun throwsIOException() {
     contract {
         supplies(ExceptionEffectDescription<IOException>())
     }
-    throw java.io.IOException()
+    throw IOException()
 }
 
-inline fun myCatchIOException(block: () -> Unit) {
+inline fun myCatch(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        consumes(block, ExceptionEffectDescription<IOException>())
-    }
-    block()
-}
-
-inline fun myCatchRuntimeException(block: () -> Unit) {
-    contract {
-        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+        consumes(block, ExceptionEffectDescription<FileNotFoundException>())
         consumes(block, ExceptionEffectDescription<RuntimeException>())
     }
     block()
@@ -47,25 +40,26 @@ inline fun myCatchRuntimeException(block: () -> Unit) {
 // ---------------- TESTS ----------------
 
 fun test_1() {
-    myCatchIOException {
-        throwsIOException()
+    myCatch {
+        throwsFileNotFoundException()
     }
 }
 
 fun test_2() {
-    myCatchRuntimeException {
+    myCatch {
         throwsNullPointerException()
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_3()<!> {
-    myCatchIOException {
+fun test_3() {
+    myCatch {
+        throwsFileNotFoundException()
         throwsNullPointerException()
     }
 }
 
 <!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>fun test_4()<!> {
-    myCatchRuntimeException {
+    myCatch {
         throwsIOException()
     }
 }

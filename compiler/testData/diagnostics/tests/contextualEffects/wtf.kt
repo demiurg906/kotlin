@@ -1,5 +1,6 @@
 // !LANGUAGE: +ContextualEffects +UseCallsInPlaceEffect +AllowContractsForCustomFunctions +UseReturnsEffect
 // !DIAGNOSTICS: -INVISIBLE_MEMBER -INVISIBLE_REFERENCE
+// !RENDER_DIAGNOSTICS_MESSAGES
 
 import kotlin.internal.contracts.*
 import java.io.FileNotFoundException
@@ -45,12 +46,14 @@ inline fun myCatchRuntimeException(block: () -> Unit) {
 
 // ---------------- TESTS ----------------
 
-fun test_1() {
-    myCatchIOException {
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: FileNotFoundException), CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException), CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_3()<!> {
+    val b = false
+    if (b) {
+        myCatchIOException {
+            throwsNullPointerException()
+        }
+    } else {
         throwsIOException()
     }
-}
-
-<!CONTEXTUAL_EFFECT_WARNING!>fun test_2()<!> {
-    throwsIOException()
+    throwsFileNotFoundException()
 }

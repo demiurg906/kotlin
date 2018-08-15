@@ -25,7 +25,7 @@ fun throwsIOException() {
     contract {
         supplies(ExceptionEffectDescription<IOException>())
     }
-    throw java.io.IOException()
+    throw IOException()
 }
 
 inline fun myCatchIOException(block: () -> Unit) {
@@ -44,50 +44,76 @@ inline fun myCatchRuntimeException(block: () -> Unit) {
     block()
 }
 
+inline fun myRun(block: () -> Unit) {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+    block()
+}
+
 // ---------------- TESTS ----------------
 
 fun test_1() {
-    for (i in 1..10) {
+    myRun {
         myCatchIOException {
             throwsIOException()
         }
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_2()<!> {
-    val b = false
-    if (b) {
-        for (i in 1..10) {
-            myCatchIOException {
-                throwsIOException()
-            }
-        }
-    } else {
-        for (i in 1..10) {
+fun test_2() {
+    myRun {
+        myCatchRuntimeException {
             throwsNullPointerException()
         }
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>fun test_3()<!> {
-    val b = false
-    for (i in 1..10) {
-        if (b) {
-            myCatchIOException {
-                throwsIOException()
-            }
-        } else {
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_3()<!> {
+    myRun {
+        myCatchIOException {
+            throwsNullPointerException()
+        }
+    }
+}
+
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>fun test_4()<!> {
+    myRun {
+        myCatchRuntimeException {
             throwsIOException()
         }
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_4()<!> {
-    val b = false
-    for (i in 1..10) {
-        if (b) {
+fun test_5() {
+    myRun {
+        myCatchIOException {
+            myRun {
+                throwsIOException()
+            }
+        }
+    }
+}
+
+fun test_6() {
+    myCatchRuntimeException {
+        myRun {
             myCatchIOException {
-                throwsNullPointerException()
+                myRun {
+                    throwsNullPointerException()
+                }
+            }
+        }
+    }
+}
+
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_7()<!> {
+    myCatchIOException {
+        myRun {
+            myCatchIOException {
+                myRun {
+                    throwsNullPointerException()
+                }
             }
         }
     }

@@ -3335,6 +3335,11 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                     KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
                 }
 
+                @TestMetadata("extensionFunctions.kt")
+                public void testExtensionFunctions() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/extensionFunctions.kt");
+                }
+
                 @TestMetadata("for.kt")
                 public void testFor() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/for.kt");
@@ -3348,6 +3353,21 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                 @TestMetadata("innerCatch.kt")
                 public void testInnerCatch() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/innerCatch.kt");
+                }
+
+                @TestMetadata("memberFunctions.kt")
+                public void testMemberFunctions() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/memberFunctions.kt");
+                }
+
+                @TestMetadata("multipleCatch.kt")
+                public void testMultipleCatch() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/multipleCatch.kt");
+                }
+
+                @TestMetadata("runCatch.kt")
+                public void testRunCatch() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/runCatch.kt");
                 }
 
                 @TestMetadata("simple.kt")

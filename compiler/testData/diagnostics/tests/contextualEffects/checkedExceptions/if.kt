@@ -1,5 +1,6 @@
 // !LANGUAGE: +ContextualEffects +UseCallsInPlaceEffect +AllowContractsForCustomFunctions
 // !DIAGNOSTICS: -INVISIBLE_MEMBER -INVISIBLE_REFERENCE
+// !RENDER_DIAGNOSTICS_MESSAGES
 
 import kotlin.internal.contracts.*
 import java.io.FileNotFoundException
@@ -45,7 +46,7 @@ inline fun myCatchRuntimeException(block: () -> Unit) {
 
 // ---------------- TESTS ----------------
 
-<!CONTEXTUAL_EFFECT_WARNING!>fun test_1()<!> {
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>fun test_1()<!> {
     val b = false
     if (b) {
         myCatchIOException {
@@ -56,7 +57,7 @@ inline fun myCatchRuntimeException(block: () -> Unit) {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING!>fun test_2()<!> {
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_2()<!> {
     val b = false
     if (b) {
         myCatchIOException {
@@ -67,7 +68,7 @@ inline fun myCatchRuntimeException(block: () -> Unit) {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING, CONTEXTUAL_EFFECT_WARNING!>fun test_3()<!> {
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException), CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_3()<!> {
     val b = false
     if (b) {
         myCatchIOException {
@@ -78,7 +79,7 @@ inline fun myCatchRuntimeException(block: () -> Unit) {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING!>fun test_4()<!> {
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_4()<!> {
     val b = false
     if (b) {
         myCatchIOException {
@@ -89,7 +90,7 @@ inline fun myCatchRuntimeException(block: () -> Unit) {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING!>fun test_5()<!> {
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_5()<!> {
     val b = false
     myCatchIOException {
         if (b) {

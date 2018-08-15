@@ -1,11 +1,8 @@
 package
 
-public inline fun myCatchIOException(/*0*/ block: () -> kotlin.Unit): kotlin.Unit
+public inline fun myCatch(/*0*/ block: () -> kotlin.Unit): kotlin.Unit
     CallsInPlace(block, EXACTLY_ONCE)
-    blockkotlin.Unit consumes Consumer of IOExceptionkotlin.Unit
-
-public inline fun myCatchRuntimeException(/*0*/ block: () -> kotlin.Unit): kotlin.Unit
-    CallsInPlace(block, EXACTLY_ONCE)
+    blockkotlin.Unit consumes Consumer of FileNotFoundExceptionkotlin.Unit
     blockkotlin.Unit consumes Consumer of RuntimeExceptionkotlin.Unit
 
 public fun test_1(): kotlin.Unit
@@ -20,4 +17,3 @@ public fun throwsIOException(): kotlin.Unit
 
 public fun throwsNullPointerException(): kotlin.Unit
     Supplier of NullPointerException
-

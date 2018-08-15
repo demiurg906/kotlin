@@ -7,25 +7,20 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.lang.RuntimeException
 
-fun throwsFileNotFoundException() {
-    contract {
-        supplies(ExceptionEffectDescription<FileNotFoundException>())
+class A {
+    fun throwsNullPointerException() {
+        contract {
+            supplies(ExceptionEffectDescription<NullPointerException>())
+        }
+        throw NullPointerException()
     }
-    throw FileNotFoundException()
-}
 
-fun throwsNullPointerException() {
-    contract {
-        supplies(ExceptionEffectDescription<NullPointerException>())
+    fun throwsIOException() {
+        contract {
+            supplies(ExceptionEffectDescription<IOException>())
+        }
+        throw IOException()
     }
-    throw NullPointerException()
-}
-
-fun throwsIOException() {
-    contract {
-        supplies(ExceptionEffectDescription<IOException>())
-    }
-    throw java.io.IOException()
 }
 
 inline fun myCatchIOException(block: () -> Unit) {
@@ -46,26 +41,29 @@ inline fun myCatchRuntimeException(block: () -> Unit) {
 
 // ---------------- TESTS ----------------
 
-fun test_1() {
-    myCatchIOException {
-        throwsIOException()
-    }
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException), CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_1()<!> {
+    val a = A()
+    a.throwsIOException()
+    a.throwsNullPointerException()
 }
 
 fun test_2() {
-    myCatchRuntimeException {
-        throwsNullPointerException()
+    val a = A()
+    myCatchIOException {
+        a.throwsIOException()
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_3()<!> {
-    myCatchIOException {
-        throwsNullPointerException()
+fun test_3() {
+    val a = A()
+    myCatchRuntimeException {
+        a.throwsNullPointerException()
     }
 }
 
 <!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>fun test_4()<!> {
+    val a = A()
     myCatchRuntimeException {
-        throwsIOException()
+        a.throwsIOException()
     }
 }
