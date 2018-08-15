@@ -14,14 +14,13 @@ public fun good_2(): kotlin.Unit
     Consumer of FileNotFoundException
     Consumer of ArithmeticException
 
-public fun supplier_AAA(): kotlin.Unit
-    Supplier of FileNotFoundException
-
-public fun supplier_AAA_BBB_CCC(): kotlin.Unit
+public fun throwsAll(): kotlin.Unit
     Supplier of FileNotFoundException
     Supplier of ArithmeticException
     Supplier of IllegalArgumentException
 
-public fun supplier_BBB(): kotlin.Unit
+public fun throwsArithmeticException(): kotlin.Unit
     Supplier of ArithmeticException
 
+public fun throwsFileNotFoundException(): kotlin.Unit
+    Supplier of FileNotFoundException

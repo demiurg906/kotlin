@@ -1,5 +1,6 @@
 // !LANGUAGE: +ContextualEffects +AllowContractsForCustomFunctions
 // !DIAGNOSTICS: -INVISIBLE_MEMBER
+// !RENDER_DIAGNOSTICS_MESSAGES
 
 import kotlin.internal.contracts.*
 import java.io.FileNotFoundException
@@ -7,21 +8,21 @@ import java.io.IOException
 import java.lang.ArithmeticException
 import java.lang.IllegalArgumentException
 
-fun supplier_AAA() {
+fun throwsFileNotFoundException() {
     contract {
         supplies(ExceptionEffectDescription<FileNotFoundException>())
     }
     throw FileNotFoundException()
 }
 
-fun supplier_BBB() {
+fun throwsArithmeticException() {
     contract {
         supplies(ExceptionEffectDescription<ArithmeticException>())
     }
     throw FileNotFoundException()
 }
 
-fun supplier_AAA_BBB_CCC() {
+fun throwsAll() {
     contract {
         supplies(ExceptionEffectDescription<FileNotFoundException>())
         supplies(ExceptionEffectDescription<ArithmeticException>())
@@ -36,9 +37,9 @@ fun good_1() {
         consumes(ExceptionEffectDescription<ArithmeticException>())
         consumes(ExceptionEffectDescription<IllegalArgumentException>())
     }
-    supplier_AAA()
-    supplier_BBB()
-    supplier_AAA_BBB_CCC()
+    throwsFileNotFoundException()
+    throwsArithmeticException()
+    throwsAll()
 }
 
 fun good_2() {
@@ -46,19 +47,19 @@ fun good_2() {
         consumes(ExceptionEffectDescription<FileNotFoundException>())
         consumes(ExceptionEffectDescription<ArithmeticException>())
     }
-    supplier_AAA()
-    supplier_AAA()
-    supplier_BBB()
+    throwsFileNotFoundException()
+    throwsFileNotFoundException()
+    throwsArithmeticException()
 }
 
-<!CONTEXTUAL_EFFECT_WARNING, CONTEXTUAL_EFFECT_WARNING, CONTEXTUAL_EFFECT_WARNING!>fun bad_1()<!> {
-    supplier_AAA_BBB_CCC()
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: ArithmeticException), CONTEXTUAL_EFFECT_WARNING(Unchecked exception: FileNotFoundException), CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IllegalArgumentException)!>fun bad_1()<!> {
+    throwsAll()
 }
 
-<!CONTEXTUAL_EFFECT_WARNING!>fun bad_2()<!> {
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IllegalArgumentException)!>fun bad_2()<!> {
     contract {
         consumes(ExceptionEffectDescription<FileNotFoundException>())
         consumes(ExceptionEffectDescription<ArithmeticException>())
     }
-    supplier_AAA_BBB_CCC()
+    throwsAll()
 }
