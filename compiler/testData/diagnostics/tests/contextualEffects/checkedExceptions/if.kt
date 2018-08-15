@@ -1,0 +1,112 @@
+// !LANGUAGE: +ContextualEffects +UseCallsInPlaceEffect +AllowContractsForCustomFunctions
+// !DIAGNOSTICS: -INVISIBLE_MEMBER -INVISIBLE_REFERENCE
+
+import kotlin.internal.contracts.*
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.lang.RuntimeException
+
+fun throwsFileNotFoundException() {
+    contract {
+        supplies(ExceptionEffectDescription<FileNotFoundException>())
+    }
+    throw FileNotFoundException()
+}
+
+fun throwsNullPointerException() {
+    contract {
+        supplies(ExceptionEffectDescription<NullPointerException>())
+    }
+    throw NullPointerException()
+}
+
+fun throwsIOException() {
+    contract {
+        supplies(ExceptionEffectDescription<IOException>())
+    }
+    throw java.io.IOException()
+}
+
+inline fun myCatchIOException(block: () -> Unit) {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+        consumes(block, ExceptionEffectDescription<IOException>())
+    }
+    block()
+}
+
+inline fun myCatchRuntimeException(block: () -> Unit) {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+        consumes(block, ExceptionEffectDescription<RuntimeException>())
+    }
+    block()
+}
+
+// ---------------- TESTS ----------------
+
+<!CONTEXTUAL_EFFECT_WARNING!>fun test_1()<!> {
+    val b = false
+    if (b) {
+        myCatchIOException {
+            throwsIOException()
+        }
+    } else {
+        throwsIOException()
+    }
+}
+
+<!CONTEXTUAL_EFFECT_WARNING!>fun test_2()<!> {
+    val b = false
+    if (b) {
+        myCatchIOException {
+            throwsIOException()
+        }
+    } else {
+        throwsNullPointerException()
+    }
+}
+
+<!CONTEXTUAL_EFFECT_WARNING, CONTEXTUAL_EFFECT_WARNING!>fun test_3()<!> {
+    val b = false
+    if (b) {
+        myCatchIOException {
+            throwsNullPointerException()
+        }
+    } else {
+        throwsIOException()
+    }
+}
+
+<!CONTEXTUAL_EFFECT_WARNING!>fun test_4()<!> {
+    val b = false
+    if (b) {
+        myCatchIOException {
+            throwsNullPointerException()
+        }
+    } else {
+        throwsNullPointerException()
+    }
+}
+
+<!CONTEXTUAL_EFFECT_WARNING!>fun test_5()<!> {
+    val b = false
+    myCatchIOException {
+        if (b) {
+            throwsIOException()
+        } else {
+            throwsNullPointerException()
+        }
+    }
+}
+
+fun test_6() {
+    val b = false
+    myCatchIOException {
+        if (b) {
+            throwsIOException()
+        } else {
+            throwsFileNotFoundException()
+        }
+    }
+}

@@ -3318,76 +3318,114 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/contextualEffects"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
             }
 
-            @TestMetadata("compiler/testData/diagnostics/tests/contextualEffects/exceptions")
+            @TestMetadata("wtf.kt")
+            public void testWtf() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/contextualEffects/wtf.kt");
+            }
+
+            @TestMetadata("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions")
             @TestDataPath("$PROJECT_ROOT")
             @RunWith(JUnit3RunnerWithInners.class)
-            public static class Exceptions extends AbstractDiagnosticsTest {
+            public static class CheckedExceptions extends AbstractDiagnosticsTest {
                 private void runTest(String testDataFilePath) throws Exception {
                     KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
                 }
 
-                public void testAllFilesPresentInExceptions() throws Exception {
-                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/contextualEffects/exceptions"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
-                }
-
-                @TestMetadata("breakContinueReturn.kt")
-                public void testBreakContinueReturn() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/breakContinueReturn.kt");
-                }
-
-                @TestMetadata("doWhile.kt")
-                public void testDoWhile() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/doWhile.kt");
-                }
-
-                @TestMetadata("elvis.kt")
-                public void testElvis() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/elvis.kt");
+                public void testAllFilesPresentInCheckedExceptions() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
                 }
 
                 @TestMetadata("for.kt")
                 public void testFor() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/for.kt");
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/for.kt");
                 }
 
                 @TestMetadata("if.kt")
                 public void testIf() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/if.kt");
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/if.kt");
                 }
 
-                @TestMetadata("innerFunctions.kt")
-                public void testInnerFunctions() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/innerFunctions.kt");
-                }
-
-                @TestMetadata("lambda.kt")
-                public void testLambda() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/lambda.kt");
-                }
-
-                @TestMetadata("multipleExceptions.kt")
-                public void testMultipleExceptions() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/multipleExceptions.kt");
+                @TestMetadata("innerCatch.kt")
+                public void testInnerCatch() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/innerCatch.kt");
                 }
 
                 @TestMetadata("simple.kt")
                 public void testSimple() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/simple.kt");
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/simple.kt");
+                }
+            }
+
+            @TestMetadata("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class DummyCFAtests extends AbstractDiagnosticsTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInDummyCFAtests() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+                }
+
+                @TestMetadata("breakContinueReturn.kt")
+                public void testBreakContinueReturn() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests/breakContinueReturn.kt");
+                }
+
+                @TestMetadata("doWhile.kt")
+                public void testDoWhile() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests/doWhile.kt");
+                }
+
+                @TestMetadata("elvis.kt")
+                public void testElvis() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests/elvis.kt");
+                }
+
+                @TestMetadata("for.kt")
+                public void testFor() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests/for.kt");
+                }
+
+                @TestMetadata("if.kt")
+                public void testIf() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests/if.kt");
+                }
+
+                @TestMetadata("innerFunctions.kt")
+                public void testInnerFunctions() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests/innerFunctions.kt");
+                }
+
+                @TestMetadata("lambda.kt")
+                public void testLambda() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests/lambda.kt");
+                }
+
+                @TestMetadata("multipleExceptions.kt")
+                public void testMultipleExceptions() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests/multipleExceptions.kt");
+                }
+
+                @TestMetadata("simple.kt")
+                public void testSimple() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests/simple.kt");
                 }
 
                 @TestMetadata("when.kt")
                 public void testWhen() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/when.kt");
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests/when.kt");
                 }
 
                 @TestMetadata("while.kt")
                 public void testWhile() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/while.kt");
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests/while.kt");
                 }
 
                 @TestMetadata("whileTrue.kt")
                 public void testWhileTrue() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/exceptions/whileTrue.kt");
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests/whileTrue.kt");
                 }
             }
         }
