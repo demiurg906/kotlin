@@ -3,7 +3,7 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.contracts.contextual.impl
+package org.jetbrains.kotlin.contracts.contextual.exceptions
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectContextChecker
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext

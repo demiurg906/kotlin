@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.contextual
 
-import org.jetbrains.kotlin.contracts.contextual.impl.ExceptionEffectFamily
+import org.jetbrains.kotlin.contracts.contextual.exceptions.ExceptionEffectFamily
 
 abstract class ContextualEffectFamily {
     abstract val id: String

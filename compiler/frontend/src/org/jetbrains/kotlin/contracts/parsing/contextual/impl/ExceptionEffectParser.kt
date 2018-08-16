@@ -7,8 +7,8 @@ package org.jetbrains.kotlin.contracts.parsing.contextual.impl
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
-import org.jetbrains.kotlin.contracts.contextual.impl.ExceptionEffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.impl.ExceptionEffectSupplier
+import org.jetbrains.kotlin.contracts.contextual.exceptions.ExceptionEffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.exceptions.ExceptionEffectSupplier
 import org.jetbrains.kotlin.contracts.parsing.contextual.ContextualEffectParser
 import org.jetbrains.kotlin.contracts.parsing.isConsumesEffectDescriptor
 import org.jetbrains.kotlin.contracts.parsing.isSuppliesEffectDescriptor
