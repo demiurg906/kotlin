@@ -10,5 +10,4 @@ import org.jetbrains.kotlin.types.KotlinType
 
 data class ExceptionEffectsContext(val exceptions: Set<KotlinType> = setOf()) : ContextualEffectsContext {
     override val family = ExceptionEffectFamily
-    // TODO: check equality with javaClass
 }
