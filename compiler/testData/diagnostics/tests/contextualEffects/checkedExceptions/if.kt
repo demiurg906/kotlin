@@ -57,57 +57,28 @@ inline fun myCatchRuntimeException(block: () -> Unit) {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_2()<!> {
-    val b = false
-    if (b) {
-        myCatchIOException {
-            throwsIOException()
-        }
-    } else {
-        throwsNullPointerException()
-    }
-}
-
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException), CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_3()<!> {
-    val b = false
-    if (b) {
-        myCatchIOException {
-            throwsNullPointerException()
-        }
-    } else {
-        throwsIOException()
-    }
-}
-
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_4()<!> {
-    val b = false
-    if (b) {
-        myCatchIOException {
-            throwsNullPointerException()
-        }
-    } else {
-        throwsNullPointerException()
-    }
-}
-
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_5()<!> {
-    val b = false
-    myCatchIOException {
-        if (b) {
-            throwsIOException()
-        } else {
-            throwsNullPointerException()
-        }
-    }
-}
-
-fun test_6() {
+fun test_2() {
     val b = false
     myCatchIOException {
         if (b) {
             throwsIOException()
         } else {
             throwsFileNotFoundException()
+        }
+    }
+}
+
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException), CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_3()<!> {
+    val b = false
+    if(b) {
+        if (b) {
+            myCatchIOException {
+                throwsNullPointerException()
+            }
+        }
+    } else {
+        myCatchRuntimeException {
+            throwsIOException()
         }
     }
 }

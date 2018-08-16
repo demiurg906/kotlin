@@ -3355,11 +3355,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/innerCatch.kt");
                 }
 
-                @TestMetadata("memberFunctions.kt")
-                public void testMemberFunctions() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/memberFunctions.kt");
-                }
-
                 @TestMetadata("multipleCatch.kt")
                 public void testMultipleCatch() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/multipleCatch.kt");
@@ -3373,6 +3368,11 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 @TestMetadata("simple.kt")
                 public void testSimple() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/simple.kt");
+                }
+
+                @TestMetadata("when.kt")
+                public void testWhen() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions/when.kt");
                 }
             }
 

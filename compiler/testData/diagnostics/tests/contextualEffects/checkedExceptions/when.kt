@@ -1,5 +1,5 @@
 // !LANGUAGE: +ContextualEffects +UseCallsInPlaceEffect +AllowContractsForCustomFunctions
-// !DIAGNOSTICS: -INVISIBLE_MEMBER -INVISIBLE_REFERENCE
+// !DIAGNOSTICS: -INVISIBLE_MEMBER -INVISIBLE_REFERENCE -UNUSED_VARIABLE
 // !RENDER_DIAGNOSTICS_MESSAGES
 
 import kotlin.internal.contracts.*
@@ -44,61 +44,33 @@ inline fun myCatchRuntimeException(block: () -> Unit) {
     block()
 }
 
-inline fun myRun(block: () -> Unit) {
-    contract {
-        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-    }
-    block()
-}
-
 // ---------------- TESTS ----------------
 
-fun test_1() {
-    myRun {
-        myCatchIOException {
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException), CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_1()<!> {
+    val x: Int = 10
+    when (x) {
+        in 0..3 -> myCatchIOException {
             throwsIOException()
         }
-    }
-}
-
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_2()<!> {
-    myRun {
-        myCatchIOException {
-            throwsNullPointerException()
+        in 5..7 -> myCatchRuntimeException {
+            throwsIOException()
         }
+        else -> throwsNullPointerException()
     }
 }
 
-fun test_3() {
-    myRun {
-        myCatchIOException {
-            myRun {
-                throwsIOException()
-            }
+<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException), CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_2()<!> {
+    val x: Int = 10
+    throwsNullPointerException()
+    when (x) {
+        in 0..3 -> myCatchIOException {
+            throwsFileNotFoundException()
         }
-    }
-}
-
-fun test_4() {
-    myCatchRuntimeException {
-        myRun {
-            myCatchIOException {
-                myRun {
-                    throwsNullPointerException()
-                }
-            }
+        in 5..7 -> myCatchRuntimeException {
+            throwsIOException()
         }
-    }
-}
-
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_5()<!> {
-    myCatchIOException {
-        myRun {
-            myCatchIOException {
-                myRun {
-                    throwsNullPointerException()
-                }
-            }
+        else -> {
+            val y = x
         }
     }
 }
