@@ -7,9 +7,14 @@ package org.jetbrains.kotlin.contracts.parsing.contextual
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.psi.KtExpression
 
-interface ContextualEffectParser {
-    fun parseDeclarationForSupplier(declaration: KtExpression): ContextualEffectSupplier?
-    fun parseDeclarationForConsumer(declaration: KtExpression): ContextualEffectConsumer?
+abstract class ContextualEffectParser {
+    abstract fun parseDeclarationForSupplier(declaration: KtExpression): ContextualEffectSupplier?
+    abstract fun parseDeclarationForConsumer(declaration: KtExpression): ContextualEffectConsumer?
+
+    protected fun extractConstructorName(descriptor: CallableDescriptor) =
+        (descriptor as? ClassConstructorDescriptor)?.constructedClass?.name?.asString()
 }

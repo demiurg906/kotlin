@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.contracts.parsing.contextual.ContextualEffectParser
 import org.jetbrains.kotlin.contracts.parsing.isConsumesEffectDescriptor
 import org.jetbrains.kotlin.contracts.parsing.isSuppliesEffectDescriptor
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
@@ -21,7 +20,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.types.KotlinType
 
-class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParser {
+class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParser() {
     companion object {
         private const val EFFECT_NAME = "ExceptionEffectDescription"
     }
@@ -47,7 +46,7 @@ class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParse
         val resolvedCall = expression.getResolvedCall(context) ?: return null
         val descriptor = resolvedCall.resultingDescriptor
 
-        val constructorName = (descriptor as? ClassConstructorDescriptor)?.constructedClass?.name?.asString() ?: return null
+        val constructorName = extractConstructorName(descriptor) ?: return null
         if (constructorName != EFFECT_NAME) return null
 
         return resolvedCall.typeArguments.values.firstOrNull()
