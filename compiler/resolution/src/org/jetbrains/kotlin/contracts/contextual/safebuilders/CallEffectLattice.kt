@@ -17,19 +17,14 @@ object CallEffectLattice : ContextualEffectLattice {
 
     override fun or(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext {
         if (a !is CallEffectsContext || b !is CallEffectsContext) throw AssertionError()
-        val calls = processCalls(a.calls, b.calls)
+        val calls = processOrCalls(a.calls, b.calls)
         val badCalls = processBadCalls(a.badCalls, b.badCalls)
         return CallEffectsContext(calls, badCalls)
     }
     
-    private fun processCalls(a: CallsMap, b: CallsMap): CallsMap {
-        val (intersection, differenceA, differenceB) = splitSets(a.keys, b.keys)
-
-        val res = mutableMapOf<FunctionDescriptor, CallKind>()
-        res.putAll(differenceA.map { it to a[it]!! })
-        res.putAll(differenceB.map { it to b[it]!! })
-        res.putAll(intersection.map { it to max(a[it]!!, b[it]!!) })
-        return res
+    private fun processOrCalls(a: CallsMap, b: CallsMap): CallsMap {
+        val intersection = a.keys intersect b.keys
+        return intersection.map { it to max(a[it]!!, b[it]!!) }.toMap()
     }
 
     private fun processBadCalls(a: BadCallsMap, b: BadCallsMap): BadCallsMap {
