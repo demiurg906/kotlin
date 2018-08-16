@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.contracts.contextual
 
 import org.jetbrains.kotlin.contracts.contextual.exceptions.ExceptionEffectFamily
+import org.jetbrains.kotlin.contracts.contextual.safebuilders.CallEffectFamily
 
 abstract class ContextualEffectFamily {
     abstract val id: String
@@ -14,6 +15,6 @@ abstract class ContextualEffectFamily {
     abstract val emptyContext: ContextualEffectsContext
 
     companion object {
-        val ALL_FAMILIES by lazy { listOf(ExceptionEffectFamily) }
+        val ALL_FAMILIES: List<ContextualEffectFamily> by lazy { listOf(ExceptionEffectFamily, CallEffectFamily) }
     }
 }
