@@ -37,7 +37,11 @@ internal interface CallsInPlace : SimpleEffect
 
 @ContractsDsl
 @SinceKotlin("1.2")
-internal interface ContextualEffectDescription
+internal interface ContextualEffectSuppliesDescription
+
+@ContractsDsl
+@SinceKotlin("1.2")
+internal interface ContextualEffectConsumesDescription
 
 @ContractsDsl
 @SinceKotlin("1.2")

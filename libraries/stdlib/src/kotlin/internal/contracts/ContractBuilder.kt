@@ -15,11 +15,12 @@ internal interface ContractBuilder {
     @ContractsDsl fun returns(value: Any?): Returns
     @ContractsDsl fun returnsNotNull(): ReturnsNotNull
     @ContractsDsl fun <R> callsInPlace(lambda: Function<R>, kind: InvocationKind = InvocationKind.UNKNOWN): CallsInPlace
-    @ContractsDsl fun supplies(effect: ContextualEffectDescription): Supplies
-    @ContractsDsl fun consumes(effect: ContextualEffectDescription): Consumes
 
-    @ContractsDsl fun supplies(block: () -> Unit, effect: ContextualEffectDescription): ProvideSupplies
-    @ContractsDsl fun consumes(block: () -> Unit, effect: ContextualEffectDescription): ProvideConsumes
+    @ContractsDsl fun supplies(effect: ContextualEffectSuppliesDescription): Supplies
+    @ContractsDsl fun <R> supplies(block: Function<R>, effect: ContextualEffectSuppliesDescription): ProvideSupplies
+
+    @ContractsDsl fun consumes(effect: ContextualEffectConsumesDescription): Consumes
+    @ContractsDsl fun <R> consumes(block: Function<R>, effect: ContextualEffectConsumesDescription): ProvideConsumes
 }
 
 @ContractsDsl

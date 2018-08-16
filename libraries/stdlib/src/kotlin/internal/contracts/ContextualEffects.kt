@@ -8,4 +8,4 @@ package kotlin.internal.contracts
 import kotlin.internal.ContractsDsl
 
 @ContractsDsl
-class ExceptionEffectDescription<T : Throwable> : ContextualEffectDescription
+class ExceptionEffectDescription<T : Throwable> : ContextualEffectSuppliesDescription, ContextualEffectConsumesDescription
