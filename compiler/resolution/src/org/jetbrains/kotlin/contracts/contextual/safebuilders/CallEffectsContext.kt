@@ -11,10 +11,13 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 typealias CallsMap = Map<FunctionDescriptor, CallKind>
 typealias BadCallsMap = Map<FunctionDescriptor, List<CallAnalysisResult>>
 
-data class CallEffectsContext(
-    val calls: CallsMap = mapOf(),
-    val badCalls: BadCallsMap = mapOf()
-) : ContextualEffectsContext {
+sealed class AbstractCallEffectsContext : ContextualEffectsContext {
     override val family = CallEffectFamily
 }
 
+data class CallEffectsContext(
+    val calls: CallsMap = mapOf(),
+    val badCalls: BadCallsMap = mapOf()
+) : AbstractCallEffectsContext()
+
+object BotCallEffectsContext : AbstractCallEffectsContext()

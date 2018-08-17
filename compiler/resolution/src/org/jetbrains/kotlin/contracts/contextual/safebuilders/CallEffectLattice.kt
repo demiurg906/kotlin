@@ -16,6 +16,11 @@ object CallEffectLattice : ContextualEffectLattice {
     }
 
     override fun or(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext {
+        if (a !is AbstractCallEffectsContext || b !is AbstractCallEffectsContext) throw AssertionError()
+
+        if (a is BotCallEffectsContext) return b
+        if (b is BotCallEffectsContext) return a
+
         if (a !is CallEffectsContext || b !is CallEffectsContext) throw AssertionError()
         val calls = processOrCalls(a.calls, b.calls)
         val badCalls = processBadCalls(a.badCalls, b.badCalls)
@@ -24,7 +29,7 @@ object CallEffectLattice : ContextualEffectLattice {
     
     private fun processOrCalls(a: CallsMap, b: CallsMap): CallsMap {
         val intersection = a.keys intersect b.keys
-        return intersection.map { it to max(a[it]!!, b[it]!!) }.toMap()
+        return intersection.map { it to min(a[it]!!, b[it]!!) }.toMap()
     }
 
     private fun processBadCalls(a: BadCallsMap, b: BadCallsMap): BadCallsMap {
@@ -33,7 +38,7 @@ object CallEffectLattice : ContextualEffectLattice {
         val res = mutableMapOf<FunctionDescriptor, List<CallAnalysisResult>>()
         res.putAll(differenceA.map { it to a[it]!! })
         res.putAll(differenceB.map { it to b[it]!! })
-        res.putAll(intersection.map { it to a[it]!! + b[it]!! })
+        res.putAll(intersection.map { it to (a[it]!! + b[it]!!) })
         return res
     }
 
@@ -44,10 +49,17 @@ object CallEffectLattice : ContextualEffectLattice {
         return Triple(intersection, differenceA, differenceB)
     }
     
-    private fun <T : Comparable<T>> max(a: T, b: T) = if (a > b) a else b
+    private fun <T : Comparable<T>> min(a: T, b: T) = if (a < b) a else b
+
+    private operator fun <T> List<T>.plus(other: List<T>): List<T> {
+        val res = mutableListOf<T>()
+        res.addAll(this)
+        res.addAll(other)
+        return res
+    }
 
     override fun bot(): ContextualEffectsContext {
-        return CallEffectsContext()
+        return BotCallEffectsContext
     }
 
     override fun top(): ContextualEffectsContext {
