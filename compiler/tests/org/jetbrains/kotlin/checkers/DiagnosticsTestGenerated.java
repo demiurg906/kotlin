@@ -3318,11 +3318,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/contextualEffects"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
             }
 
-            @TestMetadata("wtf.kt")
-            public void testWtf() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/contextualEffects/wtf.kt");
-            }
-
             @TestMetadata("compiler/testData/diagnostics/tests/contextualEffects/checkedExceptions")
             @TestDataPath("$PROJECT_ROOT")
             @RunWith(JUnit3RunnerWithInners.class)
@@ -3446,6 +3441,49 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 @TestMetadata("whileTrue.kt")
                 public void testWhileTrue() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/dummyCFAtests/whileTrue.kt");
+                }
+            }
+
+            @TestMetadata("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class SafeBuilders extends AbstractDiagnosticsTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInSafeBuilders() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+                }
+
+                @TestMetadata("complicatedBuilders.kt")
+                public void testComplicatedBuilders() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders/complicatedBuilders.kt");
+                }
+
+                @TestMetadata("if.kt")
+                public void testIf() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders/if.kt");
+                }
+
+                @TestMetadata("loops.kt")
+                public void testLoops() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders/loops.kt");
+                }
+
+                @TestMetadata("nestedBuild.kt")
+                public void testNestedBuild() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders/nestedBuild.kt");
+                }
+
+                @TestMetadata("simple.kt")
+                public void testSimple() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders/simple.kt");
+                }
+
+                @TestMetadata("when.kt")
+                public void testWhen() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders/when.kt");
                 }
             }
         }
