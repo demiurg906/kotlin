@@ -38,6 +38,7 @@ class PseudocodeEffectsData(
         val data = pseudocode.collectData(
             TraversalOrder.FORWARD,
             ::merge,
+            ::combine,
             ::update,
             EffectsControlFlowInfo(),
             LocalFunctionAnalysisStrategy.ONLY_INLINED_LAMBDAS
@@ -45,19 +46,32 @@ class PseudocodeEffectsData(
         return data[pseudocode.exitInstruction]?.incoming
     }
 
-    private fun merge(instruction: Instruction, incoming: Collection<EffectsControlFlowInfo>): Edges<EffectsControlFlowInfo> {
+    private fun combine(instruction: Instruction, incoming: Collection<EffectsControlFlowInfo>): Edges<EffectsControlFlowInfo> =
+        mergeWithOperation(instruction, incoming, Operation.AND)
+
+    private fun merge(instruction: Instruction, incoming: Collection<EffectsControlFlowInfo>): Edges<EffectsControlFlowInfo> =
+        mergeWithOperation(instruction, incoming, Operation.OR)
+
+    private enum class Operation {
+        OR, AND
+    }
+
+    private fun mergeWithOperation(instruction: Instruction, incoming: Collection<EffectsControlFlowInfo>, operation: Operation): Edges<EffectsControlFlowInfo> {
         // TODO откуда приходит size == 0
         val incomingContext = when (incoming.size) {
             0 -> EffectsControlFlowInfo()
             1 -> incoming.first()
-            else -> mergeMultipleEdges(incoming)
+            else -> mergeMultipleEdges(incoming, operation)
         }
         val visitor = EffectsInstructionVisitor(incomingContext)
         val outgoingContext = instruction.accept(visitor)
         return Edges(incomingContext, outgoingContext)
     }
 
-    private fun mergeMultipleEdges(incoming: Collection<EffectsControlFlowInfo>): EffectsControlFlowInfo {
+    private fun mergeMultipleEdges(
+        incoming: Collection<EffectsControlFlowInfo>,
+        operation: Operation
+    ): EffectsControlFlowInfo {
         // TODO: introduce vals
         val groupedContexts = incoming
             .flatMap { context -> context.iterator().map { it._1 to it._2 } }
@@ -66,7 +80,11 @@ class PseudocodeEffectsData(
 
             .mapValues { (family, contexts) ->
                 val lattice = family.lattice
-                contexts.fold(lattice.bot(), lattice::or)
+                val (initial, foldFunction) = when (operation) {
+                    Operation.OR -> lattice.bot() to lattice::or
+                    Operation.AND -> lattice.top() to lattice::and
+                }
+                contexts.fold(initial, foldFunction)
             }
         return EffectsControlFlowInfo(ImmutableHashMap.ofAll(groupedContexts))
     }
@@ -102,6 +120,7 @@ class PseudocodeEffectsData(
         return iterator().map { it._1 to it._2 }.toList().toMap()
     }
 
+    // TODO: переписать визитор на when
     private inner class EffectsInstructionVisitor(private val controlFlowInfo: EffectsControlFlowInfo) :
         InstructionVisitorWithResult<EffectsControlFlowInfo>() {
 

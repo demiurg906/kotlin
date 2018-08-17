@@ -12,7 +12,15 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 
 object CallEffectLattice : ContextualEffectLattice {
     override fun and(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext {
-        TODO("not implemented")
+        if (a !is CallEffectsContext || b !is CallEffectsContext) throw AssertionError()
+
+        // TODO: remove after debug
+        debugAssert(a.calls.values)
+        debugAssert(b.calls.values)
+
+        val calls = processAndCalls(a.calls, b.calls)
+        val badCalls = processBadCalls(a.badCalls, b.badCalls)
+        return CallEffectsContext(calls, badCalls)
     }
 
     override fun or(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext {
@@ -22,11 +30,32 @@ object CallEffectLattice : ContextualEffectLattice {
         if (b is BotCallEffectsContext) return a
 
         if (a !is CallEffectsContext || b !is CallEffectsContext) throw AssertionError()
+
+        // TODO: remove after debug
+        debugAssert(a.calls.values)
+        debugAssert(b.calls.values)
+
         val calls = processOrCalls(a.calls, b.calls)
         val badCalls = processBadCalls(a.badCalls, b.badCalls)
         return CallEffectsContext(calls, badCalls)
     }
-    
+
+    private fun debugAssert(set: Collection<CallKind>) {
+        if (CallKind.ZERO in set || CallKind.AT_MOST_ONCE in set) {
+            throw AssertionError()
+        }
+    }
+
+    private fun processAndCalls(a: CallsMap, b: CallsMap): CallsMap {
+        val (intersection, differenceA, differenceB) = splitSets(a.keys, b.keys)
+
+        val res = mutableMapOf<FunctionDescriptor, CallKind>()
+        res.putAll(differenceA.map { it to a[it]!! })
+        res.putAll(differenceB.map { it to b[it]!! })
+        res.putAll(intersection.map { it to (a[it]!! + b[it]!!) })
+        return res
+    }
+
     private fun processOrCalls(a: CallsMap, b: CallsMap): CallsMap {
         val intersection = a.keys intersect b.keys
         return intersection.map { it to min(a[it]!!, b[it]!!) }.toMap()
@@ -63,7 +92,7 @@ object CallEffectLattice : ContextualEffectLattice {
     }
 
     override fun top(): ContextualEffectsContext {
-        TODO("not implemented")
+        return CallEffectsContext()
     }
 
     override fun updateContextWithInvocationKind(

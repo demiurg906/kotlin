@@ -82,6 +82,7 @@ fun <D> Pseudocode.traverse(
 fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectData(
     traversalOrder: TraversalOrder,
     mergeEdges: (Instruction, Collection<I>) -> Edges<I>,
+    combineEdges: (Instruction, Collection<I>) -> Edges<I>,
     updateEdge: (Instruction, Instruction, I) -> I,
     initialInfo: I,
     localFunctionAnalysisStrategy: LocalFunctionAnalysisStrategy
@@ -93,7 +94,7 @@ fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectData(
     do {
         collectDataFromSubgraph(
             traversalOrder, edgesMap,
-            mergeEdges, updateEdge, Collections.emptyList(), changed, false,
+            mergeEdges, combineEdges, updateEdge, Collections.emptyList(), changed, false,
             localFunctionAnalysisStrategy
         )
     } while (changed.any { it.value })
@@ -105,6 +106,7 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
     traversalOrder: TraversalOrder,
     edgesMap: MutableMap<Instruction, Edges<I>>,
     mergeEdges: (Instruction, Collection<I>) -> Edges<I>,
+    combineEdges: (Instruction, Collection<I>) -> Edges<I>,
     updateEdge: (Instruction, Instruction, I) -> I,
     previousSubGraphInstructions: Collection<Instruction>,
     changed: MutableMap<Instruction, Boolean>,
@@ -126,7 +128,7 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
         if (instruction is LocalFunctionDeclarationInstruction && localFunctionAnalysisStrategy.allowFunction(instruction)) {
             val subroutinePseudocode = instruction.body
             subroutinePseudocode.collectDataFromSubgraph(
-                traversalOrder, edgesMap, mergeEdges, updateEdge, previousInstructions, changed, true,
+                traversalOrder, edgesMap, mergeEdges, combineEdges, updateEdge, previousInstructions, changed, true,
                 localFunctionAnalysisStrategy
             )
             // Special case for inlined functions: take flow from EXIT instructions (it contains flow which exits declaration normally)
@@ -145,7 +147,7 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
                 if (localFunctionAnalysisStrategy.isolatedLocalFunctions) {
                     val incoming = previousInstructions.mapNotNull { edgesMap[it]?.outgoing }.toMutableList()
                     incoming.add(edges.outgoing)
-                    mergeEdges(instruction, incoming)
+                    combineEdges(instruction, incoming)
                 } else {
                     edges
                 }
