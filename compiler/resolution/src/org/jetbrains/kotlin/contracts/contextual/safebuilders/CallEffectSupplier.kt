@@ -21,7 +21,7 @@ class CallEffectSupplier(val function: FunctionDescriptor) : ContextualEffectSup
         } else {
             newCalls[function] = CallKind.EXACTLY_ONCE
         }
-        return CallEffectsContext(newCalls)
+        return CallEffectsContext(newCalls, context.badCalls)
     }
 
     override fun toString() = "Call supplier: invokes ${function.name} once"
