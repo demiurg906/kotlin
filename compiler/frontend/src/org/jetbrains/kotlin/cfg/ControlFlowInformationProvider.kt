@@ -129,9 +129,9 @@ class ControlFlowInformationProvider private constructor(
     }
 
     private fun checkContextualEffects() {
-        var controlFlowInfo = pseudocodeEffectsData.controlFlowInfo ?: return
+        val descriptor = trace.bindingContext[BindingContext.FUNCTION, subroutine] ?: return
 
-        val descriptor = trace.bindingContext[BindingContext.FUNCTION, subroutine] ?: throw AssertionError("must be not null")
+        var controlFlowInfo = pseudocodeEffectsData.controlFlowInfo ?: return
         controlFlowInfo = pseudocodeEffectsData.applyConsumers(controlFlowInfo, ContextualEffectSystem.declaredConsumers(descriptor))
 
         val allCheckersByFamily = ContextualEffectFamily.ALL_FAMILIES.map { it to it.contextChecker }
