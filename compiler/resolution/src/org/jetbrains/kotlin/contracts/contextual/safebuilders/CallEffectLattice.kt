@@ -102,7 +102,7 @@ object CallEffectLattice : ContextualEffectLattice {
         if (context !is CallEffectsContext) throw AssertionError()
 
         return when (invocationKind) {
-            InvocationKind.AT_MOST_ONCE -> context
+            InvocationKind.AT_MOST_ONCE -> CallEffectsContext(badCalls = context.badCalls)
             InvocationKind.EXACTLY_ONCE -> context
             InvocationKind.AT_LEAST_ONCE -> CallEffectsContext(
                 context.calls.mapValues { (_, _) -> CallKind.AT_LEAST_ONCE },
