@@ -15,7 +15,7 @@ object CallEffectContextChecker : ContextualEffectContextChecker {
         return context.badCalls.flatMap { (function, results) ->
             results.map { result ->
                 "${function.name} call mismatch: expected ${result.expected}, actual ${result.actual}"
-            }
+            }.sorted()
         }
     }
 }
