@@ -61,9 +61,8 @@ class PseudocodeEffectsData(
         incoming: Collection<EffectsControlFlowInfo>,
         operation: Operation
     ): Edges<EffectsControlFlowInfo> {
-        // TODO откуда приходит size == 0
         val incomingContext = when (incoming.size) {
-            0 -> EffectsControlFlowInfo()
+            0 -> EffectsControlFlowInfo.EMPTY
             1 -> incoming.first()
             else -> mergeMultipleEdges(incoming, operation)
         }

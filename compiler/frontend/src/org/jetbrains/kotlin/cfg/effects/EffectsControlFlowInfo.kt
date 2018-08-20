@@ -19,5 +19,9 @@ import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 class EffectsControlFlowInfo(map: ImmutableMap<ContextualEffectFamily, ContextualEffectsContext> = ImmutableHashMap.empty()) :
     ControlFlowInfo<EffectsControlFlowInfo, ContextualEffectFamily, ContextualEffectsContext>(map) {
 
+    companion object {
+        val EMPTY = EffectsControlFlowInfo()
+    }
+
     override fun copy(newMap: ImmutableMap<ContextualEffectFamily, ContextualEffectsContext>) = EffectsControlFlowInfo(newMap)
 }
