@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.contracts.description.EffectDeclaration
 abstract class ContextualEffectConsumer : EffectDeclaration {
     abstract val family: ContextualEffectFamily
 
-    abstract fun consume(context: ContextualEffectsContext): ContextualEffectsContext
+    abstract fun consume(context: ContextualEffectsContext): Pair<ContextualEffectsContext, String?>
 
     override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R =
         contractDescriptionVisitor.visitConsumesContextualEffectDeclaration(this, data)

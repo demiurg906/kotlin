@@ -10,4 +10,7 @@ import org.jetbrains.kotlin.types.KotlinType
 
 data class ExceptionEffectsContext(val exceptions: Set<KotlinType> = setOf()) : ContextualEffectsContext {
     override val family = ExceptionEffectFamily
+
+    override fun unhandledEffects(): List<String> =
+        exceptions.map { "Unchecked exception: $it" }.sorted()
 }

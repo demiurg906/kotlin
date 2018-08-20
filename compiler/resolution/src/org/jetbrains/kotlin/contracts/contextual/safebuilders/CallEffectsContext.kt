@@ -19,6 +19,15 @@ sealed class AbstractCallEffectsContext : ContextualEffectsContext {
 data class CallEffectsContext(
     val calls: CallsMap = mapOf(),
     val badCalls: BadCallsMap = mapOf()
-) : AbstractCallEffectsContext()
+) : AbstractCallEffectsContext() {
+    override fun unhandledEffects(): List<String> =
+        calls.map { (function, expected) ->
+            "Unhandled effect: ${function.name} must be invoked $expected"
+        }.sorted()
+}
 
-object BotCallEffectsContext : AbstractCallEffectsContext()
+object BotCallEffectsContext : AbstractCallEffectsContext() {
+    override fun unhandledEffects(): List<String> {
+        TODO("not implemented")
+    }
+}

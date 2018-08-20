@@ -16,15 +16,13 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.CallInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.InlinedLocalFunctionDeclarationInstruction
-import org.jetbrains.kotlin.cfg.pseudocodeTraverser.Edges
-import org.jetbrains.kotlin.cfg.pseudocodeTraverser.LocalFunctionAnalysisStrategy
-import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder
-import org.jetbrains.kotlin.cfg.pseudocodeTraverser.collectData
+import org.jetbrains.kotlin.cfg.pseudocodeTraverser.*
 import org.jetbrains.kotlin.contracts.ContextualEffectSystem
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 
@@ -32,7 +30,13 @@ class PseudocodeEffectsData(
     val pseudocode: Pseudocode,
     val bindingContext: BindingContext
 ) {
+    private val myDiagnostics = mutableMapOf<Int, MutableList<Pair<KtElement, String>>>()
     val controlFlowInfo: EffectsControlFlowInfo? = computeEffectsControlFlowInfo(pseudocode)
+
+    fun getDiagnostics(): List<Pair<KtElement, String>> {
+        if (myDiagnostics.isEmpty()) return emptyList()
+        return myDiagnostics[myDiagnostics.keys.max()]!!
+    }
 
     private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): EffectsControlFlowInfo? {
         val data = pseudocode.collectData(
@@ -95,7 +99,13 @@ class PseudocodeEffectsData(
         return EffectsControlFlowInfo(ImmutableHashMap.ofAll(groupedContexts))
     }
 
-    private fun update(from: Instruction, to: Instruction, info: EffectsControlFlowInfo): EffectsControlFlowInfo {
+    private fun update(
+        from: Instruction,
+        to: Instruction,
+        info: EffectsControlFlowInfo,
+        stepNumber: Int,
+        direction: UpdatedEdgeDirection
+    ): EffectsControlFlowInfo {
         val invocationKind = (to as? InlinedLocalFunctionDeclarationInstruction)?.kind ?: return info
         val context = EffectsControlFlowInfo(
             ImmutableHashMap.ofAll(info.convertToMap().mapValues { (family, context) ->
@@ -104,18 +114,39 @@ class PseudocodeEffectsData(
         )
         val lambda = to.element.parent as? KtLambdaExpression ?: return context
         val consumers = bindingContext[BindingContext.CONTEXTUAL_EFFECTS, lambda]?.consumers ?: return context
-        return applyConsumers(context, consumers)
+        return applyConsumers(context, consumers, to.element, stepNumber, direction)
     }
 
-    fun applyConsumers(controlFlowInfo: EffectsControlFlowInfo, allConsumers: List<ContextualEffectConsumer>): EffectsControlFlowInfo {
+    fun applyConsumers(
+        controlFlowInfo: EffectsControlFlowInfo,
+        allConsumers: List<ContextualEffectConsumer>,
+        function: KtElement
+    ): EffectsControlFlowInfo = applyConsumers(
+        controlFlowInfo, allConsumers, function, myDiagnostics.keys.max() ?: 0, UpdatedEdgeDirection.OUTGOING
+    )
+
+    private fun applyConsumers(
+        controlFlowInfo: EffectsControlFlowInfo,
+        allConsumers: List<ContextualEffectConsumer>,
+        function: KtElement,
+        stepNumber: Int,
+        direction: UpdatedEdgeDirection
+    ): EffectsControlFlowInfo {
         var cfi = controlFlowInfo
         val allConsumersByFamily = allConsumers.groupBy { it.family }
+
+        if (stepNumber !in myDiagnostics) {
+            myDiagnostics[stepNumber] = mutableListOf()
+        }
 
         for ((family, consumers) in allConsumersByFamily) {
             var context = cfi[family].getOrElse(family.emptyContext)
             for (consumer in consumers) {
-                val newContext = consumer.consume(context)
+                val (newContext, warning) = consumer.consume(context)
                 context = newContext
+                if (warning != null && direction == UpdatedEdgeDirection.OUTGOING) {
+                    myDiagnostics[stepNumber]!!.add(function to warning)
+                }
             }
             cfi = cfi.put(family, context)
         }

@@ -9,4 +9,6 @@ package org.jetbrains.kotlin.contracts.contextual
 // !!! ContextualEffectsContext is immutable data structure !!!
 interface ContextualEffectsContext {
     val family: ContextualEffectFamily
+
+    fun unhandledEffects(): List<String>
 }

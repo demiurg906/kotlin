@@ -12,7 +12,5 @@ object CallEffectFamily : ContextualEffectFamily() {
 
     override val lattice = CallEffectLattice
 
-    override val contextChecker = CallEffectContextChecker
-
     override val emptyContext = CallEffectsContext()
 }

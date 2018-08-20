@@ -83,7 +83,7 @@ fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectData(
     traversalOrder: TraversalOrder,
     mergeEdges: (Instruction, Collection<I>) -> Edges<I>,
     combineEdges: (Instruction, Collection<I>) -> Edges<I>,
-    updateEdge: (Instruction, Instruction, I) -> I,
+    updateEdge: (Instruction, Instruction, I, Int, UpdatedEdgeDirection) -> I,
     initialInfo: I,
     localFunctionAnalysisStrategy: LocalFunctionAnalysisStrategy
 ): Map<Instruction, Edges<I>> {
@@ -91,15 +91,21 @@ fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectData(
     edgesMap.put(getStartInstruction(traversalOrder), Edges(initialInfo, initialInfo))
 
     val changed = mutableMapOf<Instruction, Boolean>()
+    var step = 0
     do {
         collectDataFromSubgraph(
             traversalOrder, edgesMap,
             mergeEdges, combineEdges, updateEdge, Collections.emptyList(), changed, false,
-            localFunctionAnalysisStrategy
+            localFunctionAnalysisStrategy, step
         )
+        step += 1
     } while (changed.any { it.value })
 
     return edgesMap
+}
+
+enum class UpdatedEdgeDirection {
+    INCOMING, OUTGOING
 }
 
 private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
@@ -107,11 +113,12 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
     edgesMap: MutableMap<Instruction, Edges<I>>,
     mergeEdges: (Instruction, Collection<I>) -> Edges<I>,
     combineEdges: (Instruction, Collection<I>) -> Edges<I>,
-    updateEdge: (Instruction, Instruction, I) -> I,
+    updateEdge: (Instruction, Instruction, I, Int, UpdatedEdgeDirection) -> I,
     previousSubGraphInstructions: Collection<Instruction>,
     changed: MutableMap<Instruction, Boolean>,
     isLocal: Boolean,
-    localFunctionAnalysisStrategy: LocalFunctionAnalysisStrategy
+    localFunctionAnalysisStrategy: LocalFunctionAnalysisStrategy,
+    stepNumber: Int
 ) {
     val instructions = getInstructions(traversalOrder)
     val startInstruction = getStartInstruction(traversalOrder)
@@ -129,7 +136,7 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
             val subroutinePseudocode = instruction.body
             subroutinePseudocode.collectDataFromSubgraph(
                 traversalOrder, edgesMap, mergeEdges, combineEdges, updateEdge, previousInstructions, changed, true,
-                localFunctionAnalysisStrategy
+                localFunctionAnalysisStrategy, stepNumber
             )
             // Special case for inlined functions: take flow from EXIT instructions (it contains flow which exits declaration normally)
             val lastInstruction = if (instruction is InlinedLocalFunctionDeclarationInstruction && traversalOrder == FORWARD)
@@ -139,7 +146,10 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
             val previousValue = edgesMap[instruction]
             val newValue = edgesMap[lastInstruction]
             val updatedValue = newValue?.let {
-                Edges(updateEdge(lastInstruction, instruction, it.incoming), updateEdge(lastInstruction, instruction, it.outgoing))
+                Edges(
+                    updateEdge(lastInstruction, instruction, it.incoming, stepNumber, UpdatedEdgeDirection.INCOMING),
+                    updateEdge(lastInstruction, instruction, it.outgoing, stepNumber, UpdatedEdgeDirection.OUTGOING)
+                )
             }?.let { edges ->
                 // if local function was analysed as isolated
                 // there is need to merge exit edges of local function
@@ -170,9 +180,7 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
             val previousData = edgesMap[previousInstruction]
             if (previousData != null) {
                 incomingEdgesData.add(
-                    updateEdge(
-                        previousInstruction, instruction, previousData.outgoing
-                    )
+                    updateEdge(previousInstruction, instruction, previousData.outgoing, stepNumber, UpdatedEdgeDirection.OUTGOING)
                 )
             }
         }

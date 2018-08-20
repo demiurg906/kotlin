@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.contracts.contextual.safebuilders.CallEffectFamily
 abstract class ContextualEffectFamily {
     abstract val id: String
     abstract val lattice: ContextualEffectLattice
-    abstract val contextChecker: ContextualEffectContextChecker
     abstract val emptyContext: ContextualEffectsContext
 
     companion object {

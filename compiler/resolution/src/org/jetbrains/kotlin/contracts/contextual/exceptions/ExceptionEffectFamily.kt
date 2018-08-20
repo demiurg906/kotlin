@@ -17,7 +17,5 @@ object ExceptionEffectFamily : ContextualEffectFamily() {
 
     override val lattice = ExceptionEffectLattice
 
-    override val contextChecker = ExceptionEffectContextChecker
-
     override val emptyContext = ExceptionEffectsContext()
 }

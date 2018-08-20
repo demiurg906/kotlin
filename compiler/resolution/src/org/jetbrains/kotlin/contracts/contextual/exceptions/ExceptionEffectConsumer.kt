@@ -13,19 +13,14 @@ import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 class ExceptionEffectConsumer(private val consumedExceptionType: KotlinType) : ContextualEffectConsumer() {
     override val family = ExceptionEffectFamily
 
-    override fun consume(context: ContextualEffectsContext): ExceptionEffectsContext {
+    override fun consume(context: ContextualEffectsContext): Pair<ContextualEffectsContext, String?> {
         if (context !is ExceptionEffectsContext) {
             throw AssertionError()
         }
-
-        val newContext = mutableSetOf<KotlinType>()
-        // TODO: filterTo
-        for (exceptionType in context.exceptions) {
-            if (!exceptionType.isSubtypeOf(consumedExceptionType)) {
-                newContext += exceptionType
-            }
+        val newContext = context.exceptions.filterNotTo(mutableSetOf()) { exceptionType ->
+            exceptionType.isSubtypeOf(consumedExceptionType)
         }
-        return ExceptionEffectsContext(newContext)
+        return ExceptionEffectsContext(newContext) to null
     }
 
     override fun toString(): String {

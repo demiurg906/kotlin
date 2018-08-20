@@ -13,21 +13,29 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 class CallEffectConsumer(val function: FunctionDescriptor, val expectedCallKind: InvocationKind) : ContextualEffectConsumer() {
     init {
         assert(expectedCallKind != InvocationKind.UNKNOWN)
+        assert(expectedCallKind != InvocationKind.ZERO)
     }
 
     override val family = CallEffectFamily
 
-    override fun consume(context: ContextualEffectsContext): ContextualEffectsContext {
+    override fun consume(context: ContextualEffectsContext): Pair<ContextualEffectsContext, String?> {
         if (context !is CallEffectsContext) throw AssertionError()
 
         val actualCallKind = context.calls[function] ?: InvocationKind.ZERO
         val resultCalls = context.calls.minus(function)
 
-        return if (CallEffectLattice.check(expectedCallKind, actualCallKind)) {
-            CallEffectsContext(resultCalls, context.badCalls)
-        } else {
-            CallEffectsContext(resultCalls, context.badCalls.plus(function to listOf(CallAnalysisResult(expectedCallKind, actualCallKind))))
-        }
+        val warning = if (!CallEffectLattice.check(
+                expectedCallKind,
+                actualCallKind
+            )
+        ) "${function.name} call mismatch: expected $expectedCallKind, actual $actualCallKind" else null
+
+        return CallEffectsContext(resultCalls, context.badCalls) to warning
+//        return if (CallEffectLattice.check(expectedCallKind, actualCallKind)) {
+//            CallEffectsContext(resultCalls, context.badCalls)
+//        } else {
+//            CallEffectsContext(resultCalls, context.badCalls.plus(function to listOf(CallAnalysisResult(expectedCallKind, actualCallKind))))
+//        }
     }
 
     override fun toString(): String = "Call consumer: ${function.name} must be invoked $expectedCallKind"
