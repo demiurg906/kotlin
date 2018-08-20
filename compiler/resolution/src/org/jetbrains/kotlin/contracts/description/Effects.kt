@@ -64,6 +64,7 @@ enum class InvocationKind {
     AT_MOST_ONCE,
     EXACTLY_ONCE,
     AT_LEAST_ONCE,
+    ZERO,
     UNKNOWN
 }
 

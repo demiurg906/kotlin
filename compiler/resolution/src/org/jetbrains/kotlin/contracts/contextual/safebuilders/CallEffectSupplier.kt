@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.contracts.contextual.safebuilders
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
+import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 
 class CallEffectSupplier(val function: FunctionDescriptor) : ContextualEffectSupplier() {
@@ -17,9 +18,9 @@ class CallEffectSupplier(val function: FunctionDescriptor) : ContextualEffectSup
         val newCalls = context.calls.toMutableMap()
         if (function in context.calls) {
             val currentKind = newCalls[function]!!
-            newCalls[function] = currentKind + CallKind.EXACTLY_ONCE
+            newCalls[function] = CallEffectLattice.combine(currentKind, InvocationKind.EXACTLY_ONCE)
         } else {
-            newCalls[function] = CallKind.EXACTLY_ONCE
+            newCalls[function] = InvocationKind.EXACTLY_ONCE
         }
         return CallEffectsContext(newCalls, context.badCalls)
     }

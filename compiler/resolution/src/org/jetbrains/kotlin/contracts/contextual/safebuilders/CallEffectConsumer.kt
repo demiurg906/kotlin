@@ -7,11 +7,12 @@ package org.jetbrains.kotlin.contracts.contextual.safebuilders
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
+import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 
-class CallEffectConsumer(val function: FunctionDescriptor, val expectedCallKind: CallKind) : ContextualEffectConsumer() {
+class CallEffectConsumer(val function: FunctionDescriptor, val expectedCallKind: InvocationKind) : ContextualEffectConsumer() {
     init {
-        assert(expectedCallKind != CallKind.ZERO)
+        assert(expectedCallKind != InvocationKind.UNKNOWN)
     }
 
     override val family = CallEffectFamily
@@ -19,10 +20,10 @@ class CallEffectConsumer(val function: FunctionDescriptor, val expectedCallKind:
     override fun consume(context: ContextualEffectsContext): ContextualEffectsContext {
         if (context !is CallEffectsContext) throw AssertionError()
 
-        val actualCallKind = context.calls[function] ?: CallKind.ZERO
+        val actualCallKind = context.calls[function] ?: InvocationKind.ZERO
         val resultCalls = context.calls.minus(function)
 
-        return if (CallKind.check(expectedCallKind, actualCallKind)) {
+        return if (CallEffectLattice.check(expectedCallKind, actualCallKind)) {
             CallEffectsContext(resultCalls, context.badCalls)
         } else {
             CallEffectsContext(resultCalls, context.badCalls.plus(function to listOf(CallAnalysisResult(expectedCallKind, actualCallKind))))
@@ -32,4 +33,4 @@ class CallEffectConsumer(val function: FunctionDescriptor, val expectedCallKind:
     override fun toString(): String = "Call consumer: ${function.name} must be invoked $expectedCallKind"
 }
 
-data class CallAnalysisResult(val expected: CallKind, val actual: CallKind)
+data class CallAnalysisResult(val expected: InvocationKind, val actual: InvocationKind)

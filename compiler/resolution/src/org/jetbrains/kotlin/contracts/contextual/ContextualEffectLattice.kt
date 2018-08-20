@@ -21,5 +21,5 @@ interface ContextualEffectLattice {
     fun top(): ContextualEffectsContext
 
     // ad hoc solution for current implementation of CFA of `call in place` lambdas
-    fun updateContextWithInvocationKind(context: ContextualEffectsContext, invocationKind: InvocationKind): ContextualEffectsContext
+    fun updateContextWithInvocationKind(context: ContextualEffectsContext, functionInvocationKind: InvocationKind): ContextualEffectsContext
 }

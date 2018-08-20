@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.contextual.safebuilders.CallEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.safebuilders.CallEffectSupplier
-import org.jetbrains.kotlin.contracts.contextual.safebuilders.CallKind
+import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.contracts.parsing.contextual.ContextualEffectParser
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -73,9 +73,9 @@ class CallEffectParser(val context: BindingContext) : ContextualEffectParser() {
     }
 
     private fun parseKind(kind: String) = when (kind) {
-        "AT_MOST_ONCE" -> CallKind.AT_MOST_ONCE
-        "EXACTLY_ONCE" -> CallKind.EXACTLY_ONCE
-        "AT_LEAST_ONCE" -> CallKind.AT_LEAST_ONCE
+        "AT_MOST_ONCE" -> InvocationKind.AT_MOST_ONCE
+        "EXACTLY_ONCE" -> InvocationKind.EXACTLY_ONCE
+        "AT_LEAST_ONCE" -> InvocationKind.AT_LEAST_ONCE
         else -> throw AssertionError("Unknown kind $kind")
     }
 }

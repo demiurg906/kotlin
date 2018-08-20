@@ -29,7 +29,7 @@ object ExceptionEffectLattice : ContextualEffectLattice {
         return ExceptionEffectsContext()
     }
 
-    override fun updateContextWithInvocationKind(context: ContextualEffectsContext, invocationKind: InvocationKind): ContextualEffectsContext {
+    override fun updateContextWithInvocationKind(context: ContextualEffectsContext, functionInvocationKind: InvocationKind): ContextualEffectsContext {
         return context
     }
 }
