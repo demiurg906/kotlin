@@ -30,13 +30,11 @@ class PseudocodeEffectsData(
     val pseudocode: Pseudocode,
     val bindingContext: BindingContext
 ) {
-    private val myDiagnostics = mutableMapOf<Int, MutableList<Pair<KtElement, String>>>()
+    private val myDiagnostics = mutableListOf<Pair<KtElement, String>>()
     val controlFlowInfo: EffectsControlFlowInfo? = computeEffectsControlFlowInfo(pseudocode)
 
-    fun getDiagnostics(): List<Pair<KtElement, String>> {
-        if (myDiagnostics.isEmpty()) return emptyList()
-        return myDiagnostics[myDiagnostics.keys.max()]!!
-    }
+    val diagnostics: List<Pair<KtElement, String>>
+        get() = myDiagnostics
 
     private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): EffectsControlFlowInfo? {
         val data = pseudocode.collectData(
@@ -105,7 +103,7 @@ class PseudocodeEffectsData(
         info: EffectsControlFlowInfo,
         additionalInfo: AdditionalControlFlowInfo
     ): EffectsControlFlowInfo {
-        val (stepNumber, direction) = additionalInfo
+        val (reportWarnings, direction) = additionalInfo
         val invocationKind = (to as? InlinedLocalFunctionDeclarationInstruction)?.kind ?: return info
         val context = EffectsControlFlowInfo(
             ImmutableHashMap.ofAll(info.convertToMap().mapValues { (family, context) ->
@@ -114,7 +112,7 @@ class PseudocodeEffectsData(
         )
         val lambda = to.element.parent as? KtLambdaExpression ?: return context
         val consumers = bindingContext[BindingContext.CONTEXTUAL_EFFECTS, lambda]?.consumers ?: return context
-        return applyConsumers(context, consumers, to.element, stepNumber, direction)
+        return applyConsumers(context, consumers, to.element, reportWarnings, direction)
     }
 
     fun applyConsumers(
@@ -122,30 +120,26 @@ class PseudocodeEffectsData(
         allConsumers: List<ContextualEffectConsumer>,
         function: KtElement
     ): EffectsControlFlowInfo = applyConsumers(
-        controlFlowInfo, allConsumers, function, myDiagnostics.keys.max() ?: 0, UpdatedEdgeDirection.OUTGOING
+        controlFlowInfo, allConsumers, function, true, UpdatedEdgeDirection.OUTGOING
     )
 
     private fun applyConsumers(
         controlFlowInfo: EffectsControlFlowInfo,
         allConsumers: List<ContextualEffectConsumer>,
         function: KtElement,
-        stepNumber: Int,
+        reportWarnings: Boolean,
         direction: UpdatedEdgeDirection
     ): EffectsControlFlowInfo {
         var cfi = controlFlowInfo
         val allConsumersByFamily = allConsumers.groupBy { it.family }
-
-        if (stepNumber !in myDiagnostics) {
-            myDiagnostics[stepNumber] = mutableListOf()
-        }
 
         for ((family, consumers) in allConsumersByFamily) {
             var context = cfi[family].getOrElse(family.emptyContext)
             for (consumer in consumers) {
                 val (newContext, warning) = consumer.consume(context)
                 context = newContext
-                if (warning != null && direction == UpdatedEdgeDirection.OUTGOING) {
-                    myDiagnostics[stepNumber]!!.add(function to warning)
+                if (reportWarnings && warning != null && direction == UpdatedEdgeDirection.OUTGOING) {
+                    myDiagnostics.add(function to warning)
                 }
             }
             cfi = cfi.put(family, context)

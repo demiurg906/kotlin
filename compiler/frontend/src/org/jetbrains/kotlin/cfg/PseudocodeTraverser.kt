@@ -29,16 +29,14 @@ import java.util.*
 enum class LocalFunctionAnalysisStrategy {
     ANALYSE_EVERYTHING {
         override val isolatedLocalFunctions = false
+        override val runLastCFA = false
         override fun allowFunction(declaration: LocalFunctionDeclarationInstruction) = true
     },
 
-//    DO_NOT_ANALYSE {
-//        override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean = false
-//        override val isolatedLocalFunctions: Boolean = TODO("Not implemented")
-//    },
 
     ONLY_INLINED_LAMBDAS {
         override val isolatedLocalFunctions = true
+        override val runLastCFA = true
 
         override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean {
             return declaration is InlinedLocalFunctionDeclarationInstruction
@@ -46,6 +44,7 @@ enum class LocalFunctionAnalysisStrategy {
     };
 
     abstract val isolatedLocalFunctions: Boolean
+    abstract val runLastCFA: Boolean
     abstract fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean
 }
 
@@ -91,20 +90,25 @@ fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectData(
     edgesMap.put(getStartInstruction(traversalOrder), Edges(initialInfo, initialInfo))
 
     val changed = mutableMapOf<Instruction, Boolean>()
-    var step = 0
     do {
         collectDataFromSubgraph(
             traversalOrder, edgesMap,
             mergeEdges, combineEdges, updateEdge, Collections.emptyList(), changed, false,
-            localFunctionAnalysisStrategy, step
+            localFunctionAnalysisStrategy, false
         )
-        step += 1
     } while (changed.any { it.value })
 
+    if (localFunctionAnalysisStrategy.runLastCFA) {
+        collectDataFromSubgraph(
+            traversalOrder, edgesMap,
+            mergeEdges, combineEdges, updateEdge, Collections.emptyList(), changed, false,
+            localFunctionAnalysisStrategy, true
+        )
+    }
     return edgesMap
 }
 
-data class AdditionalControlFlowInfo(val stepNumber: Int, val direction: UpdatedEdgeDirection)
+data class AdditionalControlFlowInfo(val lastCfaPass: Boolean, val direction: UpdatedEdgeDirection)
 
 enum class UpdatedEdgeDirection {
     INCOMING, OUTGOING
@@ -120,7 +124,7 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
     changed: MutableMap<Instruction, Boolean>,
     isLocal: Boolean,
     localFunctionAnalysisStrategy: LocalFunctionAnalysisStrategy,
-    stepNumber: Int
+    lastCfaPass: Boolean
 ) {
     val instructions = getInstructions(traversalOrder)
     val startInstruction = getStartInstruction(traversalOrder)
@@ -138,7 +142,7 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
             val subroutinePseudocode = instruction.body
             subroutinePseudocode.collectDataFromSubgraph(
                 traversalOrder, edgesMap, mergeEdges, combineEdges, updateEdge, previousInstructions, changed, true,
-                localFunctionAnalysisStrategy, stepNumber
+                localFunctionAnalysisStrategy, lastCfaPass
             )
             // Special case for inlined functions: take flow from EXIT instructions (it contains flow which exits declaration normally)
             val lastInstruction = if (instruction is InlinedLocalFunctionDeclarationInstruction && traversalOrder == FORWARD)
@@ -153,13 +157,13 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
                         lastInstruction,
                         instruction,
                         it.incoming,
-                        AdditionalControlFlowInfo(stepNumber, UpdatedEdgeDirection.INCOMING)
+                        AdditionalControlFlowInfo(lastCfaPass, UpdatedEdgeDirection.INCOMING)
                     ),
                     updateEdge(
                         lastInstruction,
                         instruction,
                         it.outgoing,
-                        AdditionalControlFlowInfo(stepNumber, UpdatedEdgeDirection.OUTGOING)
+                        AdditionalControlFlowInfo(lastCfaPass, UpdatedEdgeDirection.OUTGOING)
                     )
                 )
             }?.let { edges ->
@@ -196,7 +200,7 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
                         previousInstruction,
                         instruction,
                         previousData.outgoing,
-                        AdditionalControlFlowInfo(stepNumber, UpdatedEdgeDirection.OUTGOING)
+                        AdditionalControlFlowInfo(lastCfaPass, UpdatedEdgeDirection.OUTGOING)
                     )
                 )
             }

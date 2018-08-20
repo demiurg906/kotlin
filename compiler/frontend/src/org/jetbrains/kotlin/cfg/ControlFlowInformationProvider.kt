@@ -141,7 +141,7 @@ class ControlFlowInformationProvider private constructor(
 
         for (family in ContextualEffectFamily.ALL_FAMILIES) {
             val context = controlFlowInfo[family].firstOrNull() ?: continue
-            val diagnostics = pseudocodeEffectsData.getDiagnostics().map { (element, diagnostic) ->
+            val diagnostics = pseudocodeEffectsData.diagnostics.map { (element, diagnostic) ->
                 CONTEXTUAL_EFFECT_WARNING.on(element, diagnostic)
             }
             for (diagnostic in diagnostics) {
