@@ -138,3 +138,11 @@ fun test_4() {
         setX(10)
     }
 }
+
+<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO), CONTEXTUAL_EFFECT_WARNING(setY call mismatch: expected AT_LEAST_ONCE, actual ZERO)!>fun test_6()<!> {
+    buildB {
+        setX(10)
+        setY(10)
+    }
+    buildB {  }
+}

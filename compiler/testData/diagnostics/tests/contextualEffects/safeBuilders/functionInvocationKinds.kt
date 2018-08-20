@@ -1,0 +1,182 @@
+// !LANGUAGE: +ContextualEffects +UseCallsInPlaceEffect +AllowContractsForCustomFunctions +UseReturnsEffect
+// !DIAGNOSTICS: -INVISIBLE_MEMBER -INVISIBLE_REFERENCE
+// !RENDER_DIAGNOSTICS_MESSAGES
+
+import kotlin.internal.contracts.*
+
+data class A(val x: Int?)
+
+class ABuilder {
+    private var x_: Int? = null
+    fun setX(value: Int = 0) {
+        contract {
+            supplies(CallEffect(::setX))
+        }
+        x_ = value
+    }
+
+    fun buildA() = A(x_)
+}
+
+fun buildExactlyOnce(init: ABuilder.() -> Unit): A {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+        consumes(init, RequiresCallEffect(ABuilder::setX, DslCallKind.EXACTLY_ONCE))
+    }
+    val builder = ABuilder()
+    builder.init()
+    return builder.buildA()
+}
+
+fun buildAtMostOnce(init: ABuilder.() -> Unit): A {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+        consumes(init, RequiresCallEffect(ABuilder::setX, DslCallKind.AT_MOST_ONCE))
+    }
+    val builder = ABuilder()
+    builder.init()
+    return builder.buildA()
+}
+
+fun buildAtLeastOnce(init: ABuilder.() -> Unit): A {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+        consumes(init, RequiresCallEffect(ABuilder::setX, DslCallKind.AT_LEAST_ONCE))
+    }
+    val builder = ABuilder()
+    builder.init()
+    return builder.buildA()
+}
+
+inline fun onceRun(block: () -> Unit) {
+    contract {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
+    block()
+}
+
+inline fun maybeRun(block: () -> Unit) {
+    contract {
+        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
+    }
+    // non determenistic
+    val b = true
+    if (b) {
+        block()
+    }
+}
+
+inline fun multipleRun(block: () -> Unit) {
+    contract {
+        callsInPlace(block, InvocationKind.AT_LEAST_ONCE)
+    }
+    block()
+    block()
+}
+
+// ---------------- TESTS ----------------
+
+fun test_1() {
+    buildExactlyOnce { 
+        onceRun { 
+            setX()
+        }
+    }
+}
+
+<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual AT_MOST_ONCE)!>fun test_2()<!> {
+    buildExactlyOnce {
+        maybeRun {
+            setX()
+        }
+    }
+}
+
+<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual AT_LEAST_ONCE)!>fun test_3()<!> {
+    buildExactlyOnce {
+        multipleRun {
+            setX()
+        }
+    }
+}
+
+
+
+fun test_4() {
+    buildAtMostOnce {
+        onceRun {
+            setX()
+        }
+    }
+}
+
+fun test_5() {
+    buildAtMostOnce {
+        maybeRun {
+            setX()
+        }
+    }
+}
+
+<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected AT_MOST_ONCE, actual AT_LEAST_ONCE)!>fun test_6()<!> {
+    buildAtMostOnce {
+        multipleRun {
+            setX()
+        }
+    }
+}
+
+
+
+fun test_7() {
+    buildAtLeastOnce {
+        onceRun {
+            setX()
+        }
+    }
+}
+
+<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected AT_LEAST_ONCE, actual AT_MOST_ONCE)!>fun test_8()<!> {
+    buildAtLeastOnce {
+        maybeRun {
+            setX()
+        }
+    }
+}
+
+fun test_9() {
+    buildAtLeastOnce {
+        multipleRun {
+            setX()
+        }
+    }
+}
+
+
+
+fun test_10() {
+    buildAtLeastOnce {
+        onceRun {
+            setX()
+            setX()
+        }
+    }
+}
+
+<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected AT_LEAST_ONCE, actual UNKNOWN)!>fun test_11()<!> {
+    buildAtLeastOnce {
+        maybeRun {
+            setX()
+            setX()
+        }
+    }
+}
+
+fun test_12() {
+    buildAtLeastOnce {
+        multipleRun {
+            setX()
+            setX()
+        }
+    }
+}

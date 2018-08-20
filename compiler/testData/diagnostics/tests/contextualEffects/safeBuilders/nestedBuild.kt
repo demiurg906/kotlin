@@ -87,6 +87,7 @@ fun test_1() {
     }
 }
 
+// TODO
 <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>fun test_2()<!> {
     simpleBuild {
         setX(10)
@@ -104,3 +105,4 @@ fun test_3() {
         }
     }
 }
+

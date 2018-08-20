@@ -49,7 +49,7 @@ fun build(init: ABuilder.() -> Unit): A {
 
 // ---------------- TESTS ----------------
 
-fun test_1() {
+<!CONTEXTUAL_EFFECT_WARNING(setZ call mismatch: expected AT_LEAST_ONCE, actual UNKNOWN)!>fun test_1()<!> {
     val x = 10
     build {
         when (x) {

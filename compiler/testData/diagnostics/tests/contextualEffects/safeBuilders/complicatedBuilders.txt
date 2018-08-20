@@ -16,6 +16,7 @@ public fun test_2(): kotlin.Unit
 public fun test_3(): kotlin.Unit
 public fun test_4(): kotlin.Unit
 public fun test_5(): kotlin.Unit
+public fun test_6(): kotlin.Unit
 
 public final data class A {
     public constructor A(/*0*/ x: kotlin.Int?, /*1*/ y: kotlin.Int?, /*2*/ z: kotlin.Int?)

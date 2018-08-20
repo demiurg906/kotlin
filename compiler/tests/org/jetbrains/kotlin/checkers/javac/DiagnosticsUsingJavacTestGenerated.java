@@ -3461,6 +3461,11 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders/complicatedBuilders.kt");
                 }
 
+                @TestMetadata("functionInvocationKinds.kt")
+                public void testFunctionInvocationKinds() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders/functionInvocationKinds.kt");
+                }
+
                 @TestMetadata("if.kt")
                 public void testIf() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders/if.kt");
