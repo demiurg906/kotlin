@@ -61,20 +61,20 @@ fun test_1() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual AT_MOST_ONCE), CONTEXTUAL_EFFECT_WARNING(setZ call mismatch: expected AT_LEAST_ONCE, actual AT_MOST_ONCE)!>fun test_2()<!> {
+fun test_2() {
     val b = false
-    build {
+    build <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual AT_MOST_ONCE), CONTEXTUAL_EFFECT_WARNING(setZ call mismatch: expected AT_LEAST_ONCE, actual AT_MOST_ONCE)!>{
         if (b) {
             setX(10)
         } else {
             setZ(10)
         }
-    }
+    }<!>
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual AT_LEAST_ONCE)!>fun test_3()<!> {
+fun test_3() {
     val b = false
-    build {
+    build <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual AT_LEAST_ONCE)!>{
         setZ(15)
         if (b) {
             setX(1)
@@ -87,5 +87,5 @@ fun test_1() {
             setX(1)
             setZ(1)
         }
-    }
+    }<!>
 }

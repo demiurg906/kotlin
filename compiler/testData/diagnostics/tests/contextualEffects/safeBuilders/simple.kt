@@ -57,17 +57,17 @@ fun test_1() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO), CONTEXTUAL_EFFECT_WARNING(setZ call mismatch: expected AT_LEAST_ONCE, actual ZERO)!>fun test_2()<!> {
-    build {}
+fun test_2() {
+    build <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO), CONTEXTUAL_EFFECT_WARNING(setZ call mismatch: expected AT_LEAST_ONCE, actual ZERO)!>{}<!>
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual AT_LEAST_ONCE), CONTEXTUAL_EFFECT_WARNING(setY call mismatch: expected AT_MOST_ONCE, actual AT_LEAST_ONCE)!>fun test_3()<!> {
-    build {
+fun test_3() {
+    build <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual AT_LEAST_ONCE), CONTEXTUAL_EFFECT_WARNING(setY call mismatch: expected AT_MOST_ONCE, actual AT_LEAST_ONCE)!>{
         setX(10)
         setX(10)
         setY(10)
         setY(10)
         setZ(10)
         setZ(10)
-    }
+    }<!>
 }

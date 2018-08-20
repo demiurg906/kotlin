@@ -49,14 +49,14 @@ fun build(init: ABuilder.() -> Unit): A {
 
 // ---------------- TESTS ----------------
 
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual UNKNOWN), CONTEXTUAL_EFFECT_WARNING(setY call mismatch: expected AT_MOST_ONCE, actual UNKNOWN), CONTEXTUAL_EFFECT_WARNING(setZ call mismatch: expected AT_LEAST_ONCE, actual UNKNOWN)!>fun test_1()<!> {
-    build {
+fun test_1() {
+    build <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual UNKNOWN), CONTEXTUAL_EFFECT_WARNING(setY call mismatch: expected AT_MOST_ONCE, actual UNKNOWN), CONTEXTUAL_EFFECT_WARNING(setZ call mismatch: expected AT_LEAST_ONCE, actual UNKNOWN)!>{
         for (i in 1..10) {
             setX(10)
             setY(10)
             setZ(10)
         }
-    }
+    }<!>
 }
 
 fun test_2() {
@@ -79,13 +79,13 @@ fun test_3() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual UNKNOWN), CONTEXTUAL_EFFECT_WARNING(setY call mismatch: expected AT_MOST_ONCE, actual UNKNOWN), CONTEXTUAL_EFFECT_WARNING(setZ call mismatch: expected AT_LEAST_ONCE, actual UNKNOWN)!>fun test_4()<!> {
+fun test_4() {
     val b = false
-    build {
+    build <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual UNKNOWN), CONTEXTUAL_EFFECT_WARNING(setY call mismatch: expected AT_MOST_ONCE, actual UNKNOWN), CONTEXTUAL_EFFECT_WARNING(setZ call mismatch: expected AT_LEAST_ONCE, actual UNKNOWN)!>{
         do {
             setX(10)
             setY(10)
             setZ(10)
         } while (b)
-    }
+    }<!>
 }

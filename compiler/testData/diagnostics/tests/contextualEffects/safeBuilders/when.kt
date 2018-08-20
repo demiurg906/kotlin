@@ -49,9 +49,9 @@ fun build(init: ABuilder.() -> Unit): A {
 
 // ---------------- TESTS ----------------
 
-<!CONTEXTUAL_EFFECT_WARNING(setZ call mismatch: expected AT_LEAST_ONCE, actual UNKNOWN)!>fun test_1()<!> {
+fun test_1() {
     val x = 10
-    build {
+    build <!CONTEXTUAL_EFFECT_WARNING(setZ call mismatch: expected AT_LEAST_ONCE, actual UNKNOWN)!>{
         when (x) {
             in 1..10 -> {
                 for (i in 1..x) {
@@ -77,5 +77,5 @@ fun build(init: ABuilder.() -> Unit): A {
             in 2..20 -> setX(20)
             else -> setX(30)
         }
-    }
+    }<!>
 }

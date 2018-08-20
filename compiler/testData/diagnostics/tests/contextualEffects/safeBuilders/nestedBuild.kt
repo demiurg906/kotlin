@@ -88,16 +88,31 @@ fun test_1() {
 }
 
 // TODO
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>fun test_2()<!> {
+fun test_2() {
     simpleBuild {
         setX(10)
-        simpleBuild {  }
+        simpleBuild <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>{  }<!>
     }
+}
+
+fun test_3() {
+    simpleBuild {
+        simpleBuild <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>{  }<!>
+        setX(10)
+    }
+}
+
+fun test_4() {
+    simpleBuild <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>{
+        simpleBuild {
+            setX(10)
+        }
+    }<!>
 }
 
 // incorrect behavior, but that case is shit
 // and hopefully no one will write code like this
-fun test_3() {
+fun test_5() {
     simpleBuild outer@ {
         setX(10)
         simpleBuild {

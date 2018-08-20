@@ -84,20 +84,20 @@ fun test_1() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual AT_MOST_ONCE)!>fun test_2()<!> {
-    buildExactlyOnce {
+fun test_2() {
+    buildExactlyOnce <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual AT_MOST_ONCE)!>{
         maybeRun {
             setX()
         }
-    }
+    }<!>
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual AT_LEAST_ONCE)!>fun test_3()<!> {
-    buildExactlyOnce {
+fun test_3() {
+    buildExactlyOnce <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual AT_LEAST_ONCE)!>{
         multipleRun {
             setX()
         }
-    }
+    }<!>
 }
 
 
@@ -118,12 +118,12 @@ fun test_5() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected AT_MOST_ONCE, actual AT_LEAST_ONCE)!>fun test_6()<!> {
-    buildAtMostOnce {
+fun test_6() {
+    buildAtMostOnce <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected AT_MOST_ONCE, actual AT_LEAST_ONCE)!>{
         multipleRun {
             setX()
         }
-    }
+    }<!>
 }
 
 
@@ -136,12 +136,12 @@ fun test_7() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected AT_LEAST_ONCE, actual AT_MOST_ONCE)!>fun test_8()<!> {
-    buildAtLeastOnce {
+fun test_8() {
+    buildAtLeastOnce <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected AT_LEAST_ONCE, actual AT_MOST_ONCE)!>{
         maybeRun {
             setX()
         }
-    }
+    }<!>
 }
 
 fun test_9() {
@@ -163,13 +163,13 @@ fun test_10() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected AT_LEAST_ONCE, actual UNKNOWN)!>fun test_11()<!> {
-    buildAtLeastOnce {
+fun test_11() {
+    buildAtLeastOnce <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected AT_LEAST_ONCE, actual UNKNOWN)!>{
         maybeRun {
             setX()
             setX()
         }
-    }
+    }<!>
 }
 
 fun test_12() {

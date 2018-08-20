@@ -104,8 +104,8 @@ fun test_2() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>fun test_3()<!> {
-    buildA {
+fun test_3() {
+    buildA <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>{
         setZ(10)
         buildB {
             setX(10)
@@ -113,7 +113,7 @@ fun test_2() {
             setY(10)
         }
 
-    }
+    }<!>
 }
 
 fun test_4() {
@@ -128,21 +128,21 @@ fun test_4() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>fun test_5()<!> {
+fun test_5() {
     buildA {
         setZ(10)
-        buildB {
+        buildB <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>{
             // no setX
             setY(10)
-        }
+        }<!>
         setX(10)
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO), CONTEXTUAL_EFFECT_WARNING(setY call mismatch: expected AT_LEAST_ONCE, actual ZERO)!>fun test_6()<!> {
+fun test_6() {
     buildB {
         setX(10)
         setY(10)
     }
-    buildB {  }
+    buildB <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO), CONTEXTUAL_EFFECT_WARNING(setY call mismatch: expected AT_LEAST_ONCE, actual ZERO)!>{  }<!>
 }
