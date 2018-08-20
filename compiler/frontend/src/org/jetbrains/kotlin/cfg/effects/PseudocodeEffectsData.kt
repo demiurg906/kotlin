@@ -103,9 +103,9 @@ class PseudocodeEffectsData(
         from: Instruction,
         to: Instruction,
         info: EffectsControlFlowInfo,
-        stepNumber: Int,
-        direction: UpdatedEdgeDirection
+        additionalInfo: AdditionalControlFlowInfo
     ): EffectsControlFlowInfo {
+        val (stepNumber, direction) = additionalInfo
         val invocationKind = (to as? InlinedLocalFunctionDeclarationInstruction)?.kind ?: return info
         val context = EffectsControlFlowInfo(
             ImmutableHashMap.ofAll(info.convertToMap().mapValues { (family, context) ->

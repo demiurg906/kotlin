@@ -83,7 +83,7 @@ fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectData(
     traversalOrder: TraversalOrder,
     mergeEdges: (Instruction, Collection<I>) -> Edges<I>,
     combineEdges: (Instruction, Collection<I>) -> Edges<I>,
-    updateEdge: (Instruction, Instruction, I, Int, UpdatedEdgeDirection) -> I,
+    updateEdge: (Instruction, Instruction, I, AdditionalControlFlowInfo) -> I,
     initialInfo: I,
     localFunctionAnalysisStrategy: LocalFunctionAnalysisStrategy
 ): Map<Instruction, Edges<I>> {
@@ -104,6 +104,8 @@ fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectData(
     return edgesMap
 }
 
+data class AdditionalControlFlowInfo(val stepNumber: Int, val direction: UpdatedEdgeDirection)
+
 enum class UpdatedEdgeDirection {
     INCOMING, OUTGOING
 }
@@ -113,7 +115,7 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
     edgesMap: MutableMap<Instruction, Edges<I>>,
     mergeEdges: (Instruction, Collection<I>) -> Edges<I>,
     combineEdges: (Instruction, Collection<I>) -> Edges<I>,
-    updateEdge: (Instruction, Instruction, I, Int, UpdatedEdgeDirection) -> I,
+    updateEdge: (Instruction, Instruction, I, AdditionalControlFlowInfo) -> I,
     previousSubGraphInstructions: Collection<Instruction>,
     changed: MutableMap<Instruction, Boolean>,
     isLocal: Boolean,
@@ -147,8 +149,18 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
             val newValue = edgesMap[lastInstruction]
             val updatedValue = newValue?.let {
                 Edges(
-                    updateEdge(lastInstruction, instruction, it.incoming, stepNumber, UpdatedEdgeDirection.INCOMING),
-                    updateEdge(lastInstruction, instruction, it.outgoing, stepNumber, UpdatedEdgeDirection.OUTGOING)
+                    updateEdge(
+                        lastInstruction,
+                        instruction,
+                        it.incoming,
+                        AdditionalControlFlowInfo(stepNumber, UpdatedEdgeDirection.INCOMING)
+                    ),
+                    updateEdge(
+                        lastInstruction,
+                        instruction,
+                        it.outgoing,
+                        AdditionalControlFlowInfo(stepNumber, UpdatedEdgeDirection.OUTGOING)
+                    )
                 )
             }?.let { edges ->
                 // if local function was analysed as isolated
@@ -180,7 +192,12 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
             val previousData = edgesMap[previousInstruction]
             if (previousData != null) {
                 incomingEdgesData.add(
-                    updateEdge(previousInstruction, instruction, previousData.outgoing, stepNumber, UpdatedEdgeDirection.OUTGOING)
+                    updateEdge(
+                        previousInstruction,
+                        instruction,
+                        previousData.outgoing,
+                        AdditionalControlFlowInfo(stepNumber, UpdatedEdgeDirection.OUTGOING)
+                    )
                 )
             }
         }
