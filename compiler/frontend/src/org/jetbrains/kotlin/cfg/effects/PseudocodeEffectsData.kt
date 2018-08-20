@@ -56,7 +56,11 @@ class PseudocodeEffectsData(
         OR, AND
     }
 
-    private fun mergeWithOperation(instruction: Instruction, incoming: Collection<EffectsControlFlowInfo>, operation: Operation): Edges<EffectsControlFlowInfo> {
+    private fun mergeWithOperation(
+        instruction: Instruction,
+        incoming: Collection<EffectsControlFlowInfo>,
+        operation: Operation
+    ): Edges<EffectsControlFlowInfo> {
         // TODO откуда приходит size == 0
         val incomingContext = when (incoming.size) {
             0 -> EffectsControlFlowInfo()
@@ -72,12 +76,15 @@ class PseudocodeEffectsData(
         incoming: Collection<EffectsControlFlowInfo>,
         operation: Operation
     ): EffectsControlFlowInfo {
-        // TODO: introduce vals
-        val groupedContexts = incoming
-            .flatMap { context -> context.iterator().map { it._1 to it._2 } }
-            .groupBy { (family, _) -> family }
-            .mapValues { it.value.map { (_, contexts) -> contexts } }
+        val families = incoming.flatMap { it.keySet() }.toSet()
 
+        val contextsGroupedByFamily = mutableMapOf<ContextualEffectFamily, List<ContextualEffectsContext>>()
+        for (family in families) {
+            val contexts = incoming.map { it[family].getOrElse(family.emptyContext) }
+            contextsGroupedByFamily[family] = contexts
+        }
+
+        val groupedContexts = contextsGroupedByFamily
             .mapValues { (family, contexts) ->
                 val lattice = family.lattice
                 val (initial, foldFunction) = when (operation) {
