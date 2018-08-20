@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.contracts.contextual.safebuilders
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 
 object CallEffectFamily : ContextualEffectFamily() {
     override val id: String = "Call (safe builders) effects"
@@ -15,6 +14,5 @@ object CallEffectFamily : ContextualEffectFamily() {
 
     override val contextChecker = CallEffectContextChecker
 
-    override val emptyContext: ContextualEffectsContext
-        get() = CallEffectsContext()
+    override val emptyContext = CallEffectsContext()
 }
