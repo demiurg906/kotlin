@@ -3,13 +3,11 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.contracts.parsing.contextual.impl
+package org.jetbrains.kotlin.contracts.contextual.exceptions
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
-import org.jetbrains.kotlin.contracts.contextual.exceptions.ExceptionEffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.exceptions.ExceptionEffectSupplier
-import org.jetbrains.kotlin.contracts.parsing.contextual.ContextualEffectParser
+import org.jetbrains.kotlin.contracts.parsing.ContextualEffectParser
 import org.jetbrains.kotlin.contracts.parsing.isConsumesEffectDescriptor
 import org.jetbrains.kotlin.contracts.parsing.isSuppliesEffectDescriptor
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -20,7 +18,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.types.KotlinType
 
-class ExceptionEffectParser(val context: BindingContext) : ContextualEffectParser() {
+class ExceptionEffectParser(context: BindingContext) : ContextualEffectParser(context) {
     companion object {
         private const val EFFECT_NAME = "ExceptionEffectDescription"
     }

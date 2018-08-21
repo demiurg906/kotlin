@@ -10,9 +10,11 @@ import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 
 object ExceptionEffectLattice : ContextualEffectLattice {
-    override fun and(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext = merge(a, b)
+    override fun and(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext =
+        merge(a, b)
 
-    override fun or(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext = merge(a, b)
+    override fun or(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext =
+        merge(a, b)
 
     private fun merge(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext {
         if (a !is ExceptionEffectsContext || b !is ExceptionEffectsContext) {

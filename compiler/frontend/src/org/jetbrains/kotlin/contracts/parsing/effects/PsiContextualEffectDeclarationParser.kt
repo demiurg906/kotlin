@@ -10,8 +10,8 @@ import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.description.EffectDeclaration
 import org.jetbrains.kotlin.contracts.parsing.AbstractPsiEffectParser
+import org.jetbrains.kotlin.contracts.parsing.ContextualEffectParser
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
-import org.jetbrains.kotlin.contracts.parsing.contextual.ContextualEffectParser
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingTrace
 
@@ -23,7 +23,7 @@ internal abstract class AbstractPsiContextualEffectDeclarationParser<T : EffectD
     dispatcher: PsiContractParserDispatcher
 ) : AbstractPsiEffectParser(trace, dispatcher) {
     override fun tryParseEffect(expression: KtExpression): EffectDeclaration? {
-        return ContextualEffectSystem.ALL_PARSERS.asSequence()
+        return ContextualEffectSystem.getParsers().asSequence()
             .map { it(trace.bindingContext) }
             .map { parser -> parse(parser, expression) }
             .filterNotNull()

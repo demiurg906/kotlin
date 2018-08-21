@@ -3,14 +3,12 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.contracts.parsing.contextual.impl
+package org.jetbrains.kotlin.contracts.contextual.safebuilders
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
-import org.jetbrains.kotlin.contracts.contextual.safebuilders.CallEffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.safebuilders.CallEffectSupplier
 import org.jetbrains.kotlin.contracts.description.InvocationKind
-import org.jetbrains.kotlin.contracts.parsing.contextual.ContextualEffectParser
+import org.jetbrains.kotlin.contracts.parsing.ContextualEffectParser
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -20,7 +18,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ExpressionValueArgument
 
-class CallEffectParser(val context: BindingContext) : ContextualEffectParser() {
+class CallEffectParser(context: BindingContext) : ContextualEffectParser(context) {
     companion object {
         private const val SUPPLIES_EFFECT_NAME = "CallEffect"
         private const val CONSUMES_EFFECT_NAME = "RequiresCallEffect"

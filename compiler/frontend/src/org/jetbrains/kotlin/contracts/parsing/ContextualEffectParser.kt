@@ -3,15 +3,16 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.contracts.parsing.contextual
+package org.jetbrains.kotlin.contracts.parsing
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.resolve.BindingContext
 
-abstract class ContextualEffectParser {
+abstract class ContextualEffectParser(val context: BindingContext) {
     abstract fun parseDeclarationForSupplier(declaration: KtExpression): ContextualEffectSupplier?
     abstract fun parseDeclarationForConsumer(declaration: KtExpression): ContextualEffectConsumer?
 

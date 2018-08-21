@@ -18,7 +18,10 @@ class CallEffectSupplier(val function: FunctionDescriptor) : ContextualEffectSup
         val newCalls = context.calls.toMutableMap()
         if (function in context.calls) {
             val currentKind = newCalls[function]!!
-            newCalls[function] = CallEffectLattice.combine(currentKind, InvocationKind.EXACTLY_ONCE)
+            newCalls[function] = CallEffectLattice.combine(
+                currentKind,
+                InvocationKind.EXACTLY_ONCE
+            )
         } else {
             newCalls[function] = InvocationKind.EXACTLY_ONCE
         }

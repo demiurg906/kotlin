@@ -6,21 +6,19 @@
 package org.jetbrains.kotlin.contracts
 
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.description.ContractDescription
 import org.jetbrains.kotlin.contracts.description.ContractProviderKey
-import org.jetbrains.kotlin.contracts.parsing.contextual.ContextualEffectParser
-import org.jetbrains.kotlin.contracts.parsing.contextual.impl.CallEffectParser
-import org.jetbrains.kotlin.contracts.parsing.contextual.impl.ExceptionEffectParser
+import org.jetbrains.kotlin.contracts.parsing.ContextualEffectParser
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.resolve.BindingContext
 
 object ContextualEffectSystem {
-    /**
-     * list of all registered [ContextualEffectParser]s in compiler
-     */
-    val ALL_PARSERS: List<(BindingContext) -> ContextualEffectParser> =
-        listOf(::ExceptionEffectParser, ::CallEffectParser)
+    private val contextualEffectFamiliesProvider: ContextualEffectFamiliesProvider = ContextualEffectFamiliesService
+
+    fun getFamilies(): Collection<ContextualEffectFamily> = contextualEffectFamiliesProvider.getFamilies()
+    fun getParsers(): Collection<(BindingContext) -> ContextualEffectParser> = contextualEffectFamiliesProvider.getParsers()
 
     fun declaredSuppliers(declaration: FunctionDescriptor): List<ContextualEffectSupplier> {
         val contractDescription = declaration.contractDescription ?: return emptyList()

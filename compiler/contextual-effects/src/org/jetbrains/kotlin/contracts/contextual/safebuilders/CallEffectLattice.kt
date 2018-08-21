@@ -15,7 +15,11 @@ object CallEffectLattice : ContextualEffectLattice {
     override fun and(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext {
         if (a !is CallEffectsContext || b !is CallEffectsContext) throw AssertionError()
 
-        val calls = processCalls(a.calls, b.calls, ::combine)
+        val calls = processCalls(
+            a.calls,
+            b.calls,
+            CallEffectLattice::combine
+        )
         return CallEffectsContext(calls)
     }
 
@@ -27,7 +31,11 @@ object CallEffectLattice : ContextualEffectLattice {
 
         if (a !is CallEffectsContext || b !is CallEffectsContext) throw AssertionError()
 
-        val calls = processCalls(a.calls, b.calls, ::or)
+        val calls = processCalls(
+            a.calls,
+            b.calls,
+            CallEffectLattice::or
+        )
         return CallEffectsContext(calls)
     }
 
@@ -37,7 +45,10 @@ object CallEffectLattice : ContextualEffectLattice {
     }
 
     private fun processBadCalls(a: BadCallsMap, b: BadCallsMap): BadCallsMap {
-        val (intersection, differenceA, differenceB) = splitSets(a.keys, b.keys)
+        val (intersection, differenceA, differenceB) = splitSets(
+            a.keys,
+            b.keys
+        )
 
         val res = mutableMapOf<FunctionDescriptor, List<CallAnalysisResult>>()
         res.putAll(differenceA.map { it to a[it]!! })
@@ -75,7 +86,12 @@ object CallEffectLattice : ContextualEffectLattice {
         if (context !is CallEffectsContext) throw AssertionError()
 
         return CallEffectsContext(
-            context.calls.mapValues { (_, kind) -> updateWithCallKind(kind, functionInvocationKind) }
+            context.calls.mapValues { (_, kind) ->
+                updateWithCallKind(
+                    kind,
+                    functionInvocationKind
+                )
+            }
         )
     }
     

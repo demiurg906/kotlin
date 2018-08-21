@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.cfg.variable.VariableUseState.*
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.contracts.ContextualEffectSystem
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Diagnostic
@@ -62,7 +61,6 @@ class ControlFlowInformationProvider private constructor(
     private val languageVersionSettings: LanguageVersionSettings,
     private val diagnosticSuppressor: PlatformDiagnosticSuppressor
 ) {
-
     private val pseudocodeVariablesData by lazy {
         PseudocodeVariablesData(pseudocode, trace.bindingContext)
     }
@@ -139,7 +137,7 @@ class ControlFlowInformationProvider private constructor(
             subroutine
         )
 
-        for (family in ContextualEffectFamily.ALL_FAMILIES) {
+        for (family in ContextualEffectSystem.getFamilies()) {
             val context = controlFlowInfo[family].firstOrNull() ?: continue
             val diagnostics = pseudocodeEffectsData.diagnostics.map { (element, diagnostic) ->
                 CONTEXTUAL_EFFECT_WARNING.on(element, diagnostic)
