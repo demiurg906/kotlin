@@ -17,8 +17,7 @@ sealed class AbstractCallEffectsContext : ContextualEffectsContext {
 }
 
 data class CallEffectsContext(
-    val calls: CallsMap = mapOf(),
-    val badCalls: BadCallsMap = mapOf()
+    val calls: CallsMap = mapOf()
 ) : AbstractCallEffectsContext() {
     override fun unhandledEffects(): List<String> =
         calls.map { (function, expected) ->

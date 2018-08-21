@@ -16,8 +16,7 @@ object CallEffectLattice : ContextualEffectLattice {
         if (a !is CallEffectsContext || b !is CallEffectsContext) throw AssertionError()
 
         val calls = processCalls(a.calls, b.calls, ::combine)
-        val badCalls = processBadCalls(a.badCalls, b.badCalls)
-        return CallEffectsContext(calls, badCalls)
+        return CallEffectsContext(calls)
     }
 
     override fun or(a: ContextualEffectsContext, b: ContextualEffectsContext): ContextualEffectsContext {
@@ -29,8 +28,7 @@ object CallEffectLattice : ContextualEffectLattice {
         if (a !is CallEffectsContext || b !is CallEffectsContext) throw AssertionError()
 
         val calls = processCalls(a.calls, b.calls, ::or)
-        val badCalls = processBadCalls(a.badCalls, b.badCalls)
-        return CallEffectsContext(calls, badCalls)
+        return CallEffectsContext(calls)
     }
 
     private fun processCalls(a: CallsMap, b: CallsMap, operation: (InvocationKind, InvocationKind) -> InvocationKind): CallsMap {
@@ -77,8 +75,7 @@ object CallEffectLattice : ContextualEffectLattice {
         if (context !is CallEffectsContext) throw AssertionError()
 
         return CallEffectsContext(
-            context.calls.mapValues { (_, kind) -> updateWithCallKind(kind, functionInvocationKind) },
-            context.badCalls
+            context.calls.mapValues { (_, kind) -> updateWithCallKind(kind, functionInvocationKind) }
         )
     }
     

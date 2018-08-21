@@ -30,12 +30,7 @@ class CallEffectConsumer(val function: FunctionDescriptor, val expectedCallKind:
             )
         ) "${function.name} call mismatch: expected $expectedCallKind, actual $actualCallKind" else null
 
-        return CallEffectsContext(resultCalls, context.badCalls) to warning
-//        return if (CallEffectLattice.check(expectedCallKind, actualCallKind)) {
-//            CallEffectsContext(resultCalls, context.badCalls)
-//        } else {
-//            CallEffectsContext(resultCalls, context.badCalls.plus(function to listOf(CallAnalysisResult(expectedCallKind, actualCallKind))))
-//        }
+        return CallEffectsContext(resultCalls) to warning
     }
 
     override fun toString(): String = "Call consumer: ${function.name} must be invoked $expectedCallKind"
