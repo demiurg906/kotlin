@@ -1,123 +1,185 @@
 // !LANGUAGE: +ContextualEffects +UseCallsInPlaceEffect +AllowContractsForCustomFunctions +UseReturnsEffect
-// !DIAGNOSTICS: -INVISIBLE_MEMBER -INVISIBLE_REFERENCE
+// !DIAGNOSTICS: -INVISIBLE_MEMBER -INVISIBLE_REFERENCE -DATA_CLASS_WITHOUT_PARAMETERS
 // !RENDER_DIAGNOSTICS_MESSAGES
 
 import kotlin.internal.contracts.*
 
-data class A(val x: Int?, val y: Int?, val z: Int?)
+data class XYZ(/*...*/)
 
-class ABuilder {
+class XYZBuilder {
     private var x_: Int? = null
-    fun setX(value: Int) {
+    fun setValX(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setX))
+            supplies(CallEffect(::setValX))
         }
         x_ = value
     }
 
     private var y_: Int? = null
-    fun setY(value: Int) {
+    fun setDefaultValY(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setY))
+            supplies(CallEffect(::setDefaultValY))
         }
         y_ = value
     }
 
     private var z_: Int? = null
-    fun setZ(value: Int) {
+    fun setVarZ(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setZ))
+            supplies(CallEffect(::setVarZ))
         }
         z_ = value
     }
 
-    fun buildA() = A(x_, y_, z_)
+    fun buildXYZ() = XYZ(/*...*/)
 }
 
-fun build(init: ABuilder.() -> Unit): A {
+fun buildXYZ(init: XYZBuilder.() -> Unit): XYZ {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        consumes(init, RequiresCallEffect(ABuilder::setX, DslCallKind.EXACTLY_ONCE))
-        consumes(init, RequiresCallEffect(ABuilder::setY, DslCallKind.AT_MOST_ONCE))
-        consumes(init, RequiresCallEffect(ABuilder::setZ, DslCallKind.AT_LEAST_ONCE))
+        consumes(init, RequiresCallEffect(XYZBuilder::setValX, DslCallKind.EXACTLY_ONCE))
+        consumes(init, RequiresCallEffect(XYZBuilder::setDefaultValY, DslCallKind.AT_MOST_ONCE))
+        consumes(init, RequiresCallEffect(XYZBuilder::setVarZ, DslCallKind.AT_LEAST_ONCE))
     }
-    val builder = ABuilder()
+    val builder = XYZBuilder()
     builder.init()
-    return builder.buildA()
+    return builder.buildXYZ()
 }
 
-fun simpleBuild(init: ABuilder.() -> Unit): A {
+data class X(/*...*/)
+
+class XBuilder {
+    private var x_: Int? = null
+    fun setValX(value: Int = 0) {
+        contract {
+            supplies(CallEffect(::setValX))
+        }
+        x_ = value
+    }
+    
+    fun buildX() = X(/*...*/)
+}
+
+fun buildX(init: XBuilder.() -> Unit): X {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        consumes(init, RequiresCallEffect(ABuilder::setX, DslCallKind.EXACTLY_ONCE))
+        consumes(init, RequiresCallEffect(XBuilder::setValX, DslCallKind.EXACTLY_ONCE))
     }
-    val builder = ABuilder()
+    val builder = XBuilder()
     builder.init()
-    return builder.buildA()
+    return builder.buildX()
 }
 
+data class Y(/*...*/)
+
+class YBuilder {
+    private var y_: Int? = null
+    fun setValY(value: Int = 0) {
+        contract {
+            supplies(CallEffect(::setValY))
+        }
+        y_ = value
+    }
+
+    fun buildY() = Y(/*...*/)
+}
+
+fun buildY(init: YBuilder.() -> Unit): Y {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+        consumes(init, RequiresCallEffect(YBuilder::setValY, DslCallKind.EXACTLY_ONCE))
+    }
+    val builder = YBuilder()
+    builder.init()
+    return builder.buildY()
+}
+
+data class Z(/*...*/)
+
+class ZBuilder {
+    private var z_: Int? = null
+    fun setValZ(value: Int = 0) {
+        contract {
+            supplies(CallEffect(::setValZ))
+        }
+        z_ = value
+    }
+
+    fun buildZ() = Z(/*...*/)
+}
+
+fun buildZ(init: ZBuilder.() -> Unit): Z {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+        consumes(init, RequiresCallEffect(ZBuilder::setValZ, DslCallKind.EXACTLY_ONCE))
+    }
+    val builder = ZBuilder()
+    builder.init()
+    return builder.buildZ()
+}
 
 // ---------------- TESTS ----------------
 
 fun test_1() {
-    build {
-        build {
-            setX(10)
-            setY(10)
-            setZ(10)
-            build {
-                setX(10)
-                setY(10)
-                setZ(10)
+    buildXYZ {
+        buildXYZ {
+            setValX()
+            setDefaultValY()
+            setVarZ()
+            buildXYZ {
+                setValX()
+                setDefaultValY()
+                setVarZ()
             }
         }
-        setX(10)
-        setY(10)
-        setZ(10)
-        build {
-            build {
-                setX(10)
-                setY(10)
-                setZ(10)
+        setValX()
+        setDefaultValY()
+        setVarZ()
+        buildXYZ {
+            buildXYZ {
+                setValX()
+                setDefaultValY()
+                setVarZ()
             }
-            setX(10)
-            setY(10)
-            setZ(10)
+            setValX()
+            setDefaultValY()
+            setVarZ()
         }
     }
 }
 
-// TODO
+
 fun test_2() {
-    simpleBuild {
-        setX(10)
-        simpleBuild <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>{  }<!>
+    buildX {
+        buildY {
+            buildZ {
+                setValX()
+                setValY()
+                setValZ()
+            }
+        }
     }
 }
 
 fun test_3() {
-    simpleBuild {
-        simpleBuild <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>{  }<!>
-        setX(10)
+    buildX {
+        setValX()
+        buildX <!CONTEXTUAL_EFFECT_WARNING(setValX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>{}<!>
     }
 }
 
 fun test_4() {
-    simpleBuild <!CONTEXTUAL_EFFECT_WARNING(setX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>{
-        simpleBuild {
-            setX(10)
-        }
-    }<!>
-}
-
-// incorrect behavior, but that case is shit
-// and hopefully no one will write code like this
-fun test_5() {
-    simpleBuild outer@ {
-        setX(10)
-        simpleBuild {
-            this@outer.setX(15)
-        }
+    buildX {
+        buildX <!CONTEXTUAL_EFFECT_WARNING(setValX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>{}<!>
+        setValX()
     }
 }
 
+fun test_5() {
+    buildX <!CONTEXTUAL_EFFECT_WARNING(setValX call mismatch: expected EXACTLY_ONCE, actual ZERO)!>{
+        buildX {
+            setValX()
+        }
+    }<!>
+
+}

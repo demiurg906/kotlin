@@ -1,81 +1,115 @@
 // !LANGUAGE: +ContextualEffects +UseCallsInPlaceEffect +AllowContractsForCustomFunctions +UseReturnsEffect
-// !DIAGNOSTICS: -INVISIBLE_MEMBER -INVISIBLE_REFERENCE
+// !DIAGNOSTICS: -INVISIBLE_MEMBER -INVISIBLE_REFERENCE -DATA_CLASS_WITHOUT_PARAMETERS
 // !RENDER_DIAGNOSTICS_MESSAGES
 
 import kotlin.internal.contracts.*
 
-data class A(val x: Int?, val y: Int?, val z: Int?)
+data class XY(/*...*/)
 
-class ABuilder {
+class XYBuilder {
     private var x_: Int? = null
-    fun setX(value: Int) {
+    fun setValX(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setX))
+            supplies(CallEffect(::setValX))
         }
         x_ = value
     }
 
     private var y_: Int? = null
-    fun setY(value: Int) {
+    fun setDefaultValY(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setY))
+            supplies(CallEffect(::setDefaultValY))
         }
         y_ = value
     }
 
+    fun buildXY() = XY(/*...*/)
+}
+
+fun buildXY(init: XYBuilder.() -> Unit): XY {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+        consumes(init, RequiresCallEffect(XYBuilder::setValX, DslCallKind.EXACTLY_ONCE))
+        consumes(init, RequiresCallEffect(XYBuilder::setDefaultValY, DslCallKind.AT_MOST_ONCE))
+    }
+    val builder = XYBuilder()
+    builder.init()
+    return builder.buildXY()
+}
+
+data class Z(/*...*/)
+
+class ZBuilder {
     private var z_: Int? = null
-    fun setZ(value: Int) {
+    fun setVarZ(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setZ))
+            supplies(CallEffect(::setVarZ))
         }
         z_ = value
     }
 
-    fun buildA() = A(x_, y_, z_)
+    fun buildZ() = Z(/*...*/)
 }
 
-fun build(init: ABuilder.() -> Unit): A {
+fun buildZ(init: ZBuilder.() -> Unit): Z {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        consumes(init, RequiresCallEffect(ABuilder::setX, DslCallKind.EXACTLY_ONCE))
-        consumes(init, RequiresCallEffect(ABuilder::setY, DslCallKind.AT_MOST_ONCE))
-        consumes(init, RequiresCallEffect(ABuilder::setZ, DslCallKind.AT_LEAST_ONCE))
+        consumes(init, RequiresCallEffect(ZBuilder::setVarZ, DslCallKind.AT_LEAST_ONCE))
     }
-    val builder = ABuilder()
+    val builder = ZBuilder()
     builder.init()
-    return builder.buildA()
+    return builder.buildZ()
 }
-
 
 // ---------------- TESTS ----------------
 
-fun test_1() {
-    val x = 10
-    build <!CONTEXTUAL_EFFECT_WARNING(setZ call mismatch: expected AT_LEAST_ONCE, actual UNKNOWN)!>{
+fun test_1(x: Int) {
+    buildXY {
+        setValX()
         when (x) {
-            in 1..10 -> {
-                for (i in 1..x) {
-                    setZ(1)
-                }
-            }
-            in 2..20 -> {
-                setZ(1)
-            }
-            in 3..30 -> {
-                for (i in 1..x) {
-                    setZ(1)
-                }
-            }
-            else -> {
-                setZ(1)
-                setZ(1)
-            }
-        }
+            in 1..2 -> setDefaultValY() // once
+            in 3..4 -> if (x == 3) setDefaultValY() // at least once
+            else -> {} // zero
+        } // must be at least once
+    }
+}
 
+fun test_2(x: Int) {
+    buildXY {
         when (x) {
-            in 1..10 -> setX(10)
-            in 2..20 -> setX(20)
-            else -> setX(30)
+            in 1..2 -> setValX()
+            in 3..4 -> setValX()
+            else -> setValX()
         }
+    }
+}
+
+fun test_3(x: Int) {
+    buildZ <!CONTEXTUAL_EFFECT_WARNING(setVarZ call mismatch: expected AT_LEAST_ONCE, actual UNKNOWN)!>{
+        when (x) {
+            in 1..2 -> { // at least once
+                setVarZ()
+                setVarZ()
+            }
+            in 3..4 -> setVarZ() // once
+            else -> {} // zero
+        } // must be unknown
+    }<!>
+}
+
+fun test_4(x: Int) {
+    buildZ <!CONTEXTUAL_EFFECT_WARNING(setVarZ call mismatch: expected AT_LEAST_ONCE, actual UNKNOWN)!>{
+        when (x) {
+            in 1..2 -> { // at least once
+                setVarZ()
+                setVarZ()
+            }
+            in 3..4 -> setVarZ() // once
+            else -> { // unknown
+                for (i in 5..6) {
+                    setVarZ()
+                }
+            }
+        } // must be unknown
     }<!>
 }

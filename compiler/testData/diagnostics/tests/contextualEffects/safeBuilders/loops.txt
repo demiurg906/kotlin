@@ -1,46 +1,39 @@
 package
 
-public fun build(/*0*/ init: ABuilder.() -> kotlin.Unit): A
+public fun buildXYZ(/*0*/ init: XYZBuilder.() -> kotlin.Unit): XYZ
     CallsInPlace(init, EXACTLY_ONCE)
-    initkotlin.Unit consumes Call consumer: setX must be invoked EXACTLY_ONCEkotlin.Unit
-    initkotlin.Unit consumes Call consumer: setY must be invoked AT_MOST_ONCEkotlin.Unit
-    initkotlin.Unit consumes Call consumer: setZ must be invoked AT_LEAST_ONCEkotlin.Unit
+    initkotlin.Unit consumes Call consumer: setValX must be invoked EXACTLY_ONCEkotlin.Unit
+    initkotlin.Unit consumes Call consumer: setDefaultValY must be invoked AT_MOST_ONCEkotlin.Unit
+    initkotlin.Unit consumes Call consumer: setVarZ must be invoked AT_LEAST_ONCEkotlin.Unit
 
 public fun test_1(): kotlin.Unit
-public fun test_2(): kotlin.Unit
+public fun test_2(/*0*/ b: kotlin.Boolean): kotlin.Unit
 public fun test_3(): kotlin.Unit
-public fun test_4(): kotlin.Unit
 
-public final data class A {
-    public constructor A(/*0*/ x: kotlin.Int?, /*1*/ y: kotlin.Int?, /*2*/ z: kotlin.Int?)
-    public final val x: kotlin.Int?
-    public final val y: kotlin.Int?
-    public final val z: kotlin.Int?
-    public final operator /*synthesized*/ fun component1(): kotlin.Int?
-    public final operator /*synthesized*/ fun component2(): kotlin.Int?
-    public final operator /*synthesized*/ fun component3(): kotlin.Int?
-    public final /*synthesized*/ fun copy(/*0*/ x: kotlin.Int? = ..., /*1*/ y: kotlin.Int? = ..., /*2*/ z: kotlin.Int? = ...): A
+public final data class XYZ {
+    public constructor XYZ()
+    public final /*synthesized*/ fun copy(): XYZ
     public open override /*1*/ /*synthesized*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*synthesized*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*synthesized*/ fun toString(): kotlin.String
 }
 
-public final class ABuilder {
-    public constructor ABuilder()
+public final class XYZBuilder {
+    public constructor XYZBuilder()
     private final var x_: kotlin.Int?
     private final var y_: kotlin.Int?
     private final var z_: kotlin.Int?
-    public final fun buildA(): A
+    public final fun buildXYZ(): XYZ
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
-    public final fun setX(/*0*/ value: kotlin.Int): kotlin.Unit
-        Call supplier: invokes setX once
+    public final fun setDefaultValY(/*0*/ value: kotlin.Int = ...): kotlin.Unit
+        Call supplier: invokes setDefaultValY once
 
-    public final fun setY(/*0*/ value: kotlin.Int): kotlin.Unit
-        Call supplier: invokes setY once
+    public final fun setValX(/*0*/ value: kotlin.Int = ...): kotlin.Unit
+        Call supplier: invokes setValX once
 
-    public final fun setZ(/*0*/ value: kotlin.Int): kotlin.Unit
-        Call supplier: invokes setZ once
+    public final fun setVarZ(/*0*/ value: kotlin.Int = ...): kotlin.Unit
+        Call supplier: invokes setVarZ once
 
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 }

@@ -99,7 +99,7 @@ fun test_2() {
             setX(10)
             setY(10)
             setY(10)
-            setZ(10)
+            setZ(10) // from a
         }
     }
 }
@@ -114,18 +114,6 @@ fun test_3() {
         }
 
     }<!>
-}
-
-fun test_4() {
-    buildA {
-        buildB {
-            this@buildA.setX(10) // setX in ABuilder
-            setX(10) // setX in BBuilder
-            setY(10) // setY in BBuilder
-            setY(10)
-            setZ(10) // setZ in ABuilder
-        }
-    }
 }
 
 fun test_5() {

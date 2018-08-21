@@ -3456,6 +3456,11 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                     KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
                 }
 
+                @TestMetadata("badCases.kt")
+                public void testBadCases() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders/badCases.kt");
+                }
+
                 @TestMetadata("complicatedBuilders.kt")
                 public void testComplicatedBuilders() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders/complicatedBuilders.kt");
@@ -3479,6 +3484,11 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                 @TestMetadata("nestedBuild.kt")
                 public void testNestedBuild() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders/nestedBuild.kt");
+                }
+
+                @TestMetadata("qualifiedThis.kt")
+                public void testQualifiedThis() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contextualEffects/safeBuilders/qualifiedThis.kt");
                 }
 
                 @TestMetadata("simple.kt")
