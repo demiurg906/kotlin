@@ -18,6 +18,7 @@ dependencies {
     testCompile(project(":compiler:cli"))
     testCompile(project(":compiler:light-classes"))
     testCompile(project(":compiler:serialization"))
+    testCompile(project(":compiler:contextual-effects"))
     testCompile(project(":kotlin-preloader"))
     testCompile(project(":compiler:daemon-common"))
     testCompile(project(":js:js.serializer"))

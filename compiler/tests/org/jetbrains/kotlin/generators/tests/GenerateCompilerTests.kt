@@ -67,6 +67,10 @@ fun main(args: Array<String>) {
             model("codegen/box/diagnostics")
         }
 
+        testClass<AbstractContextualEffectsDiagnosticTest> {
+            model("diagnostics/contextualEffects")
+        }
+
         testClass<AbstractDiagnosticsUsingJavacTest> {
             model("diagnostics/tests")
             model("codegen/box/diagnostics")
