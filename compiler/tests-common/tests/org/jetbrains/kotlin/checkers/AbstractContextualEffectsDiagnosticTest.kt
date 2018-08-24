@@ -7,12 +7,13 @@ package org.jetbrains.kotlin.checkers
 
 import org.jetbrains.kotlin.compiler.plugin.contracts.ContextEffectsComponent
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.contracts.facts.exceptions.ExceptionContextEffectsComponent
+import org.jetbrains.kotlin.contracts.exceptions.ExceptionContextEffectsComponent
 
 abstract class AbstractContextualEffectsDiagnosticTest : AbstractDiagnosticsTest() {
     override fun performCustomConfiguration(configuration: CompilerConfiguration) {
-//        configuration.add(ContextualEffectComponent.PLUGIN_CONTEXTUAL_EFFECTS, ExceptionEffectComponent())
-//        configuration.add(ContextualEffectComponent.PLUGIN_CONTEXTUAL_EFFECTS, CallEffectComponent())
-        configuration.add(ContextEffectsComponent.PLUGIN_CONTEXT_EFFECTS, ExceptionContextEffectsComponent())
+        configuration.add(
+            ContextEffectsComponent.PLUGIN_CONTEXT_EFFECTS,
+            ExceptionContextEffectsComponent()
+        )
     }
 }
