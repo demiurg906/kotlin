@@ -7,5 +7,4 @@ package org.jetbrains.kotlin.contracts.facts
 
 abstract class Context {
     abstract val facts: Collection<ContextFact>
-    abstract fun addFact(fact: ContextFact): Context
 }

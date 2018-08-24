@@ -18,7 +18,7 @@ object ExceptionFactsCombiner : FactsCombiner() {
 
     override fun combine(context: Context, fact: ContextFact): Context {
         if (context !is ExceptionContext || fact !is ExceptionFact) throw AssertionError()
-        return context.addFact(fact)
+        return ExceptionContext(context.facts + fact)
     }
 
     override fun updateWithInvocationKind(context: Context, invocationKind: InvocationKind): Context {

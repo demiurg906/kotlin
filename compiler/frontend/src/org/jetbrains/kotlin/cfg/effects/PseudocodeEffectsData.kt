@@ -136,7 +136,7 @@ class PseudocodeEffectsData(
         for (fact in facts) {
             val family = fact.family
             val context = contextsGroupedByFamily[family] ?: family.emptyContext
-            contextsGroupedByFamily[family] = context.addFact(fact)
+            contextsGroupedByFamily[family] = family.combiner.combine(context, fact)
         }
     }
 

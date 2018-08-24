@@ -6,11 +6,5 @@
 package org.jetbrains.kotlin.contracts.exceptions
 
 import org.jetbrains.kotlin.contracts.facts.Context
-import org.jetbrains.kotlin.contracts.facts.ContextFact
 
-data class ExceptionContext(override val facts: Set<ExceptionFact> = setOf()) : Context() {
-    override fun addFact(fact: ContextFact): Context {
-        if (fact !is ExceptionFact) throw AssertionError()
-        return ExceptionContext(facts + fact)
-    }
-}
+data class ExceptionContext(override val facts: Set<ExceptionFact> = setOf()) : Context()
