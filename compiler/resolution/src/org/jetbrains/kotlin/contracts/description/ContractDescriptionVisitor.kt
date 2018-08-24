@@ -83,4 +83,7 @@ interface ContractDescriptionVisitor<out R, in D> {
 
     fun visitLambdaRequiresContextEffectDeclaration(effectDeclaration: LambdaRequiresContextEffectDeclaration, data: D): R =
         visitEffectDeclaration(effectDeclaration, data)
+
+    fun visitFunctionReference(functionReference: FunctionReference, data: D) =
+        visitValue(functionReference, data)
 }

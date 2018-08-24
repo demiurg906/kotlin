@@ -62,7 +62,6 @@ class BooleanVariableReference(descriptor: ParameterDescriptor) : VariableRefere
 //------------------------------------------------------
 
 class FunctionReference(val descriptor: FunctionDescriptor) : ContractDescriptionValue {
-    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
-        TODO()
-    }
+    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R =
+        contractDescriptionVisitor.visitFunctionReference(this, data)
 }

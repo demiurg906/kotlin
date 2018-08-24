@@ -75,6 +75,10 @@ class ContractDescriptionRenderer(private val builder: StringBuilder) : Contract
         builder.append(variableReference.descriptor.name)
     }
 
+    override fun visitFunctionReference(functionReference: FunctionReference, data: Unit) {
+        builder.append(functionReference.descriptor.name)
+    }
+
     override fun visitSuppliesContextualEffectDeclaration(suppliesEffect: ContextualEffectSupplier, data: Unit) {
         builder.append(suppliesEffect)
     }
@@ -96,19 +100,27 @@ class ContractDescriptionRenderer(private val builder: StringBuilder) : Contract
     }
 
     override fun visitProvidesFactEffectDeclaration(effectDeclaration: ProvidesFactEffectDeclaration, data: Unit) {
-        // TODO()
+        builder.append(effectDeclaration.owner.accept(this, data))
+            .append(" provides ")
+            .append(effectDeclaration.factory)
     }
 
     override fun visitLambdaProvidesFactEffectDeclaration(effectDeclaration: LambdaProvidesFactEffectDeclaration, data: Unit) {
-        // TODO()
+        builder.append(effectDeclaration.owner.accept(this, data))
+            .append(" provides ")
+            .append(effectDeclaration.factory)
     }
 
     override fun visitRequiresContextEffectDeclaration(effectDeclaration: RequiresContextEffectDeclaration, data: Unit) {
-        // TODO()
+        builder.append(effectDeclaration.owner.accept(this, data))
+            .append(" requires ")
+            .append(effectDeclaration.factory)
     }
 
     override fun visitLambdaRequiresContextEffectDeclaration(effectDeclaration: LambdaRequiresContextEffectDeclaration, data: Unit) {
-        // TODO()
+        builder.append(effectDeclaration.owner.accept(this, data))
+            .append(" requires ")
+            .append(effectDeclaration.factory)
     }
 
     private fun ContractDescriptionElement.isAtom(): Boolean =
