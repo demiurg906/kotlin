@@ -14,6 +14,7 @@ import org.jetbrains.annotations.TestOnly;
 import org.jetbrains.kotlin.cfg.LeakingThisDescriptor;
 import org.jetbrains.kotlin.cfg.TailRecursionKind;
 import org.jetbrains.kotlin.contracts.ContextualBindingInfo;
+import org.jetbrains.kotlin.contracts.FactsBindingInfo;
 import org.jetbrains.kotlin.contracts.description.InvocationKind;
 import org.jetbrains.kotlin.contracts.model.Computation;
 import org.jetbrains.kotlin.contracts.model.Functor;
@@ -213,7 +214,10 @@ public interface BindingContext {
 
     WritableSlice<KtLambdaExpression, InvocationKind> LAMBDA_INVOCATIONS = Slices.createSimpleSlice();
 
+    // TODO: delete slice
     WritableSlice<KtLambdaExpression, ContextualBindingInfo> CONTEXTUAL_EFFECTS = Slices.createSimpleSlice();
+    WritableSlice<FunctionDescriptor, FactsBindingInfo> FUNCTION_CONTEXT_FACTS = Slices.createSimpleSlice();
+    WritableSlice<KtLambdaExpression, FactsBindingInfo> LAMBDA_CONTEXT_FACTS = Slices.createSimpleSlice();
 
     WritableSlice<KtLambdaExpression, Boolean> BLOCK = new SetSlice<KtLambdaExpression>(DO_NOTHING) {
         @Override

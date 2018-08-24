@@ -59,9 +59,25 @@ class SubstitutingFunctor(private val basicEffects: List<ESEffect>, private val 
                     substitutedClauses += SuppliesEffect(substitutionForCallable, effect.supplier)
                 }
 
-                is ConsumesEffect-> {
+                is ConsumesEffect -> {
                     val substitutionForCallable = substitutions[effect.callable] as? ESValue ?: continue@effectsLoop
                     substitutedClauses += ConsumesEffect(substitutionForCallable, effect.consumer)
+                }
+
+                is ProvidesContextFactEffect -> {
+                    val substitutionForCallable = if (effect.owner is ESFunction)
+                        effect.owner
+                    else
+                        substitutions[effect.owner] as? ESValue ?: continue@effectsLoop
+                    substitutedClauses += ProvidesContextFactEffect(effect.factory, effect.references, substitutionForCallable)
+                }
+
+                is RequiresContextEffect -> {
+                    val substitutionForCallable = if (effect.owner is ESFunction)
+                        effect.owner
+                    else
+                        substitutions[effect.owner] as? ESValue ?: continue@effectsLoop
+                    substitutedClauses += RequiresContextEffect(effect.factory, effect.references, substitutionForCallable)
                 }
 
                 else -> substitutedClauses += effect

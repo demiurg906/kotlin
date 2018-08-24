@@ -95,6 +95,22 @@ class ContractDescriptionRenderer(private val builder: StringBuilder) : Contract
             .append(consumesEffect.consumer.accept(this, data))
     }
 
+    override fun visitProvidesFactEffectDeclaration(effectDeclaration: ProvidesFactEffectDeclaration, data: Unit) {
+        // TODO()
+    }
+
+    override fun visitLambdaProvidesFactEffectDeclaration(effectDeclaration: LambdaProvidesFactEffectDeclaration, data: Unit) {
+        // TODO()
+    }
+
+    override fun visitRequiresContextEffectDeclaration(effectDeclaration: RequiresContextEffectDeclaration, data: Unit) {
+        // TODO()
+    }
+
+    override fun visitLambdaRequiresContextEffectDeclaration(effectDeclaration: LambdaRequiresContextEffectDeclaration, data: Unit) {
+        // TODO()
+    }
+
     private fun ContractDescriptionElement.isAtom(): Boolean =
         this is VariableReference || this is ConstantReference || this is IsNullPredicate || this is IsInstancePredicate
 

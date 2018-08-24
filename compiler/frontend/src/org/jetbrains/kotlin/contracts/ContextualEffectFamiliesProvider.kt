@@ -31,3 +31,30 @@ object ContextualEffectFamiliesService : ContextualEffectFamiliesRegistrar, Cont
 
     override fun getParsers(): Collection<(BindingContext) -> ContextualEffectParser> = parsers
 }
+
+// -----------------------------------------------------------------------------------------------------------------
+
+typealias FactParserConstructorKind = (BindingContext, PsiContractParserDispatcher) -> ContextFactParser
+
+interface ContextFamiliesRegistrar {
+    fun registerFamily(family: ContextFamily, newParser: FactParserConstructorKind)
+}
+
+interface ContextFamiliesProvider {
+    fun getFamilies(): Collection<ContextFamily>
+    fun getParsers(): Collection<FactParserConstructorKind>
+}
+
+object ContextFamiliesService : ContextFamiliesRegistrar, ContextFamiliesProvider {
+    private val families = mutableSetOf<ContextFamily>()
+    private val parsers = mutableSetOf<FactParserConstructorKind>()
+
+    override fun registerFamily(family: ContextFamily, newParser: FactParserConstructorKind) {
+        families.add(family)
+        parsers.add(newParser)
+    }
+
+    override fun getFamilies(): Collection<ContextFamily> = families
+
+    override fun getParsers(): Collection<FactParserConstructorKind> = parsers
+}

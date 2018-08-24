@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.psi
 
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.name.Name
 
 interface ValueArgument {

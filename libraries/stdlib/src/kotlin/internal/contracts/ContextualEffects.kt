@@ -5,17 +5,26 @@
 
 package kotlin.internal.contracts
 
-import kotlin.internal.ContractsDsl
 import kotlin.reflect.KFunction
 
-@ContractsDsl
+@Deprecated("")
 class ExceptionEffectDescription<T : Throwable> : ContextualEffectSuppliesDescription, ContextualEffectConsumesDescription
 
-@ContractsDsl
+@Deprecated("")
 class CallEffect(func: KFunction<*>) : ContextualEffectSuppliesDescription
 
-@ContractsDsl
+@Deprecated("")
 class RequiresCallEffect(func: KFunction<*>, callKind: DslCallKind) : ContextualEffectConsumesDescription
+
+// -----------------------------------------------------
+
+// TODO: move to plugin
+class CatchesException<T : Throwable> : FactDescription, CheckerDescription
+
+
+class Calls(func: KFunction<*>) : FactDescription
+
+class CallKind(func: KFunction<*>, callKind: DslCallKind)
 
 enum class DslCallKind {
     AT_MOST_ONCE,

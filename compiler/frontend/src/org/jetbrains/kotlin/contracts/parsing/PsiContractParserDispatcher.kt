@@ -24,11 +24,17 @@ import org.jetbrains.kotlin.contracts.description.expressions.BooleanVariableRef
 import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
 import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_PROVIDES_FACT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_REQUIRES_CONTEXT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_REQUIRES_NOT_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONDITIONAL_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONSUMES_EFFECT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDES_FACT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDE_CONSUMES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDE_SUPPLIES
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_CONTEXT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_NOT_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.SUPPLIES_EFFECT
@@ -44,7 +50,7 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 
-internal class PsiContractParserDispatcher(val trace: BindingTrace, val contractParsingServices: ContractParsingServices) {
+class PsiContractParserDispatcher(val trace: BindingTrace, val contractParsingServices: ContractParsingServices) {
     private val conditionParser = PsiConditionParser(trace, this)
     private val constantParser = PsiConstantParser(trace)
     private val effectsParsers: Map<Name, PsiEffectParser> = mapOf(
@@ -52,6 +58,14 @@ internal class PsiContractParserDispatcher(val trace: BindingTrace, val contract
         RETURNS_NOT_NULL_EFFECT to PsiReturnsEffectParser(trace, this),
         CALLS_IN_PLACE_EFFECT to PsiCallsEffectParser(trace, this),
         CONDITIONAL_EFFECT to PsiConditionalEffectParser(trace, this),
+
+        PROVIDES_FACT to PsiFactParser(trace, this),
+        REQUIRES_CONTEXT to PsiFactParser(trace, this),
+        REQUIRES_NOT_CONTEXT to PsiFactParser(trace, this),
+        BLOCK_PROVIDES_FACT to PsiLambdaFactParser(trace, this),
+        BLOCK_REQUIRES_CONTEXT to PsiLambdaFactParser(trace, this),
+        BLOCK_REQUIRES_NOT_CONTEXT to PsiLambdaFactParser(trace, this),
+
         SUPPLIES_EFFECT to PsiSuppliesEffectParser(trace, this),
         CONSUMES_EFFECT to PsiConsumesEffectParser(trace, this),
         PROVIDE_SUPPLIES to PsiProvideSuppliesEffectParser(trace, this),

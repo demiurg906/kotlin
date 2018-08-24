@@ -1,0 +1,11 @@
+package
+
+public inline fun myCatchIOException(/*0*/ block: () -> kotlin.Unit): kotlin.Unit
+    CallsInPlace(block, EXACTLY_ONCE)
+
+
+public fun test_1(): kotlin.Unit
+public fun test_2(): kotlin.Unit
+public fun throwsIOException(): kotlin.Unit
+
+

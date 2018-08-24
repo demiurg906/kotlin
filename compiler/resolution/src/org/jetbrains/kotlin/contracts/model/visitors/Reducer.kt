@@ -30,7 +30,6 @@ class Reducer : ESExpressionVisitor<ESExpression?> {
 
     private fun reduceEffect(effect: ESEffect): ESEffect? {
         when (effect) {
-            is SimpleEffect -> return effect
             is ConditionalEffect -> {
                 // Reduce condition
                 val reducedCondition = effect.condition.accept(this) ?: return null
@@ -44,8 +43,7 @@ class Reducer : ESExpressionVisitor<ESExpression?> {
                 // Leave everything else as is
                 return effect
             }
-            is SuppliesEffect -> return effect
-            is ConsumesEffect -> return effect
+            else -> return effect
         }
     }
 

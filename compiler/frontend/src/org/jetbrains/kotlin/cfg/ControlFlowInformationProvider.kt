@@ -25,7 +25,10 @@ import org.jetbrains.kotlin.cfg.variable.VariableUseState.*
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.contracts.ContextualEffectSystem
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
+import org.jetbrains.kotlin.contracts.FactsEffectSystem
+import org.jetbrains.kotlin.contracts.contextual.Context
+import org.jetbrains.kotlin.contracts.contextual.ContextFact
+import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectsContext
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
@@ -66,7 +69,7 @@ class ControlFlowInformationProvider private constructor(
     }
 
     private val pseudocodeEffectsData by lazy {
-        PseudocodeEffectsData(pseudocode, trace.bindingContext)
+        PseudocodeEffectsData(pseudocode, trace)
     }
 
     constructor(
@@ -128,32 +131,23 @@ class ControlFlowInformationProvider private constructor(
     }
 
     private fun checkContextualEffects() {
-        val descriptor = trace.bindingContext[BindingContext.FUNCTION, subroutine] ?: return
+        if (subroutine !is KtFunction) return
+        // TODO: this line is really needed?
+//        val descriptor = trace.bindingContext[BindingContext.FUNCTION, subroutine] ?: return
 
-        var controlFlowInfo = pseudocodeEffectsData.controlFlowInfo ?: return
-        controlFlowInfo = pseudocodeEffectsData.applyConsumers(
-            controlFlowInfo,
-            ContextualEffectSystem.declaredConsumers(descriptor),
-            subroutine
-        )
+        val controlFlowInfo = pseudocodeEffectsData.controlFlowInfo ?: return
 
-        for (family in ContextualEffectSystem.getFamilies()) {
+        for (family in FactsEffectSystem.getFamilies()) {
             val context = controlFlowInfo[family].firstOrNull() ?: continue
-            val diagnostics = pseudocodeEffectsData.diagnostics.map { (element, diagnostic) ->
-                CONTEXTUAL_EFFECT_WARNING.on(element, diagnostic)
-            }
-            for (diagnostic in diagnostics) {
-                trace.report(diagnostic)
-            }
             reportUnhandledEffects(context)
         }
     }
 
-    private fun reportUnhandledEffects(context: ContextualEffectsContext) {
-        val diagnostics = context.unhandledEffects().map { CONTEXTUAL_EFFECT_WARNING.on(subroutine, it) }
-        for (diagnostic in diagnostics) {
-            trace.report(diagnostic)
-        }
+    private fun reportUnhandledEffects(context: Context) {
+        context.facts
+            .filterNot(ContextFact::isAllowedStayInContext)
+            .map { CONTEXTUAL_EFFECT_WARNING.on(subroutine, it.toString()) }
+            .forEach(trace::report)
     }
 
     private fun collectReturnExpressions(returnedExpressions: MutableCollection<KtElement>) {

@@ -51,7 +51,24 @@ data class SuppliesEffect(val callable: ESValue, val supplier: ContextualEffectS
     override fun isImplies(other: ESEffect): Boolean? = null
 }
 
-
 data class ConsumesEffect(val callable: ESValue, val consumer: ContextualEffectConsumer) : ESEffect() {
+    override fun isImplies(other: ESEffect): Boolean? = null
+}
+
+// Fact effects
+
+class ProvidesContextFactEffect(
+    val factory: ContextFactFactoryHackedInterface,
+    val references: List<ESValue?>,
+    val owner: ESValue
+) : ESEffect() {
+    override fun isImplies(other: ESEffect): Boolean? = null
+}
+
+class RequiresContextEffect(
+    val factory: ContextCheckerFactoryHackedInterface,
+    val references: List<ESValue?>,
+    val owner: ESValue
+) : ESEffect() {
     override fun isImplies(other: ESEffect): Boolean? = null
 }

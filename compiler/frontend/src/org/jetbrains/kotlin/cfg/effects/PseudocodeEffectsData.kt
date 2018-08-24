@@ -11,164 +11,169 @@
 package org.jetbrains.kotlin.cfg.effects
 
 import org.jetbrains.kotlin.cfg.ImmutableHashMap
+import org.jetbrains.kotlin.cfg.ImmutableMap
 import org.jetbrains.kotlin.cfg.pseudocode.Pseudocode
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.CallInstruction
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.InlinedLocalFunctionDeclarationInstruction
-import org.jetbrains.kotlin.cfg.pseudocodeTraverser.*
-import org.jetbrains.kotlin.contracts.ContextualEffectSystem
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineEnterInstruction
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineExitInstruction
+import org.jetbrains.kotlin.cfg.pseudocodeTraverser.AdditionalControlFlowInfo
+import org.jetbrains.kotlin.cfg.pseudocodeTraverser.LocalFunctionAnalysisStrategy
+import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder
+import org.jetbrains.kotlin.cfg.pseudocodeTraverser.newCollectData
+import org.jetbrains.kotlin.contracts.FactsEffectSystem
+import org.jetbrains.kotlin.contracts.contextual.Context
+import org.jetbrains.kotlin.contracts.contextual.ContextFact
+import org.jetbrains.kotlin.contracts.contextual.ContextFamily
+import org.jetbrains.kotlin.contracts.parsing.ContextChecker
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.BindingTrace
 
 class PseudocodeEffectsData(
     val pseudocode: Pseudocode,
-    val bindingContext: BindingContext
+    val bindingTrace: BindingTrace
 ) {
-    private val myDiagnostics = mutableListOf<Pair<KtElement, String>>()
-    val controlFlowInfo: EffectsControlFlowInfo? = computeEffectsControlFlowInfo(pseudocode)
+    val bindingContext: BindingContext = bindingTrace.bindingContext
 
+    private val myDiagnostics = mutableListOf<Pair<KtElement, String>>()
     val diagnostics: List<Pair<KtElement, String>>
         get() = myDiagnostics
 
-    private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): EffectsControlFlowInfo? {
-        val data = pseudocode.collectData(
+    val controlFlowInfo: FactsControlFlowInfo? = computeEffectsControlFlowInfo(pseudocode)
+
+    private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): FactsControlFlowInfo? {
+        val data = pseudocode.newCollectData(
             TraversalOrder.FORWARD,
             ::merge,
-            ::combine,
             ::update,
-            EffectsControlFlowInfo(),
+            FactsControlFlowInfo.EMPTY,
             LocalFunctionAnalysisStrategy.ONLY_INLINED_LAMBDAS
         )
         return data[pseudocode.exitInstruction]?.incoming
     }
 
-    private fun combine(instruction: Instruction, incoming: Collection<EffectsControlFlowInfo>): Edges<EffectsControlFlowInfo> =
-        mergeWithOperation(instruction, incoming, Operation.AND)
-
-    private fun merge(instruction: Instruction, incoming: Collection<EffectsControlFlowInfo>): Edges<EffectsControlFlowInfo> =
-        mergeWithOperation(instruction, incoming, Operation.OR)
-
-    private enum class Operation {
-        OR, AND
-    }
-
-    private fun mergeWithOperation(
-        instruction: Instruction,
-        incoming: Collection<EffectsControlFlowInfo>,
-        operation: Operation
-    ): Edges<EffectsControlFlowInfo> {
-        val incomingContext = when (incoming.size) {
-            0 -> EffectsControlFlowInfo.EMPTY
-            1 -> incoming.first()
-            else -> mergeMultipleEdges(incoming, operation)
+    private fun merge(incoming: Collection<FactsControlFlowInfo>): FactsControlFlowInfo {
+        when (incoming.size) {
+            0 -> return FactsControlFlowInfo.EMPTY
+            1 -> return incoming.first()
         }
-        val visitor = EffectsInstructionVisitor(incomingContext)
-        val outgoingContext = instruction.accept(visitor)
-        return Edges(incomingContext, outgoingContext)
-    }
-
-    private fun mergeMultipleEdges(
-        incoming: Collection<EffectsControlFlowInfo>,
-        operation: Operation
-    ): EffectsControlFlowInfo {
         val families = incoming.flatMap { it.keySet() }.toSet()
 
-        val contextsGroupedByFamily = mutableMapOf<ContextualEffectFamily, List<ContextualEffectsContext>>()
+        val contextsGroupedByFamily = mutableMapOf<ContextFamily, List<Context>>()
         for (family in families) {
             val contexts = incoming.map { it[family].getOrElse(family.emptyContext) }
             contextsGroupedByFamily[family] = contexts
         }
 
-        val groupedContexts = contextsGroupedByFamily
-            .mapValues { (family, contexts) ->
-                val lattice = family.lattice
-                val (initial, foldFunction) = when (operation) {
-                    Operation.OR -> lattice.bot() to lattice::or
-                    Operation.AND -> lattice.top() to lattice::and
-                }
-                contexts.fold(initial, foldFunction)
-            }
-        return EffectsControlFlowInfo(ImmutableHashMap.ofAll(groupedContexts))
+        val reducedContextsGroupedByFamily = contextsGroupedByFamily
+            .mapValues { (family, contexts) -> contexts.reduce(family.combiner::or) }
+
+        return FactsControlFlowInfo(ImmutableHashMap.ofAll(reducedContextsGroupedByFamily))
     }
 
     private fun update(
-        from: Instruction,
-        to: Instruction,
-        info: EffectsControlFlowInfo,
+        instruction: Instruction,
+        info: FactsControlFlowInfo,
         additionalInfo: AdditionalControlFlowInfo
-    ): EffectsControlFlowInfo {
-        val (reportWarnings, direction) = additionalInfo
-        val invocationKind = (to as? InlinedLocalFunctionDeclarationInstruction)?.kind ?: return info
-        val context = EffectsControlFlowInfo(
-            ImmutableHashMap.ofAll(info.convertToMap().mapValues { (family, context) ->
-                family.lattice.updateContextWithInvocationKind(context, invocationKind)
-            })
-        )
-        val lambda = to.element.parent as? KtLambdaExpression ?: return context
-        val consumers = bindingContext[BindingContext.CONTEXTUAL_EFFECTS, lambda]?.consumers ?: return context
-        return applyConsumers(context, consumers, to.element, reportWarnings, direction)
-    }
-
-    fun applyConsumers(
-        controlFlowInfo: EffectsControlFlowInfo,
-        allConsumers: List<ContextualEffectConsumer>,
-        function: KtElement
-    ): EffectsControlFlowInfo = applyConsumers(
-        controlFlowInfo, allConsumers, function, true, UpdatedEdgeDirection.OUTGOING
-    )
-
-    private fun applyConsumers(
-        controlFlowInfo: EffectsControlFlowInfo,
-        allConsumers: List<ContextualEffectConsumer>,
-        function: KtElement,
-        reportWarnings: Boolean,
-        direction: UpdatedEdgeDirection
-    ): EffectsControlFlowInfo {
-        var cfi = controlFlowInfo
-        val allConsumersByFamily = allConsumers.groupBy { it.family }
-
-        for ((family, consumers) in allConsumersByFamily) {
-            var context = cfi[family].getOrElse(family.emptyContext)
-            for (consumer in consumers) {
-                val (newContext, warning) = consumer.consume(context)
-                context = newContext
-                if (reportWarnings && warning != null && direction == UpdatedEdgeDirection.OUTGOING) {
-                    myDiagnostics.add(function to warning)
-                }
-            }
-            cfi = cfi.put(family, context)
+    ): FactsControlFlowInfo =
+        when (instruction) {
+            is SubroutineEnterInstruction -> visitSubroutineEnter(instruction, info)
+            is SubroutineExitInstruction -> visitSubroutineExit(instruction, info, additionalInfo)
+            is CallInstruction -> visitCallInstruction(instruction, info, additionalInfo)
+            else -> info
         }
-        return cfi
+
+    // collect facts
+    private fun visitSubroutineEnter(
+        instruction: SubroutineEnterInstruction,
+        info: FactsControlFlowInfo
+    ): FactsControlFlowInfo {
+        val facts = collectFacts(instruction.subroutine)
+        val context = info.toMutableMap()
+        addFactsToContext(facts, context)
+        return FactsControlFlowInfo(context)
     }
 
-    private fun EffectsControlFlowInfo.convertToMap(): Map<ContextualEffectFamily, ContextualEffectsContext> {
-        return iterator().map { it._1 to it._2 }.toList().toMap()
+    // collect checkers
+    private fun visitSubroutineExit(
+        instruction: SubroutineExitInstruction,
+        info: FactsControlFlowInfo,
+        additionalInfo: AdditionalControlFlowInfo
+    ): FactsControlFlowInfo {
+        val checkers = collectCheckers(instruction.subroutine)
+        val context = info.toMutableMap()
+        applyCheckers(checkers, context, additionalInfo)
+        return FactsControlFlowInfo(context)
     }
 
-    // TODO: переписать визитор на when
-    private inner class EffectsInstructionVisitor(private val controlFlowInfo: EffectsControlFlowInfo) :
-        InstructionVisitorWithResult<EffectsControlFlowInfo>() {
+    // collect facts and checkers
+    private fun visitCallInstruction(
+        instruction: CallInstruction,
+        info: FactsControlFlowInfo,
+        additionalInfo: AdditionalControlFlowInfo
+    ): FactsControlFlowInfo {
+        val descriptor = instruction.resolvedCall.resultingDescriptor as? FunctionDescriptor ?: TODO("Lambda calls?")
+        val context = info.toMutableMap()
 
-        override fun visitInstruction(instruction: Instruction): EffectsControlFlowInfo = controlFlowInfo
+        val facts = FactsEffectSystem.declaredFacts(instruction.element, descriptor, bindingContext)
+        addFactsToContext(facts, context)
 
-        override fun visitCallInstruction(instruction: CallInstruction): EffectsControlFlowInfo {
-            // TODO: есть ли проблема с вызовом лямбд, лежащих в переменных?
-            val descriptor =
-                instruction.resolvedCall.resultingDescriptor as? FunctionDescriptor ?: TODO("check correctness") // return controlFlowInfo
-            val suppliers = ContextualEffectSystem.declaredSuppliers(descriptor)
-            var result = controlFlowInfo
-            for (supplier in suppliers) {
-                val family = supplier.family
-                val context = result[family].getOrElse(family.emptyContext)
-                result = result.put(family, supplier.supply(context))
-            }
-            return result
+        val checkers = FactsEffectSystem.declaredCheckers(instruction.element, descriptor, bindingContext)
+        applyCheckers(checkers, context, additionalInfo)
+
+        return FactsControlFlowInfo(context)
+    }
+
+    private fun addFactsToContext(
+        facts: Collection<ContextFact>,
+        contextsGroupedByFamily: MutableMap<ContextFamily, Context>
+    ) {
+        for (fact in facts) {
+            val family = fact.family
+            val context = contextsGroupedByFamily[family] ?: family.emptyContext
+            contextsGroupedByFamily[family] = context.addFact(fact)
         }
     }
+
+    private fun applyCheckers(
+        checkers: Collection<ContextChecker>,
+        contextsGroupedByFamily: MutableMap<ContextFamily, Context>,
+        additionalInfo: AdditionalControlFlowInfo
+    ) {
+        for (checker in checkers) {
+            val family = checker.family
+            val context = contextsGroupedByFamily[family] ?: family.emptyContext
+            contextsGroupedByFamily[family] = checker.verifyContext(context, bindingTrace, additionalInfo.lastCfaPass)
+        }
+    }
+
+    private fun collectFacts(subroutine: KtElement) = when (subroutine) {
+        is KtFunction -> {
+            val declaration = bindingContext[BindingContext.FUNCTION, subroutine] ?: throw AssertionError()
+            FactsEffectSystem.declaredFacts(subroutine, declaration, bindingContext)
+        }
+        is KtLambdaExpression -> {
+            FactsEffectSystem.declaredFacts(subroutine, bindingContext)
+        }
+        else -> throw AssertionError()
+    }
+
+    private fun collectCheckers(subroutine: KtElement) = when (subroutine) {
+        is KtFunction -> {
+            val declaration = bindingContext[BindingContext.FUNCTION, subroutine] ?: throw AssertionError()
+            FactsEffectSystem.declaredCheckers(subroutine, declaration, bindingContext)
+        }
+        is KtLambdaExpression -> {
+            FactsEffectSystem.declaredCheckers(subroutine, bindingContext)
+        }
+        else -> throw AssertionError()
+    }
+
+    private fun FactsControlFlowInfo.convertToMap() = iterator().map { it._1 to it._2 }.toList().toMap()
+
+    private fun FactsControlFlowInfo.toMutableMap() = convertToMap().toMutableMap()
 }

@@ -71,7 +71,7 @@ enum class InvocationKind {
 fun InvocationKind.isDefinitelyVisited(): Boolean = this == InvocationKind.EXACTLY_ONCE || this == InvocationKind.AT_LEAST_ONCE
 fun InvocationKind.canBeRevisited(): Boolean = this == InvocationKind.UNKNOWN || this == InvocationKind.AT_LEAST_ONCE
 
-
+@Deprecated("")
 class BlockSuppliesContextualEffectDeclaration(
     val variableReference: VariableReference,
     val supplier: ContextualEffectSupplier
@@ -80,7 +80,7 @@ class BlockSuppliesContextualEffectDeclaration(
         contractDescriptionVisitor.visitBlockSuppliesContextualEffectDeclaration(this, data)
 }
 
-
+@Deprecated("")
 class BlockConsumesContextualEffectDeclaration(
     val variableReference: VariableReference,
     val consumer: ContextualEffectConsumer
@@ -89,3 +89,44 @@ class BlockConsumesContextualEffectDeclaration(
         contractDescriptionVisitor.visitBlockConsumesContextualEffectDeclaration(this, data)
 }
 
+// -----------------------------------------------------------------
+
+data class ProvidesFactEffectDeclaration(
+    val factory: ContextFactFactoryHackedInterface,
+    val references: List<VariableReference>,
+    val owner: FunctionReference
+) : EffectDeclaration {
+    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
+        return contractDescriptionVisitor.visitProvidesFactEffectDeclaration(this, data)
+    }
+}
+
+data class LambdaProvidesFactEffectDeclaration(
+    val factory: ContextFactFactoryHackedInterface,
+    val references: List<VariableReference>,
+    val owner: VariableReference
+) : EffectDeclaration {
+    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
+        return contractDescriptionVisitor.visitLambdaProvidesFactEffectDeclaration(this, data)
+    }
+}
+
+data class RequiresContextEffectDeclaration(
+    val factory: ContextCheckerFactoryHackedInterface,
+    val references: List<VariableReference>,
+    val owner: FunctionReference
+) : EffectDeclaration {
+    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
+        return contractDescriptionVisitor.visitRequiresContextEffectDeclaration(this, data)
+    }
+}
+
+data class LambdaRequiresContextEffectDeclaration(
+    val factory: ContextCheckerFactoryHackedInterface,
+    val references: List<VariableReference>,
+    val owner: VariableReference
+) : EffectDeclaration {
+    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
+        return contractDescriptionVisitor.visitLambdaRequiresContextEffectDeclaration(this, data)
+    }
+}

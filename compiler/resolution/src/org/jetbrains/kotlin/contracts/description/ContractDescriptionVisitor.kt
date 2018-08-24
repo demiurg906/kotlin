@@ -34,15 +34,19 @@ interface ContractDescriptionVisitor<out R, in D> {
     fun visitReturnsEffectDeclaration(returnsEffect: ReturnsEffectDeclaration, data: D): R = visitEffectDeclaration(returnsEffect, data)
     fun visitCallsEffectDeclaration(callsEffect: CallsEffectDeclaration, data: D): R = visitEffectDeclaration(callsEffect, data)
 
+    @Deprecated("")
     fun visitSuppliesContextualEffectDeclaration(suppliesEffect: ContextualEffectSupplier, data: D): R =
         visitEffectDeclaration(suppliesEffect, data)
 
+    @Deprecated("")
     fun visitConsumesContextualEffectDeclaration(consumesEffect: ContextualEffectConsumer, data: D): R =
         visitEffectDeclaration(consumesEffect, data)
 
+    @Deprecated("")
     fun visitBlockSuppliesContextualEffectDeclaration(suppliesEffect: BlockSuppliesContextualEffectDeclaration, data: D): R =
         visitEffectDeclaration(suppliesEffect, data)
 
+    @Deprecated("")
     fun visitBlockConsumesContextualEffectDeclaration(consumesEffect: BlockConsumesContextualEffectDeclaration, data: D): R =
         visitEffectDeclaration(consumesEffect, data)
 
@@ -67,5 +71,16 @@ interface ContractDescriptionVisitor<out R, in D> {
     fun visitBooleanVariableReference(booleanVariableReference: BooleanVariableReference, data: D): R =
         visitVariableReference(booleanVariableReference, data)
 
+    // Facts
+    fun visitProvidesFactEffectDeclaration(effectDeclaration: ProvidesFactEffectDeclaration, data: D): R =
+        visitEffectDeclaration(effectDeclaration, data)
 
+    fun visitLambdaProvidesFactEffectDeclaration(effectDeclaration: LambdaProvidesFactEffectDeclaration, data: D): R =
+        visitEffectDeclaration(effectDeclaration, data)
+
+    fun visitRequiresContextEffectDeclaration(effectDeclaration: RequiresContextEffectDeclaration, data: D): R =
+        visitEffectDeclaration(effectDeclaration, data)
+
+    fun visitLambdaRequiresContextEffectDeclaration(effectDeclaration: LambdaRequiresContextEffectDeclaration, data: D): R =
+        visitEffectDeclaration(effectDeclaration, data)
 }

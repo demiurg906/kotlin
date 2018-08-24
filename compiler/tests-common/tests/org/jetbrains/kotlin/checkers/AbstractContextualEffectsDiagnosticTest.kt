@@ -5,19 +5,14 @@
 
 package org.jetbrains.kotlin.checkers
 
-import org.jetbrains.kotlin.compiler.plugin.contracts.ContextualEffectComponent
+import org.jetbrains.kotlin.compiler.plugin.contracts.ContextEffectsComponent
 import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.contracts.contextual.exceptions.ExceptionEffectComponent
-import org.jetbrains.kotlin.contracts.contextual.safebuilders.CallEffectComponent
+import org.jetbrains.kotlin.contracts.facts.exceptions.ExceptionContextEffectsComponent
 
 abstract class AbstractContextualEffectsDiagnosticTest : AbstractDiagnosticsTest() {
     override fun performCustomConfiguration(configuration: CompilerConfiguration) {
-        configuration.add(ContextualEffectComponent.PLUGIN_CONTEXTUAL_EFFECTS, ExceptionEffectComponent())
-        configuration.add(ContextualEffectComponent.PLUGIN_CONTEXTUAL_EFFECTS, CallEffectComponent())
+//        configuration.add(ContextualEffectComponent.PLUGIN_CONTEXTUAL_EFFECTS, ExceptionEffectComponent())
+//        configuration.add(ContextualEffectComponent.PLUGIN_CONTEXTUAL_EFFECTS, CallEffectComponent())
+        configuration.add(ContextEffectsComponent.PLUGIN_CONTEXT_EFFECTS, ExceptionContextEffectsComponent())
     }
-
-//    override fun createEnvironment(file: File): KotlinCoreEnvironment = super.createEnvironment(file).apply {
-//
-//    }
-
 }

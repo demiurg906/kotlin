@@ -23,6 +23,9 @@ import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONTRACTS_DSL_AN
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.IMPLIES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.INVOCATION_KIND_ENUM
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDES
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_NOT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.SUPPLIES
@@ -49,9 +52,23 @@ object ContractsDslNames {
     val RETURNS_EFFECT = Name.identifier("Returns")
     val RETURNS_NOT_NULL_EFFECT = Name.identifier("ReturnsNotNull")
     val CALLS_IN_PLACE_EFFECT = Name.identifier("CallsInPlace")
+    val PROVIDES_FACT = Name.identifier("ProvidesFact")
+    val BLOCK_PROVIDES_FACT = Name.identifier("BlockProvidesFact")
+    val REQUIRES_CONTEXT = Name.identifier("RequiresContext")
+    val BLOCK_REQUIRES_CONTEXT = Name.identifier("BlockRequiresContext")
+    val REQUIRES_NOT_CONTEXT = Name.identifier("RequiresNotContext")
+    val BLOCK_REQUIRES_NOT_CONTEXT = Name.identifier("BlockRequiresNotContext")
+
+    @Deprecated("")
     val SUPPLIES_EFFECT = Name.identifier("Supplies")
+
+    @Deprecated("")
     val CONSUMES_EFFECT = Name.identifier("Consumes")
+
+    @Deprecated("")
     val PROVIDE_SUPPLIES = Name.identifier("ProvideSupplies")
+
+    @Deprecated("")
     val PROVIDE_CONSUMES = Name.identifier("ProvideConsumes")
 
     // Structure-defining calls
@@ -62,7 +79,13 @@ object ContractsDslNames {
     val RETURNS = Name.identifier("returns")
     val RETURNS_NOT_NULL = Name.identifier("returnsNotNull")
     val CALLS_IN_PLACE = Name.identifier("callsInPlace")
+    val PROVIDES = Name.identifier("provides")
+    val REQUIRES = Name.identifier("requires")
+    val REQUIRES_NOT = Name.identifier("requiresNot")
+
+    @Deprecated("")
     val SUPPLIES = Name.identifier("supplies")
+    @Deprecated("")
     val CONSUMES = Name.identifier("consumes")
 
     // enum class InvocationKind
@@ -93,11 +116,20 @@ fun DeclarationDescriptor.isSuppliesEffectDescriptor(): Boolean = equalsDslDescr
 
 fun DeclarationDescriptor.isConsumesEffectDescriptor(): Boolean = equalsDslDescriptor(CONSUMES)
 
+fun DeclarationDescriptor.isProvidesFactDescriptor(): Boolean = equalsDslDescriptor(PROVIDES)
+
+fun DeclarationDescriptor.isRequiresContextDescriptor(): Boolean = equalsDslDescriptor(REQUIRES)
+
+fun DeclarationDescriptor.isRequiresNotContextDescriptor(): Boolean = equalsDslDescriptor(REQUIRES_NOT)
+
+
 fun DeclarationDescriptor.isEqualsDescriptor(): Boolean =
     this is FunctionDescriptor && this.name == Name.identifier("equals") && // fast checks
             this.returnType?.isBoolean() == true && this.valueParameters.singleOrNull()?.type?.isNullableAny() == true // signature matches
 
-internal fun ResolvedCall<*>.firstArgumentAsExpressionOrNull(): KtExpression? =
-    this.valueArgumentsByIndex?.firstOrNull()?.safeAs<ExpressionValueArgument>()?.valueArgument?.getArgumentExpression()
+internal fun ResolvedCall<*>.firstArgumentAsExpressionOrNull(): KtExpression? = argumentAsExpressionOrNull(0)
+
+internal fun ResolvedCall<*>.argumentAsExpressionOrNull(index: Int): KtExpression? =
+    this.valueArgumentsByIndex?.getOrNull(index)?.safeAs<ExpressionValueArgument>()?.valueArgument?.getArgumentExpression()
 
 private fun DeclarationDescriptor.equalsDslDescriptor(dslName: Name): Boolean = this.name == dslName && this.isFromContractDsl()
