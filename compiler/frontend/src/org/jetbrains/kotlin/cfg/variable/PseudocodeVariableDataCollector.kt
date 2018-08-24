@@ -28,10 +28,8 @@ class PseudocodeVariableDataCollector(
         return pseudocode.collectData(
             traversalOrder,
             instructionDataMergeStrategy,
-            { _, _ -> throw NotImplementedError("Doesn't used in that analysis") },
-            { from, to, info, _ -> filterOutVariablesOutOfScope(from, to, info) },
-            initialInfo,
-            LocalFunctionAnalysisStrategy.ANALYSE_EVERYTHING
+            { from, to, info -> filterOutVariablesOutOfScope(from, to, info) },
+            initialInfo
         )
     }
 
