@@ -29,15 +29,11 @@ import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_REQUIRES_C
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_REQUIRES_NOT_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONDITIONAL_EFFECT
-import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONSUMES_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDES_FACT
-import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDE_CONSUMES
-import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDE_SUPPLIES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_NOT_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL_EFFECT
-import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.SUPPLIES_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.effects.*
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
@@ -64,12 +60,7 @@ class PsiContractParserDispatcher(val trace: BindingTrace, val contractParsingSe
         REQUIRES_NOT_CONTEXT to PsiFactParser(trace, this),
         BLOCK_PROVIDES_FACT to PsiLambdaFactParser(trace, this),
         BLOCK_REQUIRES_CONTEXT to PsiLambdaFactParser(trace, this),
-        BLOCK_REQUIRES_NOT_CONTEXT to PsiLambdaFactParser(trace, this),
-
-        SUPPLIES_EFFECT to PsiSuppliesEffectParser(trace, this),
-        CONSUMES_EFFECT to PsiConsumesEffectParser(trace, this),
-        PROVIDE_SUPPLIES to PsiProvideSuppliesEffectParser(trace, this),
-        PROVIDE_CONSUMES to PsiProvideConsumesEffectParser(trace, this)
+        BLOCK_REQUIRES_NOT_CONTEXT to PsiLambdaFactParser(trace, this)
     )
 
     fun parseContract(expression: KtExpression?, ownerDescriptor: FunctionDescriptor): ContractDescription? {

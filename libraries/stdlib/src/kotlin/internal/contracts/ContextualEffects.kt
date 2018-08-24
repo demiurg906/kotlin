@@ -7,17 +7,6 @@ package kotlin.internal.contracts
 
 import kotlin.reflect.KFunction
 
-@Deprecated("")
-class ExceptionEffectDescription<T : Throwable> : ContextualEffectSuppliesDescription, ContextualEffectConsumesDescription
-
-@Deprecated("")
-class CallEffect(func: KFunction<*>) : ContextualEffectSuppliesDescription
-
-@Deprecated("")
-class RequiresCallEffect(func: KFunction<*>, callKind: DslCallKind) : ContextualEffectConsumesDescription
-
-// -----------------------------------------------------
-
 // TODO: move to plugin
 class CatchesException<T : Throwable> : FactDescription, CheckerDescription
 

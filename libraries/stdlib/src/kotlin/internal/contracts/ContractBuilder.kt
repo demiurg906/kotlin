@@ -26,20 +26,6 @@ internal interface ContractBuilder {
     // -----------------------------------------------------
 
     @ContractsDsl
-    fun supplies(effect: ContextualEffectSuppliesDescription): Supplies
-
-    @ContractsDsl
-    fun <R> supplies(block: Function<R>, effect: ContextualEffectSuppliesDescription): ProvideSupplies
-
-    @ContractsDsl
-    fun consumes(effect: ContextualEffectConsumesDescription): Consumes
-
-    @ContractsDsl
-    fun <R> consumes(block: Function<R>, effect: ContextualEffectConsumesDescription): ProvideConsumes
-
-    // -----------------------------------------------------
-
-    @ContractsDsl
     fun provides(fact: FactDescription): ProvidesFact
 
     @ContractsDsl

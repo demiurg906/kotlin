@@ -18,8 +18,6 @@ package org.jetbrains.kotlin.contracts.model
 
 import org.jetbrains.kotlin.contracts.contextual.ContextCheckerFactoryHackedInterface
 import org.jetbrains.kotlin.contracts.contextual.ContextFactFactoryHackedInterface
-import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectSupplier
 
 sealed class ESEffect {
     /**
@@ -48,14 +46,6 @@ class ConditionalEffect(val condition: ESExpression, val simpleEffect: SimpleEff
     override fun isImplies(other: ESEffect): Boolean? = null
 }
 
-// Contextual effects
-data class SuppliesEffect(val callable: ESValue, val supplier: ContextualEffectSupplier) : ESEffect() {
-    override fun isImplies(other: ESEffect): Boolean? = null
-}
-
-data class ConsumesEffect(val callable: ESValue, val consumer: ContextualEffectConsumer) : ESEffect() {
-    override fun isImplies(other: ESEffect): Boolean? = null
-}
 
 // Fact effects
 

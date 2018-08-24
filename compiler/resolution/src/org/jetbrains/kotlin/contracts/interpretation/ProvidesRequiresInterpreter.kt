@@ -6,29 +6,9 @@
 package org.jetbrains.kotlin.contracts.interpretation
 
 import org.jetbrains.kotlin.contracts.description.*
-import org.jetbrains.kotlin.contracts.model.*
-
-internal class SuppliesEffectInterpreter(private val dispatcher: ContractInterpretationDispatcher) : EffectDeclarationInterpreter {
-    override fun tryInterpret(effectDeclaration: EffectDeclaration): ESEffect? {
-        if (effectDeclaration !is BlockSuppliesContextualEffectDeclaration) return null
-
-        val variable = dispatcher.interpretVariable(effectDeclaration.variableReference) ?: return null
-        val supplier = effectDeclaration.supplier
-
-        return SuppliesEffect(variable, supplier)
-    }
-}
-
-internal class ConsumesEffectInterpreter(private val dispatcher: ContractInterpretationDispatcher) : EffectDeclarationInterpreter {
-    override fun tryInterpret(effectDeclaration: EffectDeclaration): ESEffect? {
-        if (effectDeclaration !is BlockConsumesContextualEffectDeclaration) return null
-
-        val variable = dispatcher.interpretVariable(effectDeclaration.variableReference) ?: return null
-        val consumer = effectDeclaration.consumer
-
-        return ConsumesEffect(variable, consumer)
-    }
-}
+import org.jetbrains.kotlin.contracts.model.ESEffect
+import org.jetbrains.kotlin.contracts.model.ProvidesContextFactEffect
+import org.jetbrains.kotlin.contracts.model.RequiresContextEffect
 
 internal class ProvidesRequiresInterpreter(private val dispatcher: ContractInterpretationDispatcher) : EffectDeclarationInterpreter {
     override fun tryInterpret(effectDeclaration: EffectDeclaration): ESEffect? = when (effectDeclaration) {

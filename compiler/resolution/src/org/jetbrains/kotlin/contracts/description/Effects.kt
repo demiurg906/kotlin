@@ -18,8 +18,6 @@ package org.jetbrains.kotlin.contracts.description
 
 import org.jetbrains.kotlin.contracts.contextual.ContextCheckerFactoryHackedInterface
 import org.jetbrains.kotlin.contracts.contextual.ContextFactFactoryHackedInterface
-import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
 import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
@@ -73,24 +71,6 @@ enum class InvocationKind {
 
 fun InvocationKind.isDefinitelyVisited(): Boolean = this == InvocationKind.EXACTLY_ONCE || this == InvocationKind.AT_LEAST_ONCE
 fun InvocationKind.canBeRevisited(): Boolean = this == InvocationKind.UNKNOWN || this == InvocationKind.AT_LEAST_ONCE
-
-@Deprecated("")
-class BlockSuppliesContextualEffectDeclaration(
-    val variableReference: VariableReference,
-    val supplier: ContextualEffectSupplier
-) : EffectDeclaration {
-    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D) =
-        contractDescriptionVisitor.visitBlockSuppliesContextualEffectDeclaration(this, data)
-}
-
-@Deprecated("")
-class BlockConsumesContextualEffectDeclaration(
-    val variableReference: VariableReference,
-    val consumer: ContextualEffectConsumer
-) : EffectDeclaration {
-    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D) =
-        contractDescriptionVisitor.visitBlockConsumesContextualEffectDeclaration(this, data)
-}
 
 // -----------------------------------------------------------------
 

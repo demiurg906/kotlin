@@ -36,37 +36,6 @@ internal interface ReturnsNotNull : SimpleEffect
 internal interface CallsInPlace : SimpleEffect
 
 // -----------------------------------------------------
-@ContractsDsl
-@SinceKotlin("1.2")
-@Deprecated("")
-internal interface ContextualEffectSuppliesDescription
-
-@ContractsDsl
-@SinceKotlin("1.2")
-@Deprecated("")
-internal interface ContextualEffectConsumesDescription
-
-@ContractsDsl
-@SinceKotlin("1.2")
-@Deprecated("")
-internal interface Supplies : Effect
-
-@ContractsDsl
-@SinceKotlin("1.2")
-@Deprecated("")
-internal interface Consumes : Effect
-
-@ContractsDsl
-@SinceKotlin("1.2")
-@Deprecated("")
-internal interface ProvideSupplies : Effect
-
-@ContractsDsl
-@SinceKotlin("1.2")
-@Deprecated("")
-internal interface ProvideConsumes : Effect
-
-// -----------------------------------------------------
 
 @ContractsDsl
 @SinceKotlin("1.2")

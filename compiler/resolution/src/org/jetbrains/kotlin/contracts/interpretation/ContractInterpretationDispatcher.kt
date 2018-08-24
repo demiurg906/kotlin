@@ -39,8 +39,6 @@ class ContractInterpretationDispatcher {
     private val effectsInterpreters: List<EffectDeclarationInterpreter> = listOf(
         ReturnsEffectInterpreter(this),
         CallsEffectInterpreter(this),
-        SuppliesEffectInterpreter(this),
-        ConsumesEffectInterpreter(this),
         ProvidesRequiresInterpreter(this)
     )
 

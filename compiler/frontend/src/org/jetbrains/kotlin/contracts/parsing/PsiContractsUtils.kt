@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.contracts.parsing
 
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE
-import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONSUMES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONTRACT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONTRACTS_DSL_ANNOTATION_FQN
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.EFFECT
@@ -28,7 +27,6 @@ import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_NOT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL
-import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.SUPPLIES
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.name.FqName
@@ -59,18 +57,6 @@ object ContractsDslNames {
     val REQUIRES_NOT_CONTEXT = Name.identifier("RequiresNotContext")
     val BLOCK_REQUIRES_NOT_CONTEXT = Name.identifier("BlockRequiresNotContext")
 
-    @Deprecated("")
-    val SUPPLIES_EFFECT = Name.identifier("Supplies")
-
-    @Deprecated("")
-    val CONSUMES_EFFECT = Name.identifier("Consumes")
-
-    @Deprecated("")
-    val PROVIDE_SUPPLIES = Name.identifier("ProvideSupplies")
-
-    @Deprecated("")
-    val PROVIDE_CONSUMES = Name.identifier("ProvideConsumes")
-
     // Structure-defining calls
     val CONTRACT = Name.identifier("contract")
     val IMPLIES = Name.identifier("implies")
@@ -82,11 +68,6 @@ object ContractsDslNames {
     val PROVIDES = Name.identifier("provides")
     val REQUIRES = Name.identifier("requires")
     val REQUIRES_NOT = Name.identifier("requiresNot")
-
-    @Deprecated("")
-    val SUPPLIES = Name.identifier("supplies")
-    @Deprecated("")
-    val CONSUMES = Name.identifier("consumes")
 
     // enum class InvocationKind
     val INVOCATION_KIND_ENUM = Name.identifier("InvocationKind")
@@ -112,9 +93,6 @@ fun DeclarationDescriptor.isCallsInPlaceEffectDescriptor(): Boolean = equalsDslD
 
 fun DeclarationDescriptor.isInvocationKindEnum(): Boolean = equalsDslDescriptor(INVOCATION_KIND_ENUM)
 
-fun DeclarationDescriptor.isSuppliesEffectDescriptor(): Boolean = equalsDslDescriptor(SUPPLIES)
-
-fun DeclarationDescriptor.isConsumesEffectDescriptor(): Boolean = equalsDslDescriptor(CONSUMES)
 
 fun DeclarationDescriptor.isProvidesFactDescriptor(): Boolean = equalsDslDescriptor(PROVIDES)
 

@@ -16,8 +16,6 @@
 
 package org.jetbrains.kotlin.contracts.description
 
-import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.description.expressions.*
 
 class ContractDescriptionRenderer(private val builder: StringBuilder) : ContractDescriptionVisitor<Unit, Unit> {
@@ -77,26 +75,6 @@ class ContractDescriptionRenderer(private val builder: StringBuilder) : Contract
 
     override fun visitFunctionReference(functionReference: FunctionReference, data: Unit) {
         builder.append(functionReference.descriptor.name)
-    }
-
-    override fun visitSuppliesContextualEffectDeclaration(suppliesEffect: ContextualEffectSupplier, data: Unit) {
-        builder.append(suppliesEffect)
-    }
-
-    override fun visitConsumesContextualEffectDeclaration(consumesEffect: ContextualEffectConsumer, data: Unit) {
-        builder.append(consumesEffect)
-    }
-
-    override fun visitBlockSuppliesContextualEffectDeclaration(suppliesEffect: BlockSuppliesContextualEffectDeclaration, data: Unit) {
-        builder.append(suppliesEffect.variableReference.accept(this, data))
-            .append(" supplies ")
-            .append(suppliesEffect.supplier.accept(this, data))
-    }
-
-    override fun visitBlockConsumesContextualEffectDeclaration(consumesEffect: BlockConsumesContextualEffectDeclaration, data: Unit) {
-        builder.append(consumesEffect.variableReference.accept(this, data))
-            .append(" consumes ")
-            .append(consumesEffect.consumer.accept(this, data))
     }
 
     override fun visitProvidesFactEffectDeclaration(effectDeclaration: ProvidesFactEffectDeclaration, data: Unit) {
