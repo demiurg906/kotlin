@@ -8,7 +8,7 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.contracts.contextual
+package org.jetbrains.kotlin.contracts.contextual.old
 
 interface ContextualDiagnosticProvider {
     fun reportWarning(warning: String)

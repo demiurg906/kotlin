@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.contextual.exceptions
 
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
+import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectFamily
 
 object ExceptionEffectFamily : ContextualEffectFamily() {
     override val id: String = "Checked exception effects"

@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.contracts.contextual.exceptions
 
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
+import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectSupplier
+import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectsContext
 import org.jetbrains.kotlin.types.KotlinType
 
 class ExceptionEffectSupplier(private val exceptionType: KotlinType) : ContextualEffectSupplier() {

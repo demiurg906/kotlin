@@ -16,9 +16,12 @@
 
 package org.jetbrains.kotlin.contracts.description
 
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
+import org.jetbrains.kotlin.contracts.contextual.ContextCheckerFactoryHackedInterface
+import org.jetbrains.kotlin.contracts.contextual.ContextFactFactoryHackedInterface
+import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
+import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
 
 /**

@@ -4,10 +4,11 @@
  */
 package org.jetbrains.kotlin.contracts.contextual.exceptions
 
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectsContext
+import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectsContext
 import org.jetbrains.kotlin.types.KotlinType
 
-data class ExceptionEffectsContext(val exceptions: Set<KotlinType> = setOf()) : ContextualEffectsContext {
+data class ExceptionEffectsContext(val exceptions: Set<KotlinType> = setOf()) :
+    ContextualEffectsContext {
     override val family = ExceptionEffectFamily
 
     override fun unhandledEffects(): List<String> =

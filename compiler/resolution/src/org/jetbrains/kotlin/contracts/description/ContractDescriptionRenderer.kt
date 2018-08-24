@@ -16,8 +16,8 @@
 
 package org.jetbrains.kotlin.contracts.description
 
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
+import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.description.expressions.*
 
 class ContractDescriptionRenderer(private val builder: StringBuilder) : ContractDescriptionVisitor<Unit, Unit> {

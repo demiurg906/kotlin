@@ -3,7 +3,7 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.contracts.contextual
+package org.jetbrains.kotlin.contracts.contextual.old
 
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 

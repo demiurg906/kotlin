@@ -16,8 +16,10 @@
 
 package org.jetbrains.kotlin.contracts.model
 
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
+import org.jetbrains.kotlin.contracts.contextual.ContextCheckerFactoryHackedInterface
+import org.jetbrains.kotlin.contracts.contextual.ContextFactFactoryHackedInterface
+import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectSupplier
 
 sealed class ESEffect {
     /**

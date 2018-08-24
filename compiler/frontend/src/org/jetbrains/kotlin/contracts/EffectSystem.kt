@@ -19,8 +19,8 @@ package org.jetbrains.kotlin.contracts
 import com.intellij.util.containers.MultiMap
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectConsumer
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectSupplier
+import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectConsumer
+import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.model.*
 import org.jetbrains.kotlin.contracts.model.functors.EqualsFunctor
 import org.jetbrains.kotlin.contracts.model.structure.*

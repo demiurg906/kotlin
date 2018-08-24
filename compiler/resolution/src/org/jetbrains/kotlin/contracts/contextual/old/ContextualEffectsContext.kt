@@ -3,7 +3,7 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.contracts.contextual
+package org.jetbrains.kotlin.contracts.contextual.old
 
 // some abstract collection (not Collection interface) that holds effects that belongs to one family
 // !!! ContextualEffectsContext is immutable data structure !!!

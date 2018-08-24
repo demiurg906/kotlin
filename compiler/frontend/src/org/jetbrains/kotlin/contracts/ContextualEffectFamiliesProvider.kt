@@ -5,8 +5,11 @@
 
 package org.jetbrains.kotlin.contracts
 
-import org.jetbrains.kotlin.contracts.contextual.ContextualEffectFamily
+import org.jetbrains.kotlin.contracts.contextual.ContextFamily
+import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectFamily
+import org.jetbrains.kotlin.contracts.parsing.ContextFactParser
 import org.jetbrains.kotlin.contracts.parsing.ContextualEffectParser
+import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
 import org.jetbrains.kotlin.resolve.BindingContext
 
 interface ContextualEffectFamiliesRegistrar {
