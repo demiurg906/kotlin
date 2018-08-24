@@ -2,12 +2,12 @@ package
 
 public inline fun myCatchIOException(/*0*/ block: () -> kotlin.Unit): kotlin.Unit
     CallsInPlace(block, EXACTLY_ONCE)
-    blockkotlin.Unit consumes Consumer of IOExceptionkotlin.Unit
+    blockkotlin.Unit provides Catches IOException
 
 public fun test_1(): kotlin.Unit
 public fun test_2(): kotlin.Unit
 public fun A.throwsIOException(): kotlin.Unit
-    Supplier of IOException
+    throwsIOExceptionkotlin.Unit requires Catches IOException
 
 public final class A {
     public constructor A()

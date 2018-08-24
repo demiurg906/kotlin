@@ -9,30 +9,30 @@ import java.lang.RuntimeException
 
 fun throwsFileNotFoundException() {
     contract {
-        supplies(ExceptionEffectDescription<FileNotFoundException>())
+        requires(CatchesException<FileNotFoundException>())
     }
     throw FileNotFoundException()
 }
 
 fun throwsNullPointerException() {
     contract {
-        supplies(ExceptionEffectDescription<NullPointerException>())
+        requires(CatchesException<NullPointerException>())
     }
     throw NullPointerException()
 }
 
 fun throwsIOException() {
     contract {
-        supplies(ExceptionEffectDescription<IOException>())
+        requires(CatchesException<IOException>())
     }
-    throw IOException()
+    throw java.io.IOException()
 }
 
 inline fun myCatch(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        consumes(block, ExceptionEffectDescription<FileNotFoundException>())
-        consumes(block, ExceptionEffectDescription<RuntimeException>())
+        provides(block, CatchesException<FileNotFoundException>())
+        provides(block, CatchesException<RuntimeException>())
     }
     block()
 }
@@ -58,8 +58,8 @@ fun test_3() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>fun test_4()<!> {
+fun test_4() {
     myCatch {
-        throwsIOException()
+        <!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>throwsIOException()<!>
     }
 }

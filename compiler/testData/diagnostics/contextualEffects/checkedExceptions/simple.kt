@@ -9,21 +9,21 @@ import java.lang.RuntimeException
 
 fun throwsFileNotFoundException() {
     contract {
-        supplies(ExceptionEffectDescription<FileNotFoundException>())
+        requires(CatchesException<FileNotFoundException>())
     }
     throw FileNotFoundException()
 }
 
 fun throwsNullPointerException() {
     contract {
-        supplies(ExceptionEffectDescription<NullPointerException>())
+        requires(CatchesException<NullPointerException>())
     }
     throw NullPointerException()
 }
 
 fun throwsIOException() {
     contract {
-        supplies(ExceptionEffectDescription<IOException>())
+        requires(CatchesException<IOException>())
     }
     throw java.io.IOException()
 }
@@ -31,7 +31,7 @@ fun throwsIOException() {
 inline fun myCatchIOException(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        consumes(block, ExceptionEffectDescription<IOException>())
+        provides(block, CatchesException<IOException>())
     }
     block()
 }
@@ -39,7 +39,7 @@ inline fun myCatchIOException(block: () -> Unit) {
 inline fun myCatchRuntimeException(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        consumes(block, ExceptionEffectDescription<RuntimeException>())
+        provides(block, CatchesException<RuntimeException>())
     }
     block()
 }
@@ -58,14 +58,14 @@ fun test_2() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_3()<!> {
+fun test_3() {
     myCatchIOException {
-        throwsNullPointerException()
+        <!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>throwsNullPointerException()<!>
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>fun test_4()<!> {
+fun test_4() {
     myCatchRuntimeException {
-        throwsIOException()
+        <!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>throwsIOException()<!>
     }
 }

@@ -9,29 +9,29 @@ import java.lang.RuntimeException
 
 fun throwsFileNotFoundException() {
     contract {
-        supplies(ExceptionEffectDescription<FileNotFoundException>())
+        requires(CatchesException<FileNotFoundException>())
     }
     throw FileNotFoundException()
 }
 
 fun throwsNullPointerException() {
     contract {
-        supplies(ExceptionEffectDescription<NullPointerException>())
+        requires(CatchesException<NullPointerException>())
     }
     throw NullPointerException()
 }
 
 fun throwsIOException() {
     contract {
-        supplies(ExceptionEffectDescription<IOException>())
+        requires(CatchesException<IOException>())
     }
-    throw IOException()
+    throw java.io.IOException()
 }
 
 inline fun myCatchIOException(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        consumes(block, ExceptionEffectDescription<IOException>())
+        provides(block, CatchesException<IOException>())
     }
     block()
 }
@@ -39,35 +39,35 @@ inline fun myCatchIOException(block: () -> Unit) {
 inline fun myCatchRuntimeException(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        consumes(block, ExceptionEffectDescription<RuntimeException>())
+        provides(block, CatchesException<RuntimeException>())
     }
     block()
 }
 
 // ---------------- TESTS ----------------
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException), CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_1()<!> {
+fun test_1() {
     val x: Int = 10
     when (x) {
         in 0..3 -> myCatchIOException {
             throwsIOException()
         }
         in 5..7 -> myCatchRuntimeException {
-            throwsIOException()
+            <!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>throwsIOException()<!>
         }
-        else -> throwsNullPointerException()
+        else -> <!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>throwsNullPointerException()<!>
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException), CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_2()<!> {
+fun test_2() {
     val x: Int = 10
-    throwsNullPointerException()
+    <!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>throwsNullPointerException()<!>
     when (x) {
         in 0..3 -> myCatchIOException {
             throwsFileNotFoundException()
         }
         in 5..7 -> myCatchRuntimeException {
-            throwsIOException()
+            <!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>throwsIOException()<!>
         }
         else -> {
             val y = x

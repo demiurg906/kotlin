@@ -9,21 +9,21 @@ import java.lang.RuntimeException
 
 fun throwsFileNotFoundException() {
     contract {
-        supplies(ExceptionEffectDescription<FileNotFoundException>())
+        requires(CatchesException<FileNotFoundException>())
     }
     throw FileNotFoundException()
 }
 
 fun throwsNullPointerException() {
     contract {
-        supplies(ExceptionEffectDescription<NullPointerException>())
+        requires(CatchesException<NullPointerException>())
     }
     throw NullPointerException()
 }
 
 fun throwsIOException() {
     contract {
-        supplies(ExceptionEffectDescription<IOException>())
+        requires(CatchesException<IOException>())
     }
     throw java.io.IOException()
 }
@@ -31,7 +31,7 @@ fun throwsIOException() {
 inline fun myCatchIOException(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        consumes(block, ExceptionEffectDescription<IOException>())
+        provides(block, CatchesException<IOException>())
     }
     block()
 }
@@ -39,21 +39,21 @@ inline fun myCatchIOException(block: () -> Unit) {
 inline fun myCatchRuntimeException(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        consumes(block, ExceptionEffectDescription<RuntimeException>())
+        provides(block, CatchesException<RuntimeException>())
     }
     block()
 }
 
 // ---------------- TESTS ----------------
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>fun test_1()<!> {
+fun test_1() {
     val b = false
     if (b) {
         myCatchIOException {
             throwsIOException()
         }
     } else {
-        throwsIOException()
+        <!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>throwsIOException()<!>
     }
 }
 
@@ -68,17 +68,17 @@ fun test_2() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException), CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_3()<!> {
+fun test_3() {
     val b = false
     if(b) {
         if (b) {
             myCatchIOException {
-                throwsNullPointerException()
+                <!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>throwsNullPointerException()<!>
             }
         }
     } else {
         myCatchRuntimeException {
-            throwsIOException()
+            <!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>throwsIOException()<!>
         }
     }
 }

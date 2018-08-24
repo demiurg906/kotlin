@@ -9,29 +9,29 @@ import java.lang.RuntimeException
 
 fun throwsFileNotFoundException() {
     contract {
-        supplies(ExceptionEffectDescription<FileNotFoundException>())
+        requires(CatchesException<FileNotFoundException>())
     }
     throw FileNotFoundException()
 }
 
 fun throwsNullPointerException() {
     contract {
-        supplies(ExceptionEffectDescription<NullPointerException>())
+        requires(CatchesException<NullPointerException>())
     }
     throw NullPointerException()
 }
 
 fun throwsIOException() {
     contract {
-        supplies(ExceptionEffectDescription<IOException>())
+        requires(CatchesException<IOException>())
     }
-    throw IOException()
+    throw java.io.IOException()
 }
 
 inline fun myCatchIOException(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        consumes(block, ExceptionEffectDescription<IOException>())
+        provides(block, CatchesException<IOException>())
     }
     block()
 }
@@ -39,7 +39,7 @@ inline fun myCatchIOException(block: () -> Unit) {
 inline fun myCatchRuntimeException(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        consumes(block, ExceptionEffectDescription<RuntimeException>())
+        provides(block, CatchesException<RuntimeException>())
     }
     block()
 }
@@ -61,10 +61,10 @@ fun test_1() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_2()<!> {
+fun test_2() {
     myRun {
         myCatchIOException {
-            throwsNullPointerException()
+            <!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>throwsNullPointerException()<!>
         }
     }
 }
@@ -91,12 +91,12 @@ fun test_4() {
     }
 }
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>fun test_5()<!> {
+fun test_5() {
     myCatchIOException {
         myRun {
             myCatchIOException {
                 myRun {
-                    throwsNullPointerException()
+                    <!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: NullPointerException)!>throwsNullPointerException()<!>
                 }
             }
         }

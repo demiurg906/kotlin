@@ -1,9 +1,0 @@
-package
-
-public fun bad_1(): kotlin.Unit
-public fun good_1(): kotlin.Unit
-    Consumer of IOException
-
-public fun supplier(): kotlin.Unit
-    Supplier of FileNotFoundException
-

@@ -1,9 +1,0 @@
-package
-
-public fun bad_1(/*0*/ cond: kotlin.Boolean): kotlin.Unit
-@kotlin.Suppress(names = {"INVISIBLE_MEMBER"}) public fun good_1(/*0*/ cond: kotlin.Boolean): kotlin.Unit
-    Consumer of IOException
-
-@kotlin.Suppress(names = {"INVISIBLE_MEMBER"}) public fun supplier(): kotlin.Unit
-    Supplier of FileNotFoundException
-

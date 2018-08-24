@@ -10,7 +10,7 @@ import java.lang.RuntimeException
 inline fun myCatchIOException(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        consumes(block, ExceptionEffectDescription<IOException>())
+        provides(block, CatchesException<IOException>())
     }
     block()
 }
@@ -19,16 +19,16 @@ class A
 
 fun A.throwsIOException() {
     contract {
-        supplies(ExceptionEffectDescription<IOException>())
+        requires(CatchesException<IOException>())
     }
     throw IOException()
 }
 
 // ---------------- TESTS ----------------
 
-<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>fun test_1()<!> {
+fun test_1() {
     val a = A()
-    a.throwsIOException()
+    a.<!CONTEXTUAL_EFFECT_WARNING(Unchecked exception: IOException)!>throwsIOException()<!>
 }
 
 fun test_2() {
