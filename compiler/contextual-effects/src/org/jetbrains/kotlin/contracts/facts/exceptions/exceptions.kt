@@ -19,18 +19,19 @@ import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 
-class ExceptionFact(val exceptionType: KotlinType) : ContextFact() {
+data class ExceptionFact(val exceptionType: KotlinType, val owner: KtElement) : ContextFact() {
     override val family = ExceptionFamily
     override val isAllowedStayInContext = true
 }
 
-class ExceptionContext(override val facts: Set<ExceptionFact> = setOf()) : Context() {
+data class ExceptionContext(override val facts: Set<ExceptionFact> = setOf()) : Context() {
     override fun addFact(fact: ContextFact): Context {
         if (fact !is ExceptionFact) throw AssertionError()
         return ExceptionContext(facts + fact)
@@ -65,7 +66,9 @@ class ExceptionChecker(val exceptionType: KotlinType, val calledElement: KtEleme
 
     override fun verifyContext(context: Context, trace: BindingTrace, shouldReport: Boolean): Context {
         if (context !is ExceptionContext) throw AssertionError()
-        val isOk = context.facts.asSequence().any { exceptionType.isSubtypeOf(it.exceptionType) }
+        val isOk = context.facts.asSequence().any {
+            exceptionType.isSubtypeOf(it.exceptionType) && calledElement.parents.contains(it.owner)
+        }
         if (!isOk && shouldReport) {
             trace.report(Errors.CONTEXTUAL_EFFECT_WARNING.on(calledElement, "Unchecked exception: $exceptionType"))
         }
@@ -73,19 +76,28 @@ class ExceptionChecker(val exceptionType: KotlinType, val calledElement: KtEleme
     }
 }
 
-class ExceptionFactFactoryDeclaration(val exceptionType: KotlinType) : ContextFactFactoryDeclaration() {
+class ExceptionFactFactoryDeclaration(private val exceptionType: KotlinType) : ContextFactFactoryDeclaration() {
     override fun resolveFactory(owner: ESValue, references: List<ESValue?>) = ExceptionFactFactory(owner, exceptionType)
+
+    override fun toString(): String {
+        return "Catches $exceptionType"
+    }
 }
 
-class ExceptionFactFactory(owner: ESValue, val exceptionType: KotlinType) : ContextFactFactory(owner) {
-    override fun createFact(calledElement: KtElement) = ExceptionFact(exceptionType)
-}
-
-class ExceptionCheckerFactoryDeclaration(val exceptionType: KotlinType) : ContextCheckerFactoryDeclaration() {
+class ExceptionCheckerFactoryDeclaration(private val exceptionType: KotlinType) : ContextCheckerFactoryDeclaration() {
     override fun resolveFactory(owner: ESValue, references: List<ESValue?>) = ExceptionCheckerFactory(owner, exceptionType)
+
+    override fun toString(): String {
+        return "Catches $exceptionType"
+    }
 }
 
-class ExceptionCheckerFactory(owner: ESValue, val exceptionType: KotlinType) : ContextCheckerFactory(owner) {
+class ExceptionFactFactory(owner: ESValue, private val exceptionType: KotlinType) : ContextFactFactory(owner) {
+    override fun createFact(calledElement: KtElement) = ExceptionFact(exceptionType, calledElement)
+
+}
+
+class ExceptionCheckerFactory(owner: ESValue, private val exceptionType: KotlinType) : ContextCheckerFactory(owner) {
     override fun createChecker(calledElement: KtElement) = ExceptionChecker(exceptionType, calledElement)
 }
 

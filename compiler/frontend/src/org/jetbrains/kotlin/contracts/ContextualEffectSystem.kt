@@ -12,10 +12,9 @@ import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectFamily
 import org.jetbrains.kotlin.contracts.contextual.old.ContextualEffectSupplier
 import org.jetbrains.kotlin.contracts.description.ContractDescription
 import org.jetbrains.kotlin.contracts.description.ContractProviderKey
-import org.jetbrains.kotlin.contracts.model.ESFunction
 import org.jetbrains.kotlin.contracts.parsing.*
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 
@@ -55,25 +54,24 @@ object FactsEffectSystem {
     fun getParsers(): Collection<(BindingContext, PsiContractParserDispatcher) -> ContextFactParser> =
         contextEffectsFamiliesProvider.getParsers()
 
-    fun declaredFacts(subroutine: KtElement, declaration: FunctionDescriptor, context: BindingContext): Collection<ContextFact> {
-        val (factFactories, _) = context[BindingContext.FUNCTION_CONTEXT_FACTS, declaration] ?: return emptyList()
-        return factFactories.filter { (it.owner as ESFunction).descriptor != declaration }.map { it.createFact(subroutine) }
+    // calls
+    fun declaredFactsAndCheckers(
+        callExpression: KtCallExpression,
+        context: BindingContext
+    ): Pair<Collection<ContextFact>, Collection<ContextChecker>> {
+        val (factFactories, checkerFactories) = context[BindingContext.CALL_CONTEXT_FACTS, callExpression] ?: return emptyList() to emptyList()
+        return factFactories.map { it.createFact(callExpression) } to checkerFactories.map { it.createChecker(callExpression) }
     }
 
-    fun declaredFacts(declaration: KtLambdaExpression, context: BindingContext): Collection<ContextFact> {
-        val (factFactories, _) = context[BindingContext.LAMBDA_CONTEXT_FACTS, declaration] ?: return emptyList()
-        return factFactories.map { it.createFact(declaration) }
+    // lambdas
+    fun declaredFacts(lambdaExpression: KtLambdaExpression, context: BindingContext): Collection<ContextFact> {
+        val (factFactories, _) = context[BindingContext.LAMBDA_CONTEXT_FACTS, lambdaExpression] ?: return emptyList()
+        return factFactories.map { it.createFact(lambdaExpression) }
     }
 
-    fun declaredCheckers(subroutine: KtElement, declaration: FunctionDescriptor, context: BindingContext): Collection<ContextChecker> {
-        val (_, checkerFactories) = context[BindingContext.FUNCTION_CONTEXT_FACTS, declaration] ?: return emptyList()
-//        return checkerFactories.filter { (it.owner as ESFunction).descriptor != declaration }.map { it.createChecker(subroutine) }
-        return checkerFactories.map { it.createChecker(subroutine) }
-    }
-
-    fun declaredCheckers(declaration: KtLambdaExpression, context: BindingContext): Collection<ContextChecker> {
-        val (_, checkerFactories) = context[BindingContext.LAMBDA_CONTEXT_FACTS, declaration] ?: return emptyList()
-        return checkerFactories.map { it.createChecker(declaration) }
+    fun declaredCheckers(lambdaExpression: KtLambdaExpression, context: BindingContext): Collection<ContextChecker> {
+        val (_, checkerFactories) = context[BindingContext.LAMBDA_CONTEXT_FACTS, lambdaExpression] ?: return emptyList()
+        return checkerFactories.map { it.createChecker(lambdaExpression) }
     }
 }
 

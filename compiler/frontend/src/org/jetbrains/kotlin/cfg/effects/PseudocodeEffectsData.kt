@@ -11,7 +11,6 @@
 package org.jetbrains.kotlin.cfg.effects
 
 import org.jetbrains.kotlin.cfg.ImmutableHashMap
-import org.jetbrains.kotlin.cfg.ImmutableMap
 import org.jetbrains.kotlin.cfg.pseudocode.Pseudocode
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.CallInstruction
@@ -26,9 +25,8 @@ import org.jetbrains.kotlin.contracts.contextual.Context
 import org.jetbrains.kotlin.contracts.contextual.ContextFact
 import org.jetbrains.kotlin.contracts.contextual.ContextFamily
 import org.jetbrains.kotlin.contracts.parsing.ContextChecker
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
@@ -92,7 +90,9 @@ class PseudocodeEffectsData(
         instruction: SubroutineEnterInstruction,
         info: FactsControlFlowInfo
     ): FactsControlFlowInfo {
-        val facts = collectFacts(instruction.subroutine)
+        val lambdaExpression = instruction.subroutine.parent as? KtLambdaExpression ?: return info
+
+        val facts = FactsEffectSystem.declaredFacts(lambdaExpression, bindingContext)
         val context = info.toMutableMap()
         addFactsToContext(facts, context)
         return FactsControlFlowInfo(context)
@@ -104,7 +104,9 @@ class PseudocodeEffectsData(
         info: FactsControlFlowInfo,
         additionalInfo: AdditionalControlFlowInfo
     ): FactsControlFlowInfo {
-        val checkers = collectCheckers(instruction.subroutine)
+        val lambdaExpression = instruction.subroutine.parent as? KtLambdaExpression ?: return info
+
+        val checkers = FactsEffectSystem.declaredCheckers(lambdaExpression, bindingContext)
         val context = info.toMutableMap()
         applyCheckers(checkers, context, additionalInfo)
         return FactsControlFlowInfo(context)
@@ -116,13 +118,12 @@ class PseudocodeEffectsData(
         info: FactsControlFlowInfo,
         additionalInfo: AdditionalControlFlowInfo
     ): FactsControlFlowInfo {
-        val descriptor = instruction.resolvedCall.resultingDescriptor as? FunctionDescriptor ?: TODO("Lambda calls?")
         val context = info.toMutableMap()
 
-        val facts = FactsEffectSystem.declaredFacts(instruction.element, descriptor, bindingContext)
-        addFactsToContext(facts, context)
+        val callExpression = instruction.element as? KtCallExpression ?: return info
 
-        val checkers = FactsEffectSystem.declaredCheckers(instruction.element, descriptor, bindingContext)
+        val (facts, checkers) = FactsEffectSystem.declaredFactsAndCheckers(callExpression, bindingContext)
+        addFactsToContext(facts, context)
         applyCheckers(checkers, context, additionalInfo)
 
         return FactsControlFlowInfo(context)
@@ -149,28 +150,6 @@ class PseudocodeEffectsData(
             val context = contextsGroupedByFamily[family] ?: family.emptyContext
             contextsGroupedByFamily[family] = checker.verifyContext(context, bindingTrace, additionalInfo.lastCfaPass)
         }
-    }
-
-    private fun collectFacts(subroutine: KtElement) = when (subroutine) {
-        is KtFunction -> {
-            val declaration = bindingContext[BindingContext.FUNCTION, subroutine] ?: throw AssertionError()
-            FactsEffectSystem.declaredFacts(subroutine, declaration, bindingContext)
-        }
-        is KtLambdaExpression -> {
-            FactsEffectSystem.declaredFacts(subroutine, bindingContext)
-        }
-        else -> throw AssertionError()
-    }
-
-    private fun collectCheckers(subroutine: KtElement) = when (subroutine) {
-        is KtFunction -> {
-            val declaration = bindingContext[BindingContext.FUNCTION, subroutine] ?: throw AssertionError()
-            FactsEffectSystem.declaredCheckers(subroutine, declaration, bindingContext)
-        }
-        is KtLambdaExpression -> {
-            FactsEffectSystem.declaredCheckers(subroutine, bindingContext)
-        }
-        else -> throw AssertionError()
     }
 
     private fun FactsControlFlowInfo.convertToMap() = iterator().map { it._1 to it._2 }.toList().toMap()

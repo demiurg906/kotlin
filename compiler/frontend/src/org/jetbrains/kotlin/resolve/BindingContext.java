@@ -216,7 +216,7 @@ public interface BindingContext {
 
     // TODO: delete slice
     WritableSlice<KtLambdaExpression, ContextualBindingInfo> CONTEXTUAL_EFFECTS = Slices.createSimpleSlice();
-    WritableSlice<FunctionDescriptor, FactsBindingInfo> FUNCTION_CONTEXT_FACTS = Slices.createSimpleSlice();
+    WritableSlice<KtCallExpression, FactsBindingInfo> CALL_CONTEXT_FACTS = Slices.createSimpleSlice();
     WritableSlice<KtLambdaExpression, FactsBindingInfo> LAMBDA_CONTEXT_FACTS = Slices.createSimpleSlice();
 
     WritableSlice<KtLambdaExpression, Boolean> BLOCK = new SetSlice<KtLambdaExpression>(DO_NOTHING) {

@@ -25,11 +25,10 @@ import org.jetbrains.kotlin.contracts.model.*
 import org.jetbrains.kotlin.contracts.model.functors.EqualsFunctor
 import org.jetbrains.kotlin.contracts.model.structure.*
 import org.jetbrains.kotlin.contracts.model.visitors.InfoCollector
-import org.jetbrains.kotlin.contracts.parsing.ContextCheckerFactoryDeclaration
-import org.jetbrains.kotlin.contracts.parsing.ContextFactFactoryDeclaration
 import org.jetbrains.kotlin.contracts.parsing.ContextCheckerFactory
+import org.jetbrains.kotlin.contracts.parsing.ContextCheckerFactoryDeclaration
 import org.jetbrains.kotlin.contracts.parsing.ContextFactFactory
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.contracts.parsing.ContextFactFactoryDeclaration
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
@@ -122,7 +121,7 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
             }
         }
 
-        recordContextFactories(resultingContextInfo, bindingTrace)
+        recordContextFactories(resolvedCall, resultingContextInfo, bindingTrace)
 
         // TODO: deprecated
         for ((lambda, entities) in contextualEntities) {
@@ -131,12 +130,12 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
         }
     }
 
-    private fun recordContextFactories(resultingContextInfo: MutableContextInfo, bindingTrace: BindingTrace) {
+    private fun recordContextFactories(resolvedCall: ResolvedCall<*>, resultingContextInfo: MutableContextInfo, bindingTrace: BindingTrace) {
         // collect all factories for lambdas and functions
         val lambdaFactFactories = MultiMap.create<KtLambdaExpression, ContextFactFactory>()
         val lambdaCheckerFactories = MultiMap.create<KtLambdaExpression, ContextCheckerFactory>()
-        val functionFactFactories = MultiMap.create<FunctionDescriptor, ContextFactFactory>()
-        val functionCheckerFactories = MultiMap.create<FunctionDescriptor, ContextCheckerFactory>()
+        val callFactFactories = MultiMap.create<KtCallExpression, ContextFactFactory>()
+        val callCheckerFactories = MultiMap.create<KtCallExpression, ContextCheckerFactory>()
 
         loop@ for (effect in resultingContextInfo.firedEffects) {
             when (effect) {
@@ -147,8 +146,8 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
                     val resolvedFactory = factory.resolveFactory(effect.owner, effect.references)
                     when (effect.owner) {
                         is ESFunction -> {
-                            val functionDescriptor = (effect.owner as ESFunction).descriptor
-                            functionFactFactories.putValue(functionDescriptor, resolvedFactory)
+                            val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: throw AssertionError()
+                            callFactFactories.putValue(callExpression, resolvedFactory)
                         }
                         is ESLambda -> {
                             val lambda = (effect.owner as ESLambda).lambda
@@ -165,8 +164,8 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
                     val resolvedFactory = factory.resolveFactory(effect.owner, effect.references)
                     when (effect.owner) {
                         is ESFunction -> {
-                            val functionDescriptor = (effect.owner as ESFunction).descriptor
-                            functionCheckerFactories.putValue(functionDescriptor, resolvedFactory)
+                            val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: throw AssertionError()
+                            callCheckerFactories.putValue(callExpression, resolvedFactory)
                         }
                         is ESLambda -> {
                             val lambda = (effect.owner as ESLambda).lambda
@@ -186,11 +185,11 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
             bindingTrace.record(BindingContext.LAMBDA_CONTEXT_FACTS, lambda, FactsBindingInfo(factFactories, checkerFactories))
         }
 
-        val allFunctions = functionCheckerFactories.keySet() union functionFactFactories.keySet()
-        for (function in allFunctions) {
-            val factFactories = functionFactFactories[function]
-            val checkerFactories = functionCheckerFactories[function]
-            bindingTrace.record(BindingContext.FUNCTION_CONTEXT_FACTS, function, FactsBindingInfo(factFactories, checkerFactories))
+        val allCalls = callCheckerFactories.keySet() union callFactFactories.keySet()
+        for (call in allCalls) {
+            val factFactories = callFactFactories[call]
+            val checkerFactories = callCheckerFactories[call]
+            bindingTrace.record(BindingContext.CALL_CONTEXT_FACTS, call, FactsBindingInfo(factFactories, checkerFactories))
         }
     }
 
