@@ -21,10 +21,10 @@ import org.jetbrains.kotlin.cfg.pseudocodeTraverser.LocalFunctionAnalysisStrateg
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.newCollectData
 import org.jetbrains.kotlin.contracts.FactsEffectSystem
-import org.jetbrains.kotlin.contracts.contextual.Context
-import org.jetbrains.kotlin.contracts.contextual.ContextFact
-import org.jetbrains.kotlin.contracts.contextual.ContextFamily
-import org.jetbrains.kotlin.contracts.parsing.ContextChecker
+import org.jetbrains.kotlin.contracts.facts.Context
+import org.jetbrains.kotlin.contracts.facts.ContextChecker
+import org.jetbrains.kotlin.contracts.facts.ContextFact
+import org.jetbrains.kotlin.contracts.facts.ContextFamily
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtLambdaExpression

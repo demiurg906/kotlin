@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.exceptions
 
-import org.jetbrains.kotlin.contracts.contextual.ContextFact
+import org.jetbrains.kotlin.contracts.facts.ContextFact
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.types.KotlinType
 

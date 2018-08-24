@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.exceptions
 
-import org.jetbrains.kotlin.contracts.contextual.ContextFamily
+import org.jetbrains.kotlin.contracts.facts.ContextFamily
 
 object ExceptionFamily : ContextFamily() {
     override val id: String = "Checked exceptions"

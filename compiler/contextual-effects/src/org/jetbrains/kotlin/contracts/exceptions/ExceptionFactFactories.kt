@@ -5,9 +5,9 @@
 
 package org.jetbrains.kotlin.contracts.exceptions
 
+import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactory
+import org.jetbrains.kotlin.contracts.facts.ContextFactFactory
 import org.jetbrains.kotlin.contracts.model.ESValue
-import org.jetbrains.kotlin.contracts.parsing.ContextCheckerFactory
-import org.jetbrains.kotlin.contracts.parsing.ContextFactFactory
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.types.KotlinType
 

@@ -5,10 +5,10 @@
 
 package org.jetbrains.kotlin.contracts.exceptions
 
-import org.jetbrains.kotlin.contracts.contextual.Context
-import org.jetbrains.kotlin.contracts.contextual.ContextFact
-import org.jetbrains.kotlin.contracts.contextual.FactsCombiner
 import org.jetbrains.kotlin.contracts.description.InvocationKind
+import org.jetbrains.kotlin.contracts.facts.Context
+import org.jetbrains.kotlin.contracts.facts.ContextFact
+import org.jetbrains.kotlin.contracts.facts.FactsCombiner
 
 object ExceptionFactsCombiner : FactsCombiner() {
     override fun or(a: Context, b: Context): Context {

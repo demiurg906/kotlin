@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.contracts.exceptions
 
-import org.jetbrains.kotlin.contracts.contextual.Context
-import org.jetbrains.kotlin.contracts.parsing.ContextChecker
+import org.jetbrains.kotlin.contracts.facts.Context
+import org.jetbrains.kotlin.contracts.facts.ContextChecker
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.psiUtil.parents

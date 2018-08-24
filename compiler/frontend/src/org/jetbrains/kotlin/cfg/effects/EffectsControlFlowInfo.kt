@@ -13,8 +13,8 @@ package org.jetbrains.kotlin.cfg.effects
 import org.jetbrains.kotlin.cfg.ControlFlowInfo
 import org.jetbrains.kotlin.cfg.ImmutableHashMap
 import org.jetbrains.kotlin.cfg.ImmutableMap
-import org.jetbrains.kotlin.contracts.contextual.Context
-import org.jetbrains.kotlin.contracts.contextual.ContextFamily
+import org.jetbrains.kotlin.contracts.facts.Context
+import org.jetbrains.kotlin.contracts.facts.ContextFamily
 
 class FactsControlFlowInfo(map: ImmutableMap<ContextFamily, Context> = ImmutableHashMap.empty()) :
     ControlFlowInfo<FactsControlFlowInfo, ContextFamily, Context>(map) {

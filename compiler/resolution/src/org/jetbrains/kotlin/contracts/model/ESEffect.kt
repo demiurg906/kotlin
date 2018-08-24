@@ -16,8 +16,8 @@
 
 package org.jetbrains.kotlin.contracts.model
 
-import org.jetbrains.kotlin.contracts.contextual.ContextCheckerFactoryHackedInterface
-import org.jetbrains.kotlin.contracts.contextual.ContextFactFactoryHackedInterface
+import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryHackedInterface
+import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryHackedInterface
 
 sealed class ESEffect {
     /**

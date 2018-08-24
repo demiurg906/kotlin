@@ -5,9 +5,9 @@
 
 package org.jetbrains.kotlin.contracts
 
-import org.jetbrains.kotlin.contracts.contextual.ContextFact
-import org.jetbrains.kotlin.contracts.contextual.ContextFamily
-import org.jetbrains.kotlin.contracts.parsing.*
+import org.jetbrains.kotlin.contracts.facts.*
+import org.jetbrains.kotlin.contracts.parsing.ContextFactParser
+import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.resolve.BindingContext

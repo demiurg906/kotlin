@@ -9,6 +9,9 @@ import org.jetbrains.kotlin.contracts.FactsEffectSystem
 import org.jetbrains.kotlin.contracts.description.*
 import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
+import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryDeclaration
+import org.jetbrains.kotlin.contracts.facts.ContextEntityFactory
+import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryDeclaration
 import org.jetbrains.kotlin.contracts.parsing.*
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression

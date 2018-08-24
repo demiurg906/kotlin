@@ -6,8 +6,8 @@
 package org.jetbrains.kotlin.contracts.exceptions
 
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
-import org.jetbrains.kotlin.contracts.parsing.ContextCheckerFactoryDeclaration
-import org.jetbrains.kotlin.contracts.parsing.ContextFactFactoryDeclaration
+import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryDeclaration
+import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryDeclaration
 import org.jetbrains.kotlin.contracts.parsing.ContextFactParser
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
 import org.jetbrains.kotlin.psi.KtCallExpression

@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.contracts.parsing
 
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
+import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryDeclaration
+import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryDeclaration
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.psi.KtExpression

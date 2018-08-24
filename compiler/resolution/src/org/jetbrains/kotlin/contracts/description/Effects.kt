@@ -16,11 +16,11 @@
 
 package org.jetbrains.kotlin.contracts.description
 
-import org.jetbrains.kotlin.contracts.contextual.ContextCheckerFactoryHackedInterface
-import org.jetbrains.kotlin.contracts.contextual.ContextFactFactoryHackedInterface
 import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
 import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
+import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryHackedInterface
+import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryHackedInterface
 
 /**
  * Effect with condition attached to it.
