@@ -18,10 +18,7 @@ package org.jetbrains.kotlin.cfg.pseudocode.instructions.eval
 
 import org.jetbrains.kotlin.cfg.pseudocode.PseudoValue
 import org.jetbrains.kotlin.cfg.pseudocode.PseudoValueFactory
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitor
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionWithNext
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.BlockScope
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.*
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
@@ -76,6 +73,10 @@ class CallInstruction private constructor(
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitCallInstruction(this)
 
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R {
+        return visitor.visitCallInstruction(this, data)
+    }
+
     override fun createCopy() =
         CallInstruction(element, blockScope, resolvedCall, receiverValues, arguments).setResult(resultValue)
 
@@ -113,6 +114,8 @@ class MagicInstruction(
     override fun accept(visitor: InstructionVisitor) = visitor.visitMagic(this)
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitMagic(this)
+
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R = visitor.visitMagic(this, data)
 
     override fun createCopy() =
         MagicInstruction(element, blockScope, inputValues, kind).setResult(resultValue)
@@ -164,6 +167,8 @@ class MergeInstruction private constructor(
     override fun accept(visitor: InstructionVisitor) = visitor.visitMerge(this)
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitMerge(this)
+
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R = visitor.visitMerge(this, data)
 
     override fun createCopy() = MergeInstruction(element, blockScope, inputValues).setResult(resultValue)
 

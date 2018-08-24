@@ -42,6 +42,10 @@ class SubroutineExitInstruction(
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitSubroutineExit(this)
 
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R {
+        return visitor.visitSubroutineExit(this, data)
+    }
+
     override fun toString(): String = if (isError) "<ERROR>" else "<END>"
 
     override fun createCopy(): InstructionImpl =

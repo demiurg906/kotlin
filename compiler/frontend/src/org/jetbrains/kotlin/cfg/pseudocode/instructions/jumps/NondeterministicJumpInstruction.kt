@@ -19,12 +19,7 @@ package org.jetbrains.kotlin.cfg.pseudocode.instructions.jumps
 import org.jetbrains.kotlin.cfg.pseudocode.PseudoValue
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.cfg.Label
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.BlockScope
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.KtElementInstructionImpl
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitor
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionImpl
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.*
 
 class NondeterministicJumpInstruction(
     element: KtElement,
@@ -64,6 +59,10 @@ class NondeterministicJumpInstruction(
     }
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitNondeterministicJump(this)
+
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R {
+        return visitor.visitNondeterministicJump(this, data)
+    }
 
     override fun toString(): String {
         val inVal = if (inputValue != null) "|$inputValue" else ""

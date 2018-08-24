@@ -18,12 +18,7 @@ package org.jetbrains.kotlin.cfg.pseudocode.instructions.special
 
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.cfg.pseudocode.Pseudocode
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.BlockScope
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionWithNext
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitor
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionImpl
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.*
 
 open class LocalFunctionDeclarationInstruction(
     element: KtElement,
@@ -50,6 +45,10 @@ open class LocalFunctionDeclarationInstruction(
     }
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitLocalFunctionDeclarationInstruction(this)
+
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R {
+        return visitor.visitLocalFunctionDeclarationInstruction(this, data)
+    }
 
     override fun toString(): String = "d(${render(element)})"
 

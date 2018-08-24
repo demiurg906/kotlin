@@ -16,12 +16,8 @@
 
 package org.jetbrains.kotlin.cfg.pseudocode.instructions.eval
 
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.*
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionWithNext
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitor
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.BlockScope
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionImpl
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
 
 class LoadUnitValueInstruction(
     expression: KtExpression,
@@ -33,6 +29,10 @@ class LoadUnitValueInstruction(
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R {
         return visitor.visitLoadUnitValue(this)
+    }
+
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R {
+        return visitor.visitLoadUnitValue(this, data)
     }
 
     override fun toString(): String =

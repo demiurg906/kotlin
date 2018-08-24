@@ -17,10 +17,7 @@
 package org.jetbrains.kotlin.cfg.pseudocode.instructions.special
 
 import org.jetbrains.kotlin.cfg.pseudocode.Pseudocode
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.BlockScope
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionImpl
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitor
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.*
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.psi.KtElement
 
@@ -35,6 +32,9 @@ class InlinedLocalFunctionDeclarationInstruction(
     override fun accept(visitor: InstructionVisitor) = visitor.visitInlinedLocalFunctionDeclarationInstruction(this)
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitInlinedFunctionDeclarationInstruction(this)
+
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R =
+        visitor.visitInlinedFunctionDeclarationInstruction(this, data)
 
     override fun toString(): String = "inlined(${render(element)})"
 }

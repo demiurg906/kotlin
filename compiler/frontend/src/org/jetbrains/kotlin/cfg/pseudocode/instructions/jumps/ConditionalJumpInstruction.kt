@@ -19,11 +19,8 @@ package org.jetbrains.kotlin.cfg.pseudocode.instructions.jumps
 import org.jetbrains.kotlin.cfg.pseudocode.PseudoValue
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.cfg.Label
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.*
 import java.util.Arrays
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.BlockScope
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitor
 
 class ConditionalJumpInstruction(
     element: KtElement,
@@ -59,6 +56,10 @@ class ConditionalJumpInstruction(
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R {
         return visitor.visitConditionalJump(this)
+    }
+
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R {
+        return visitor.visitConditionalJump(this, data)
     }
 
     override fun toString(): String {

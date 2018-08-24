@@ -16,11 +16,8 @@
 
 package org.jetbrains.kotlin.cfg.pseudocode.instructions.special
 
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.*
 import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.BlockScope
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionWithNext
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitor
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
 
 class MarkInstruction(
     element: KtElement,
@@ -32,6 +29,10 @@ class MarkInstruction(
     }
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitMarkInstruction(this)
+
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R {
+        return visitor.visitMarkInstruction(this, data)
+    }
 
     override fun createCopy() = MarkInstruction(element, blockScope)
 

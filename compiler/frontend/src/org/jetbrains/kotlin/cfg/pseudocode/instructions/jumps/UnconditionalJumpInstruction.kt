@@ -31,6 +31,10 @@ class UnconditionalJumpInstruction(
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitUnconditionalJump(this)
 
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R {
+        return visitor.visitUnconditionalJump(this, data)
+    }
+
     override fun toString(): String = "jmp(${targetLabel.name})"
 
     override fun createCopy(newLabel: Label, blockScope: BlockScope): AbstractJumpInstruction =

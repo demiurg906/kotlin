@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.cfg.Label
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.BlockScope
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitor
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithData
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
 
 class ReturnNoValueInstruction(
@@ -33,6 +34,10 @@ class ReturnNoValueInstruction(
     }
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitReturnNoValue(this)
+
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R {
+        return visitor.visitReturnNoValue(this, data)
+    }
 
     override fun toString(): String = "ret $targetLabel"
 

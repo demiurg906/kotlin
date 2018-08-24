@@ -16,12 +16,8 @@
 
 package org.jetbrains.kotlin.cfg.pseudocode.instructions.special
 
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.*
 import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.BlockScope
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionWithNext
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitor
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionImpl
 
 class SubroutineEnterInstruction(
     val subroutine: KtElement,
@@ -32,6 +28,10 @@ class SubroutineEnterInstruction(
     }
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitSubroutineEnter(this)
+
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R {
+        return visitor.visitSubroutineEnter(this, data)
+    }
 
     override fun toString(): String = "<START>"
 

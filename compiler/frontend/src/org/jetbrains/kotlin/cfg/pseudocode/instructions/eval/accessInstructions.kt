@@ -85,6 +85,8 @@ class ReadValueInstruction private constructor(
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitReadValue(this)
 
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R = visitor.visitReadValue(this, data)
+
     override fun toString(): String {
         val inVal = if (receiverValues.isEmpty()) "" else "|${receiverValues.keys.joinToString()}"
         val targetName = when (target) {
@@ -118,6 +120,8 @@ class WriteValueInstruction(
     }
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitWriteValue(this)
+
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R = visitor.visitWriteValue(this, data)
 
     override fun toString(): String {
         val lhs = (lValue as? KtNamedDeclaration)?.name ?: render(lValue)

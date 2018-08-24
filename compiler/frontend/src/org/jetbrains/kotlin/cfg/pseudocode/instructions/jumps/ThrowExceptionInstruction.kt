@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.cfg.Label
 import java.util.Collections
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.BlockScope
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitor
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithData
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.InstructionVisitorWithResult
 
 class ThrowExceptionInstruction(
@@ -37,6 +38,10 @@ class ThrowExceptionInstruction(
     }
 
     override fun <R> accept(visitor: InstructionVisitorWithResult<R>): R = visitor.visitThrowExceptionInstruction(this)
+
+    override fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R {
+        return visitor.visitThrowExceptionInstruction(this, data)
+    }
 
     override fun toString(): String = "throw (${element.text}|$thrownValue)"
 

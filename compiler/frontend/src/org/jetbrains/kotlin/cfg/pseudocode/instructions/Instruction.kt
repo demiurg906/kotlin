@@ -35,4 +35,5 @@ interface Instruction {
 
     fun accept(visitor: InstructionVisitor)
     fun <R> accept(visitor: InstructionVisitorWithResult<R>): R
+    fun <D, R> accept(visitor: InstructionVisitorWithData<D, R>, data: D): R
 }
