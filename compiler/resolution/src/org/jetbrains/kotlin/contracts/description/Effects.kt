@@ -19,8 +19,8 @@ package org.jetbrains.kotlin.contracts.description
 import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
 import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
-import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryHackedInterface
-import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryHackedInterface
+import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryDeclarationInterface
+import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryDeclarationInterface
 
 /**
  * Effect with condition attached to it.
@@ -75,7 +75,7 @@ fun InvocationKind.canBeRevisited(): Boolean = this == InvocationKind.UNKNOWN ||
 // -----------------------------------------------------------------
 
 data class ProvidesFactEffectDeclaration(
-    val factory: ContextFactFactoryHackedInterface,
+    val factory: ContextFactFactoryDeclarationInterface,
     val references: List<VariableReference>,
     val owner: FunctionReference
 ) : EffectDeclaration {
@@ -85,7 +85,7 @@ data class ProvidesFactEffectDeclaration(
 }
 
 data class LambdaProvidesFactEffectDeclaration(
-    val factory: ContextFactFactoryHackedInterface,
+    val factory: ContextFactFactoryDeclarationInterface,
     val references: List<VariableReference>,
     val owner: VariableReference
 ) : EffectDeclaration {
@@ -95,7 +95,7 @@ data class LambdaProvidesFactEffectDeclaration(
 }
 
 data class RequiresContextEffectDeclaration(
-    val factory: ContextCheckerFactoryHackedInterface,
+    val factory: ContextCheckerFactoryDeclarationInterface,
     val references: List<VariableReference>,
     val owner: FunctionReference
 ) : EffectDeclaration {
@@ -105,7 +105,7 @@ data class RequiresContextEffectDeclaration(
 }
 
 data class LambdaRequiresContextEffectDeclaration(
-    val factory: ContextCheckerFactoryHackedInterface,
+    val factory: ContextCheckerFactoryDeclarationInterface,
     val references: List<VariableReference>,
     val owner: VariableReference
 ) : EffectDeclaration {

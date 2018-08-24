@@ -9,10 +9,10 @@ import org.jetbrains.kotlin.contracts.model.ESValue
 
 interface ContextEntityFactory
 
-abstract class ContextFactFactoryDeclaration : ContextFactFactoryHackedInterface, ContextEntityFactory {
+abstract class ContextFactFactoryDeclaration : ContextFactFactoryDeclarationInterface, ContextEntityFactory {
     abstract fun resolveFactory(owner: ESValue, references: List<ESValue?>): ContextFactFactory
 }
 
-abstract class ContextCheckerFactoryDeclaration : ContextCheckerFactoryHackedInterface, ContextEntityFactory {
+abstract class ContextCheckerFactoryDeclaration : ContextCheckerFactoryDeclarationInterface, ContextEntityFactory {
     abstract fun resolveFactory(owner: ESValue, references: List<ESValue?>): ContextCheckerFactory
 }

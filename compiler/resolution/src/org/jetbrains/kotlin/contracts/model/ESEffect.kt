@@ -16,8 +16,8 @@
 
 package org.jetbrains.kotlin.contracts.model
 
-import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryHackedInterface
-import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryHackedInterface
+import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryDeclarationInterface
+import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryDeclarationInterface
 
 sealed class ESEffect {
     /**
@@ -50,7 +50,7 @@ class ConditionalEffect(val condition: ESExpression, val simpleEffect: SimpleEff
 // Fact effects
 
 class ProvidesContextFactEffect(
-    val factory: ContextFactFactoryHackedInterface,
+    val factory: ContextFactFactoryDeclarationInterface,
     val references: List<ESValue?>,
     val owner: ESValue
 ) : ESEffect() {
@@ -58,7 +58,7 @@ class ProvidesContextFactEffect(
 }
 
 class RequiresContextEffect(
-    val factory: ContextCheckerFactoryHackedInterface,
+    val factory: ContextCheckerFactoryDeclarationInterface,
     val references: List<ESValue?>,
     val owner: ESValue
 ) : ESEffect() {
