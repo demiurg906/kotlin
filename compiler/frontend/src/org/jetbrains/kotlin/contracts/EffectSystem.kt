@@ -116,7 +116,8 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
                     // hack
                     val factory = effect.factory as ContextFactFactoryDeclaration
 
-                    val resolvedFactory = factory.resolveFactory(effect.owner, effect.references)
+                    // TODO: maybe report diagnostic?
+                    val resolvedFactory = factory.resolveFactory(effect.owner, effect.references, bindingTrace.bindingContext) ?: continue@loop
                     when (effect.owner) {
                         is ESFunction -> {
                             val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: throw AssertionError()
@@ -133,8 +134,8 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
                 is RequiresContextEffect -> {
                     // hack
                     val factory = effect.factory as ContextCheckerFactoryDeclaration
-
-                    val resolvedFactory = factory.resolveFactory(effect.owner, effect.references)
+                    // TODO: maybe report diagnostic?
+                    val resolvedFactory = factory.resolveFactory(effect.owner, effect.references, bindingTrace.bindingContext) ?: continue@loop
                     when (effect.owner) {
                         is ESFunction -> {
                             val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: throw AssertionError()

@@ -53,6 +53,8 @@ interface ContractDescriptionVisitor<out R, in D> {
     fun visitBooleanVariableReference(booleanVariableReference: BooleanVariableReference, data: D): R =
         visitVariableReference(booleanVariableReference, data)
 
+    fun visitReceiverReference(receiverReference: ReceiverReference, data: D): R = visitValue(receiverReference, data)
+
     // Facts
     fun visitProvidesFactEffectDeclaration(effectDeclaration: ProvidesFactEffectDeclaration, data: D): R =
         visitEffectDeclaration(effectDeclaration, data)

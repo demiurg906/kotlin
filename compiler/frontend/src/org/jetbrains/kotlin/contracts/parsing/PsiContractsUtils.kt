@@ -75,6 +75,8 @@ object ContractsDslNames {
     val AT_LEAST_ONCE_KIND = Name.identifier("AT_LEAST_ONCE")
     val UNKNOWN_KIND = Name.identifier("UNKNOWN")
     val AT_MOST_ONCE_KIND = Name.identifier("AT_MOST_ONCE")
+
+    val RECEIVER_OF = Name.identifier("ReceiverOf")
 }
 
 fun DeclarationDescriptor.isFromContractDsl(): Boolean = this.annotations.hasAnnotation(CONTRACTS_DSL_ANNOTATION_FQN)
@@ -105,9 +107,9 @@ fun DeclarationDescriptor.isEqualsDescriptor(): Boolean =
     this is FunctionDescriptor && this.name == Name.identifier("equals") && // fast checks
             this.returnType?.isBoolean() == true && this.valueParameters.singleOrNull()?.type?.isNullableAny() == true // signature matches
 
-internal fun ResolvedCall<*>.firstArgumentAsExpressionOrNull(): KtExpression? = argumentAsExpressionOrNull(0)
+fun ResolvedCall<*>.firstArgumentAsExpressionOrNull(): KtExpression? = argumentAsExpressionOrNull(0)
 
-internal fun ResolvedCall<*>.argumentAsExpressionOrNull(index: Int): KtExpression? =
+fun ResolvedCall<*>.argumentAsExpressionOrNull(index: Int): KtExpression? =
     this.valueArgumentsByIndex?.getOrNull(index)?.safeAs<ExpressionValueArgument>()?.valueArgument?.getArgumentExpression()
 
 private fun DeclarationDescriptor.equalsDslDescriptor(dslName: Name): Boolean = this.name == dslName && this.isFromContractDsl()

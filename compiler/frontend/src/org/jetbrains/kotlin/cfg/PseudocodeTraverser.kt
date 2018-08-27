@@ -241,11 +241,8 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.newCollectDataFromSubgraph
 
 
         val previousDataValue = edgesMap[instruction]
-        if (previousDataValue != null && previousInstructions.all { changed[it] == false }) {
+        if (!lastCfaPass && previousDataValue != null && previousInstructions.all { changed[it] == false }) {
             changed[instruction] = false
-            if (lastCfaPass) {
-                updateContext(instruction, previousDataValue.incoming, AdditionalControlFlowInfo(lastCfaPass))
-            }
             continue
         }
 

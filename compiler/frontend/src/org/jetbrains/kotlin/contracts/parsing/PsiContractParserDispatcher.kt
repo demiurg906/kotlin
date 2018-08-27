@@ -20,16 +20,14 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.contracts.description.BooleanExpression
 import org.jetbrains.kotlin.contracts.description.ContractDescription
 import org.jetbrains.kotlin.contracts.description.EffectDeclaration
-import org.jetbrains.kotlin.contracts.description.expressions.BooleanVariableReference
-import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
-import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
-import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
+import org.jetbrains.kotlin.contracts.description.expressions.*
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_PROVIDES_FACT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_REQUIRES_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_REQUIRES_NOT_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONDITIONAL_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDES_FACT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RECEIVER_OF
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_NOT_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_EFFECT
@@ -40,8 +38,10 @@ import org.jetbrains.kotlin.descriptors.ParameterDescriptor
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getType
@@ -123,6 +123,28 @@ class PsiContractParserDispatcher(val trace: BindingTrace, val contractParsingSe
             BooleanVariableReference(descriptor)
         else
             VariableReference(descriptor)
+    }
+
+    fun parseReceiver(expression: KtExpression?): ReceiverReference? {
+        if (expression == null) return null
+        val resolvedCall = expression.getResolvedCall(trace.bindingContext) ?: return null
+        val descriptor = resolvedCall.resultingDescriptor
+
+        // TODO: why isReceiverOf not working?
+        if (descriptor.returnType?.toString() != RECEIVER_OF.toString()) return null
+
+        val argument = resolvedCall.firstArgumentAsExpressionOrNull() ?: return null
+        val variable = parseVariable(argument) ?: return null
+
+        return ReceiverReference(variable)
+    }
+
+    fun parseFunction(expression: KtExpression?): FunctionReference? {
+        if (expression == null) return null
+        val reference = expression as? KtCallableReferenceExpression ?: return null
+        val descriptor =
+            trace.bindingContext[BindingContext.REFERENCE_TARGET, reference.callableReference] as? FunctionDescriptor ?: return null
+        return FunctionReference(descriptor)
     }
 
     fun parseValue(expression: KtExpression?): ContractDescriptionValue? {

@@ -65,3 +65,8 @@ class FunctionReference(val descriptor: FunctionDescriptor) : ContractDescriptio
     override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R =
         contractDescriptionVisitor.visitFunctionReference(this, data)
 }
+
+class ReceiverReference(val variableReference: VariableReference) : ContractDescriptionValue {
+    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R =
+        contractDescriptionVisitor.visitReceiverReference(this, data)
+}

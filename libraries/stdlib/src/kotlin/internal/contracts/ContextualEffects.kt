@@ -5,15 +5,21 @@
 
 package kotlin.internal.contracts
 
+import kotlin.internal.ContractsDsl
 import kotlin.reflect.KFunction
 
-// TODO: move to plugin
+// ------------------ Checked Exceptions ------------------
+
 class CatchesException<T : Throwable> : FactDescription, CheckerDescription
 
+// ------------------ Safe Builders ------------------
 
-class Calls(func: KFunction<*>) : FactDescription
+@ContractsDsl
+class ReceiverOf(func: Function<*>)
 
-class CallKind(func: KFunction<*>, callKind: DslCallKind)
+class Calls(func: KFunction<*>, thisReference: Any) : FactDescription
+
+class CallKind(func: KFunction<*>, callKind: DslCallKind, receiver: ReceiverOf) : CheckerDescription
 
 enum class DslCallKind {
     AT_MOST_ONCE,

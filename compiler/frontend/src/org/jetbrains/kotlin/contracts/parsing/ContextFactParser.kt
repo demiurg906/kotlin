@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.parsing
 
-import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
+import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
 import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryDeclaration
 import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryDeclaration
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -14,8 +14,8 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 
 abstract class ContextFactParser(val context: BindingContext, val dispatcher: PsiContractParserDispatcher) {
-    abstract fun parseDeclarationForFactFactory(declaration: KtExpression): Pair<ContextFactFactoryDeclaration, List<VariableReference>>?
-    abstract fun parseDeclarationForCheckerFactory(declaration: KtExpression): Pair<ContextCheckerFactoryDeclaration, List<VariableReference>>?
+    abstract fun parseDeclarationForFactFactory(declaration: KtExpression): Pair<ContextFactFactoryDeclaration, List<ContractDescriptionValue>>?
+    abstract fun parseDeclarationForCheckerFactory(declaration: KtExpression): Pair<ContextCheckerFactoryDeclaration, List<ContractDescriptionValue>>?
 
     protected fun extractConstructorName(descriptor: CallableDescriptor) =
         (descriptor as? ClassConstructorDescriptor)?.constructedClass?.name?.asString()

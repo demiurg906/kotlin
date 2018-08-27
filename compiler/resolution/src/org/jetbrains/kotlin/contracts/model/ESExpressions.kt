@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.contracts.model
 
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.descriptors.ParameterDescriptor
 import org.jetbrains.kotlin.types.KotlinType
 
 interface ESExpression {
@@ -34,5 +35,11 @@ abstract class ESValue(override val type: KotlinType?) : Computation, ESExpressi
 class ESFunction(val descriptor: FunctionDescriptor) : ESValue(null) {
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T {
         throw IllegalStateException("Lambdas shouldn't be visited by ESExpressionVisitor")
+    }
+}
+
+class ESReceiver(val descriptor: ParameterDescriptor) : ESValue(null) {
+    override fun <T> accept(visitor: ESExpressionVisitor<T>): T {
+        throw IllegalStateException("Receivers shouldn't be visited by ESExpressionVisitor")
     }
 }

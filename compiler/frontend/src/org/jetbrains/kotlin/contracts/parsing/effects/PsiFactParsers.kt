@@ -7,8 +7,8 @@ package org.jetbrains.kotlin.contracts.parsing.effects
 
 import org.jetbrains.kotlin.contracts.FactsEffectSystem
 import org.jetbrains.kotlin.contracts.description.*
+import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
 import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
-import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
 import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryDeclaration
 import org.jetbrains.kotlin.contracts.facts.ContextEntityFactory
 import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryDeclaration
@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 internal class PsiFactParser(
     trace: BindingTrace,
     dispatcher: PsiContractParserDispatcher
-) : AbstractPsiEffectParser(trace, dispatcher) { //AbstractPsiFactParser(trace, dispatcher) {
+) : AbstractPsiEffectParser(trace, dispatcher) {
     override fun tryParseEffect(expression: KtExpression): EffectDeclaration? {
         if (expression !is KtCallExpression) return null
 
@@ -90,8 +90,8 @@ internal fun <T : ContextEntityFactory> parseAbstractFactoryDeclaration(
     expression: KtExpression,
     trace: BindingTrace,
     dispatcher: PsiContractParserDispatcher,
-    parseFunc: ContextFactParser.(KtExpression) -> Pair<T, List<VariableReference>>?
-): Pair<T, List<VariableReference>>? {
+    parseFunc: ContextFactParser.(KtExpression) -> Pair<T, List<ContractDescriptionValue>>?
+): Pair<T, List<ContractDescriptionValue>>? {
     val parsers = FactsEffectSystem.getParsers()
     return parsers.asSequence()
         .map { it(trace.bindingContext, dispatcher) }
@@ -104,7 +104,7 @@ internal fun parseContextFactFactoryDeclaration(
     expression: KtExpression,
     trace: BindingTrace,
     dispatcher: PsiContractParserDispatcher
-): Pair<ContextFactFactoryDeclaration, List<VariableReference>>? = parseAbstractFactoryDeclaration(
+): Pair<ContextFactFactoryDeclaration, List<ContractDescriptionValue>>? = parseAbstractFactoryDeclaration(
     expression,
     trace,
     dispatcher,
@@ -115,7 +115,7 @@ internal fun parseContextCheckerFactoryDeclaration(
     expression: KtExpression,
     trace: BindingTrace,
     dispatcher: PsiContractParserDispatcher
-): Pair<ContextCheckerFactoryDeclaration, List<VariableReference>>? = parseAbstractFactoryDeclaration(
+): Pair<ContextCheckerFactoryDeclaration, List<ContractDescriptionValue>>? = parseAbstractFactoryDeclaration(
     expression,
     trace,
     dispatcher,
