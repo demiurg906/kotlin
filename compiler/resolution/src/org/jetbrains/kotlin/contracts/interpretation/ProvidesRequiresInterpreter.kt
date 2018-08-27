@@ -6,6 +6,10 @@
 package org.jetbrains.kotlin.contracts.interpretation
 
 import org.jetbrains.kotlin.contracts.description.*
+import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
+import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
+import org.jetbrains.kotlin.contracts.description.expressions.ReceiverReference
+import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
 import org.jetbrains.kotlin.contracts.model.ESEffect
 import org.jetbrains.kotlin.contracts.model.ProvidesContextFactEffect
 import org.jetbrains.kotlin.contracts.model.RequiresContextEffect
@@ -22,36 +26,45 @@ internal class ProvidesRequiresInterpreter(private val dispatcher: ContractInter
     private fun interpretProvidesEffect(effectDeclaration: ProvidesFactEffectDeclaration): ESEffect? {
         val (factory, references, owner) = effectDeclaration
 
-        val interpretedVariables = references.map { dispatcher.interpretVariable(it) }
+        val interpretedReferences = interpretReferences(references)
         val interpretedFunction = dispatcher.interpretFunction(owner) ?: return null
 
-        return ProvidesContextFactEffect(factory, interpretedVariables, interpretedFunction)
+        return ProvidesContextFactEffect(factory, interpretedReferences, interpretedFunction)
     }
 
     private fun interpretLambdaProvidesEffect(effectDeclaration: LambdaProvidesFactEffectDeclaration): ESEffect? {
         val (factory, references, owner) = effectDeclaration
 
-        val interpretedVariables = references.map { dispatcher.interpretVariable(it) }
+        val interpretedReferences = interpretReferences(references)
         val interpretedFunction = dispatcher.interpretVariable(owner) ?: return null
 
-        return ProvidesContextFactEffect(factory, interpretedVariables, interpretedFunction)
+        return ProvidesContextFactEffect(factory, interpretedReferences, interpretedFunction)
     }
 
     private fun interpretRequiresContext(effectDeclaration: RequiresContextEffectDeclaration): ESEffect? {
         val (factory, references, owner) = effectDeclaration
 
-        val interpretedVariables = references.map { dispatcher.interpretVariable(it) }
+        val interpretedReferences = interpretReferences(references)
         val interpretedFunction = dispatcher.interpretFunction(owner) ?: return null
 
-        return RequiresContextEffect(factory, interpretedVariables, interpretedFunction)
+        return RequiresContextEffect(factory, interpretedReferences, interpretedFunction)
     }
 
     private fun interpretLambdaRequiresContext(effectDeclaration: LambdaRequiresContextEffectDeclaration): ESEffect? {
         val (factory, references, owner) = effectDeclaration
 
-        val interpretedVariables = references.map { dispatcher.interpretVariable(it) }
+        val interpretedReferences = interpretReferences(references)
         val interpretedFunction = dispatcher.interpretVariable(owner) ?: return null
 
-        return RequiresContextEffect(factory, interpretedVariables, interpretedFunction)
+        return RequiresContextEffect(factory, interpretedReferences, interpretedFunction)
+    }
+
+    private fun interpretReferences(references: List<ContractDescriptionValue>) = references.map {
+        when (it) {
+            is VariableReference -> dispatcher.interpretVariable(it)
+            is FunctionReference -> dispatcher.interpretFunction(it)
+            is ReceiverReference -> dispatcher.interpretReceiver(it)
+            else -> throw AssertionError("Illegal type of ContractDescriptionValue type: ${it::class}")
+        }
     }
 }

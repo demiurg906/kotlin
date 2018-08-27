@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.contracts.description
 
 import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
+import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
 import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
 import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryDeclarationInterface
@@ -76,7 +77,7 @@ fun InvocationKind.canBeRevisited(): Boolean = this == InvocationKind.UNKNOWN ||
 
 data class ProvidesFactEffectDeclaration(
     val factory: ContextFactFactoryDeclarationInterface,
-    val references: List<VariableReference>,
+    val references: List<ContractDescriptionValue>,
     val owner: FunctionReference
 ) : EffectDeclaration {
     override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
@@ -86,7 +87,7 @@ data class ProvidesFactEffectDeclaration(
 
 data class LambdaProvidesFactEffectDeclaration(
     val factory: ContextFactFactoryDeclarationInterface,
-    val references: List<VariableReference>,
+    val references: List<ContractDescriptionValue>,
     val owner: VariableReference
 ) : EffectDeclaration {
     override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
@@ -96,7 +97,7 @@ data class LambdaProvidesFactEffectDeclaration(
 
 data class RequiresContextEffectDeclaration(
     val factory: ContextCheckerFactoryDeclarationInterface,
-    val references: List<VariableReference>,
+    val references: List<ContractDescriptionValue>,
     val owner: FunctionReference
 ) : EffectDeclaration {
     override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
@@ -106,7 +107,7 @@ data class RequiresContextEffectDeclaration(
 
 data class LambdaRequiresContextEffectDeclaration(
     val factory: ContextCheckerFactoryDeclarationInterface,
-    val references: List<VariableReference>,
+    val references: List<ContractDescriptionValue>,
     val owner: VariableReference
 ) : EffectDeclaration {
     override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
