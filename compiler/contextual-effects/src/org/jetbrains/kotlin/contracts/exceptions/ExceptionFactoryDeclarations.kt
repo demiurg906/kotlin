@@ -5,24 +5,25 @@
 
 package org.jetbrains.kotlin.contracts.exceptions
 
-import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryDeclaration
-import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryDeclaration
+import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
+import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.model.ESValue
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.types.KotlinType
 
-class ExceptionFactFactoryDeclaration(private val exceptionType: KotlinType) : ContextFactFactoryDeclaration {
-    override fun resolveFactory(owner: ESValue, references: List<ESValue?>, bindingContext: BindingContext) =
-        ExceptionFactFactory(owner, exceptionType)
+class ExceptionContextDeclaration(private val exceptionType: KotlinType) : ContextDeclaration {
+    override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ExceptionContext =
+        ExceptionContext(exceptionType)
 
     override fun toString(): String {
         return "Catches $exceptionType"
     }
 }
 
-class ExceptionCheckerFactoryDeclaration(private val exceptionType: KotlinType) : ContextCheckerFactoryDeclaration {
-    override fun resolveFactory(owner: ESValue, references: List<ESValue?>, bindingContext: BindingContext) =
-        ExceptionCheckerFactory(owner, exceptionType)
+class ExceptionVerifierDeclaration(private val exceptionType: KotlinType) : VerifierDeclaration {
+    override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ExceptionVerifier =
+        ExceptionVerifier(exceptionType, sourceElement)
 
     override fun toString(): String {
         return "Catches $exceptionType"

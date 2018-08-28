@@ -10,6 +10,6 @@ import org.jetbrains.kotlin.contracts.ContextFamiliesRegistrar
 
 class ExceptionContextEffectsComponent : ContextEffectsComponent {
     override fun registerProjectComponents(contextFamiliesRegistrar: ContextFamiliesRegistrar) {
-        contextFamiliesRegistrar.registerFamily(ExceptionFamily, ::ExceptionFactParser)
+        contextFamiliesRegistrar.registerFamily(ExceptionFamily, ::PsiExceptionEffectDeclarationExtractor)
     }
 }

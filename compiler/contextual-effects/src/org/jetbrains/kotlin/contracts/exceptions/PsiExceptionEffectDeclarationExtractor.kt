@@ -6,30 +6,31 @@
 package org.jetbrains.kotlin.contracts.exceptions
 
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
-import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryDeclaration
-import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryDeclaration
-import org.jetbrains.kotlin.contracts.parsing.ContextFactParser
+import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
+import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
+import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.types.KotlinType
 
-class ExceptionFactParser(context: BindingContext, dispatcher: PsiContractParserDispatcher) : ContextFactParser(context, dispatcher) {
+class PsiExceptionEffectDeclarationExtractor(context: BindingContext, dispatcher: PsiContractParserDispatcher) :
+    PsiEffectDeclarationExtractor(context, dispatcher) {
     companion object {
         private const val CONSTRUCTOR_NAME = "CatchesException"
     }
 
-    override fun parseDeclarationForFactFactory(declaration: KtExpression): Pair<ContextFactFactoryDeclaration, List<VariableReference>>? {
+    override fun extractContextDeclaration(declaration: KtExpression): Pair<ContextDeclaration, List<VariableReference>>? {
         val exceptionType = getExceptionType(declaration) ?: return null
-        val factory = ExceptionFactFactoryDeclaration(exceptionType)
+        val factory = ExceptionContextDeclaration(exceptionType)
         return factory to emptyList()
     }
 
-    override fun parseDeclarationForCheckerFactory(declaration: KtExpression): Pair<ContextCheckerFactoryDeclaration, List<VariableReference>>? {
+    override fun extractVerifierDeclaration(declaration: KtExpression): Pair<VerifierDeclaration, List<VariableReference>>? {
         val exceptionType = getExceptionType(declaration) ?: return null
-        val factory = ExceptionCheckerFactoryDeclaration(exceptionType)
+        val factory = ExceptionVerifierDeclaration(exceptionType)
         return factory to emptyList()
     }
 

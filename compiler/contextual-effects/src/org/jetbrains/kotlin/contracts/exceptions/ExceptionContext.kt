@@ -5,6 +5,14 @@
 
 package org.jetbrains.kotlin.contracts.exceptions
 
-import org.jetbrains.kotlin.contracts.facts.Context
+import org.jetbrains.kotlin.contracts.facts.AbstractContext
+import org.jetbrains.kotlin.diagnostics.DiagnosticSink
+import org.jetbrains.kotlin.types.KotlinType
 
-data class ExceptionContext(override val facts: Set<ExceptionFact> = setOf()) : Context()
+data class ExceptionContext(val cachedExceptions: Set<KotlinType> = setOf()) : AbstractContext() {
+    constructor(cachedException: KotlinType) : this(setOf(cachedException))
+
+    override val family = ExceptionFamily
+
+    override fun reportRemaining(sink: DiagnosticSink) {}
+}
