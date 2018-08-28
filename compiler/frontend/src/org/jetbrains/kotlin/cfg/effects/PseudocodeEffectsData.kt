@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.cfg.ImmutableHashMap
 import org.jetbrains.kotlin.cfg.pseudocode.Pseudocode
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.CallInstruction
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.InlinedLocalFunctionDeclarationInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineEnterInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineExitInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.AdditionalControlFlowInfo
@@ -82,6 +83,7 @@ class PseudocodeEffectsData(
             is SubroutineEnterInstruction -> visitSubroutineEnter(instruction, info)
             is SubroutineExitInstruction -> visitSubroutineExit(instruction, info, additionalInfo)
             is CallInstruction -> visitCallInstruction(instruction, info, additionalInfo)
+            is InlinedLocalFunctionDeclarationInstruction -> visitInlinedLocalFunctionDeclarationInstruction(instruction, info)
             else -> info
         }
 
@@ -126,6 +128,19 @@ class PseudocodeEffectsData(
         addFactsToContext(facts, context)
         applyCheckers(checkers, context, additionalInfo)
 
+        return FactsControlFlowInfo(context)
+    }
+
+    private fun visitInlinedLocalFunctionDeclarationInstruction(
+        instruction: InlinedLocalFunctionDeclarationInstruction,
+        info: FactsControlFlowInfo
+    ): FactsControlFlowInfo {
+        val kind = instruction.kind
+        val context = info.toMutableMap()
+        for (family in context.keys) {
+            val combiner = family.combiner
+            context[family] = combiner.updateWithInvocationKind(context[family]!!, kind)
+        }
         return FactsControlFlowInfo(context)
     }
 
