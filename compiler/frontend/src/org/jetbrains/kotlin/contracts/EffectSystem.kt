@@ -103,7 +103,11 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
         recordContextFactories(resolvedCall, resultingContextInfo, bindingTrace)
     }
 
-    private fun recordContextFactories(resolvedCall: ResolvedCall<*>, resultingContextInfo: MutableContextInfo, bindingTrace: BindingTrace) {
+    private fun recordContextFactories(
+        resolvedCall: ResolvedCall<*>,
+        resultingContextInfo: MutableContextInfo,
+        bindingTrace: BindingTrace
+    ) {
         // collect all factories for lambdas and functions
         val lambdaFactFactories = MultiMap.create<KtLambdaExpression, ContextFactFactory>()
         val lambdaCheckerFactories = MultiMap.create<KtLambdaExpression, ContextCheckerFactory>()
@@ -117,7 +121,8 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
                     val factory = effect.factory as ContextFactFactoryDeclaration
 
                     // TODO: maybe report diagnostic?
-                    val resolvedFactory = factory.resolveFactory(effect.owner, effect.references, bindingTrace.bindingContext) ?: continue@loop
+                    val resolvedFactory =
+                        factory.resolveFactory(effect.owner, effect.references, bindingTrace.bindingContext) ?: continue@loop
                     when (effect.owner) {
                         is ESFunction -> {
                             val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: throw AssertionError()
@@ -135,7 +140,8 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
                     // hack
                     val factory = effect.factory as ContextCheckerFactoryDeclaration
                     // TODO: maybe report diagnostic?
-                    val resolvedFactory = factory.resolveFactory(effect.owner, effect.references, bindingTrace.bindingContext) ?: continue@loop
+                    val resolvedFactory =
+                        factory.resolveFactory(effect.owner, effect.references, bindingTrace.bindingContext) ?: continue@loop
                     when (effect.owner) {
                         is ESFunction -> {
                             val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: throw AssertionError()
