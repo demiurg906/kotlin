@@ -11,6 +11,8 @@ public fun buildXY(/*0*/ init: XYBuilder.() -> kotlin.Unit): XY
 
 public fun test_1(): kotlin.Unit
 public fun test_2(): kotlin.Unit
+public fun test_3(): kotlin.Unit
+public fun test_4(): kotlin.Unit
 
 public final data class X {
     public constructor X()

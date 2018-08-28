@@ -74,14 +74,32 @@ fun test_1() {
     }
 }
 
-// incorrect behavior, but that case is shit
-// and hopefully no one will write code like this
 fun test_2() {
     buildX outer@ {
-        setValX()
         buildX {
             this@outer.setValX()
             setValX()
         }
     }
+}
+
+fun test_3() {
+    buildX outer@ <!CONTEXTUAL_EFFECT_WARNING(setValX call mismatch: expected EXACTLY_ONCE, actual AT_LEAST_ONCE)!>{
+        buildX {
+            this@outer.setValX()
+            this@outer.setValX()
+            setValX()
+        }
+    }<!>
+}
+
+fun test_4() {
+    buildXY <!CONTEXTUAL_EFFECT_WARNING(setValX call mismatch: expected EXACTLY_ONCE, actual AT_LEAST_ONCE)!>{
+        buildX <!CONTEXTUAL_EFFECT_WARNING(setValX call mismatch: expected EXACTLY_ONCE, actual AT_LEAST_ONCE)!>{
+            this@buildXY.setValX()
+            this@buildXY.setValX()
+            setValX()
+            setValX()
+        }<!>
+    }<!>
 }
