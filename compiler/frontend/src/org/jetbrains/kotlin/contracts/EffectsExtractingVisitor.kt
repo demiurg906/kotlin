@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.contracts
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.contracts.interpretation.ContractInterpretationDispatcher
 import org.jetbrains.kotlin.contracts.model.Computation
+import org.jetbrains.kotlin.contracts.model.ESReceiver
 import org.jetbrains.kotlin.contracts.model.Functor
 import org.jetbrains.kotlin.contracts.model.functors.*
 import org.jetbrains.kotlin.contracts.model.structure.CallComputation
@@ -40,6 +41,7 @@ import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValueFactory
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
 import org.jetbrains.kotlin.resolve.constants.CompileTimeConstant
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
+import org.jetbrains.kotlin.resolve.scopes.receivers.ExtensionReceiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addIfNotNull
@@ -74,10 +76,13 @@ class EffectsExtractingVisitor(
                 descriptor,
                 (element as KtExpression).createDataFlowValue() ?: return UNKNOWN_COMPUTATION
             )
-            descriptor is FunctionDescriptor -> CallComputation(
-                descriptor.returnType,
-                descriptor.getFunctor()?.invokeWithArguments(arguments) ?: emptyList()
-            )
+            descriptor is FunctionDescriptor -> {
+                val additionalReducer = AdditionalReducerImpl(trace.bindingContext)
+                CallComputation(
+                    descriptor.returnType,
+                    descriptor.getFunctor()?.invokeWithArguments(arguments, additionalReducer) ?: emptyList()
+                )
+            }
             else -> UNKNOWN_COMPUTATION
         }
     }
@@ -139,6 +144,7 @@ class EffectsExtractingVisitor(
 
     private fun ReceiverValue.toComputation(): Computation = when (this) {
         is ExpressionReceiver -> extractOrGetCached(expression)
+        is ExtensionReceiver -> ESReceiver(this)
         else -> UNKNOWN_COMPUTATION
     }
 
@@ -153,7 +159,7 @@ class EffectsExtractingVisitor(
 
     private fun FunctionDescriptor.getFunctor(): Functor? {
         trace[BindingContext.FUNCTOR, this]?.let { return it }
-
+        
         val functor = ContractInterpretationDispatcher().resolveFunctor(this) ?: return null
         trace.record(BindingContext.FUNCTOR, this, functor)
         return functor

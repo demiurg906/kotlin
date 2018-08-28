@@ -72,8 +72,8 @@ class ContractInterpretationDispatcher {
 
     internal fun interpretFunction(functionReference: FunctionReference): ESFunction? = ESFunction(functionReference.descriptor)
 
-    internal fun interpretReceiver(receiverReference: ReceiverReference): ESReceiver? {
-        val descriptor = receiverReference.variableReference.descriptor
-        return ESReceiver(descriptor)
+    internal fun interpretReceiverReference(receiverReference: ReceiverReference): ESReceiverReference? {
+        val variableReference = interpretVariable(receiverReference.variableReference) ?: return null
+        return ESReceiverReference(variableReference)
     }
 }

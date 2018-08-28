@@ -26,8 +26,10 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueDescriptor
 import org.jetbrains.kotlin.utils.addIfNotNull
 
-class SubstitutingFunctor(private val basicEffects: List<ESEffect>, private val ownerFunction: FunctionDescriptor) :
-    AbstractReducingFunctor() {
+class SubstitutingFunctor(
+    private val basicEffects: List<ESEffect>,
+    private val ownerFunction: FunctionDescriptor
+) : AbstractReducingFunctor() {
     override fun doInvocation(arguments: List<Computation>): List<ESEffect> {
         if (basicEffects.isEmpty()) return emptyList()
 
@@ -58,16 +60,18 @@ class SubstitutingFunctor(private val basicEffects: List<ESEffect>, private val 
                     val substitutionForCallable = if (effect.owner is ESFunction)
                         effect.owner
                     else
-                        substitutions[effect.owner] as? ESValue ?: continue@effectsLoop
-                    substitutedClauses += ProvidesContextFactEffect(effect.factory, effect.references, substitutionForCallable)
+                        effect.owner.accept(substitutor) as? ESValue ?: continue@effectsLoop
+                    val substitutedReferences = effect.references.map { it?.accept(substitutor) as? ESValue }
+                    substitutedClauses += ProvidesContextFactEffect(effect.factory, substitutedReferences, substitutionForCallable)
                 }
 
                 is RequiresContextEffect -> {
                     val substitutionForCallable = if (effect.owner is ESFunction)
                         effect.owner
                     else
-                        substitutions[effect.owner] as? ESValue ?: continue@effectsLoop
-                    substitutedClauses += RequiresContextEffect(effect.factory, effect.references, substitutionForCallable)
+                        effect.owner.accept(substitutor) as? ESValue ?: continue@effectsLoop
+                    val substitutedReferences = effect.references.map { it?.accept(substitutor) as? ESValue }
+                    substitutedClauses += RequiresContextEffect(effect.factory, substitutedReferences, substitutionForCallable)
                 }
 
                 else -> substitutedClauses += effect

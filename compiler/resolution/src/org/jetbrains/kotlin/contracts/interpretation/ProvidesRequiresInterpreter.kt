@@ -63,7 +63,7 @@ internal class ProvidesRequiresInterpreter(private val dispatcher: ContractInter
         when (it) {
             is VariableReference -> dispatcher.interpretVariable(it)
             is FunctionReference -> dispatcher.interpretFunction(it)
-            is ReceiverReference -> dispatcher.interpretReceiver(it)
+            is ReceiverReference -> dispatcher.interpretReceiverReference(it)
             else -> throw AssertionError("Illegal type of ContractDescriptionValue type: ${it::class}")
         }
     }

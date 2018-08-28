@@ -78,6 +78,12 @@ class InfoCollector(private val observedEffect: ESEffect) : ESExpressionVisitor<
 
     override fun visitConstant(esConstant: ESConstant): MutableContextInfo = MutableContextInfo.EMPTY
 
+    override fun visitReceiverReference(esReceiverReference: ESReceiverReference): MutableContextInfo = MutableContextInfo.EMPTY
+
+    override fun visitFunction(esFunction: ESFunction): MutableContextInfo = MutableContextInfo.EMPTY
+
+    override fun visitReceiver(esReceiver: ESReceiver): MutableContextInfo = MutableContextInfo.EMPTY
+
     private fun <R> inverted(block: () -> R): R {
         isInverted = isInverted.not()
         val result = block()

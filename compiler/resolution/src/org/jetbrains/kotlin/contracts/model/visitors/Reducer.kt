@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
  * Reduces given list of effects by evaluating constant expressions,
  * throwing away senseless checks and infeasible clauses, etc.
  */
-class Reducer : ESExpressionVisitor<ESExpression?> {
+class Reducer(private val additionalReducer: AdditionalReducer?) : ESExpressionVisitor<ESExpression?> {
     fun reduceEffects(schema: List<ESEffect>): List<ESEffect> =
         schema.mapNotNull { reduceEffect(it) }
 
@@ -42,6 +42,16 @@ class Reducer : ESExpressionVisitor<ESExpression?> {
 
                 // Leave everything else as is
                 return effect
+            }
+            is RequiresContextEffect -> {
+                val references = effect.references
+                val reducedReferences = references.map { it?.accept(this) as? ESValue }
+                return RequiresContextEffect(effect.factory, reducedReferences, effect.owner)
+            }
+            is ProvidesContextFactEffect -> {
+                val references = effect.references
+                val reducedReferences = references.map { it?.accept(this) as? ESValue }
+                return ProvidesContextFactEffect(effect.factory, reducedReferences, effect.owner)
             }
             else -> return effect
         }
@@ -108,4 +118,15 @@ class Reducer : ESExpressionVisitor<ESExpression?> {
     override fun visitVariable(esVariable: ESVariable): ESVariable = esVariable
 
     override fun visitConstant(esConstant: ESConstant): ESConstant = esConstant
+
+    override fun visitReceiverReference(esReceiverReference: ESReceiverReference): ESReceiver? =
+        additionalReducer?.visitReceiverReference(esReceiverReference)
+
+    override fun visitFunction(esFunction: ESFunction): ESFunction = esFunction
+
+    override fun visitReceiver(esReceiver: ESReceiver): ESReceiver = esReceiver
+}
+
+interface AdditionalReducer {
+    fun visitReceiverReference(esReceiverReference: ESReceiverReference): ESReceiver?
 }

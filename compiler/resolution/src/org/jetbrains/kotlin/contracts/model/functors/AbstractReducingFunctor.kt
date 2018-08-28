@@ -16,9 +16,10 @@
 
 package org.jetbrains.kotlin.contracts.model.functors
 
+import org.jetbrains.kotlin.contracts.model.Computation
 import org.jetbrains.kotlin.contracts.model.ESEffect
 import org.jetbrains.kotlin.contracts.model.Functor
-import org.jetbrains.kotlin.contracts.model.Computation
+import org.jetbrains.kotlin.contracts.model.visitors.AdditionalReducer
 import org.jetbrains.kotlin.contracts.model.visitors.Reducer
 
 /**
@@ -26,9 +27,10 @@ import org.jetbrains.kotlin.contracts.model.visitors.Reducer
  * automatically performed. *
  */
 abstract class AbstractReducingFunctor : Functor {
-    private val reducer = Reducer()
-
-    override fun invokeWithArguments(arguments: List<Computation>): List<ESEffect> = reducer.reduceEffects(doInvocation(arguments))
+    override fun invokeWithArguments(arguments: List<Computation>, additionalReducer: AdditionalReducer?): List<ESEffect> {
+        val reducer = Reducer(additionalReducer)
+        return reducer.reduceEffects(doInvocation(arguments))
+    }
 
     protected abstract fun doInvocation(arguments: List<Computation>): List<ESEffect>
 }
