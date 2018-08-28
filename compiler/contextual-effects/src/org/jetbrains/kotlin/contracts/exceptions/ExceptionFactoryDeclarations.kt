@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.contracts.model.ESValue
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.types.KotlinType
 
-class ExceptionFactFactoryDeclaration(private val exceptionType: KotlinType) : ContextFactFactoryDeclaration() {
+class ExceptionFactFactoryDeclaration(private val exceptionType: KotlinType) : ContextFactFactoryDeclaration {
     override fun resolveFactory(owner: ESValue, references: List<ESValue?>, bindingContext: BindingContext) =
         ExceptionFactFactory(owner, exceptionType)
 
@@ -20,7 +20,7 @@ class ExceptionFactFactoryDeclaration(private val exceptionType: KotlinType) : C
     }
 }
 
-class ExceptionCheckerFactoryDeclaration(private val exceptionType: KotlinType) : ContextCheckerFactoryDeclaration() {
+class ExceptionCheckerFactoryDeclaration(private val exceptionType: KotlinType) : ContextCheckerFactoryDeclaration {
     override fun resolveFactory(owner: ESValue, references: List<ESValue?>, bindingContext: BindingContext) =
         ExceptionCheckerFactory(owner, exceptionType)
 

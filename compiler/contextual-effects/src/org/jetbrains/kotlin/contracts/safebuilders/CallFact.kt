@@ -17,5 +17,5 @@ data class CallFact(
     override val family = CallFamily
     override val isAllowedStayInContext = false
 
-    override fun toString(): String = "${functionReference.functionDescriptor} was invoken $kind"
+    override fun toString(): String = "${functionReference.functionDescriptor.name} was invoken $kind"
 }

@@ -10,10 +10,10 @@ import org.jetbrains.kotlin.resolve.BindingContext
 
 interface ContextEntityFactory
 
-abstract class ContextFactFactoryDeclaration : ContextFactFactoryDeclarationInterface, ContextEntityFactory {
-    abstract fun resolveFactory(owner: ESValue, references: List<ESValue?>, bindingContext: BindingContext): ContextFactFactory?
+interface ContextFactFactoryDeclaration : ContextFactFactoryDeclarationInterface, ContextEntityFactory {
+    fun resolveFactory(owner: ESValue, references: List<ESValue?>, bindingContext: BindingContext): ContextFactFactory?
 }
 
-abstract class ContextCheckerFactoryDeclaration : ContextCheckerFactoryDeclarationInterface, ContextEntityFactory {
-    abstract fun resolveFactory(owner: ESValue, references: List<ESValue?>, bindingContext: BindingContext): ContextCheckerFactory?
+interface ContextCheckerFactoryDeclaration : ContextCheckerFactoryDeclarationInterface, ContextEntityFactory {
+    fun resolveFactory(owner: ESValue, references: List<ESValue?>, bindingContext: BindingContext): ContextCheckerFactory?
 }

@@ -8,6 +8,8 @@ package org.jetbrains.kotlin.contracts.facts
 import org.jetbrains.kotlin.contracts.model.ESValue
 import org.jetbrains.kotlin.psi.KtElement
 
+// TODO: source element
+// rename to
 abstract class ContextFactFactory(val owner: ESValue) {
     abstract fun createFact(calledElement: KtElement): ContextFact
 }

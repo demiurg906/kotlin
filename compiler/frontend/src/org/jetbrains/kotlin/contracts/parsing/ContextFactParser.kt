@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 
 abstract class ContextFactParser(val context: BindingContext, val dispatcher: PsiContractParserDispatcher) {
+    // TODO: give resolved call instead fo KtExpression
     abstract fun parseDeclarationForFactFactory(declaration: KtExpression): Pair<ContextFactFactoryDeclaration, List<ContractDescriptionValue>>?
     abstract fun parseDeclarationForCheckerFactory(declaration: KtExpression): Pair<ContextCheckerFactoryDeclaration, List<ContractDescriptionValue>>?
 
