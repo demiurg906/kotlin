@@ -17,15 +17,14 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.CallInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.InlinedLocalFunctionDeclarationInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineEnterInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineExitInstruction
-import org.jetbrains.kotlin.cfg.pseudocodeTraverser.AdditionalControlFlowInfo
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.LocalFunctionAnalysisStrategy
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.newCollectData
+import org.jetbrains.kotlin.cfg.pseudocodeTraverser.traverse
 import org.jetbrains.kotlin.contracts.FactsEffectSystem
 import org.jetbrains.kotlin.contracts.facts.Context
-import org.jetbrains.kotlin.contracts.facts.ContextChecker
-import org.jetbrains.kotlin.contracts.facts.ContextFact
 import org.jetbrains.kotlin.contracts.facts.ContextFamily
+import org.jetbrains.kotlin.contracts.facts.ContextVerifier
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtLambdaExpression
@@ -45,15 +44,53 @@ class PseudocodeEffectsData(
     val controlFlowInfo: FactsControlFlowInfo? = computeEffectsControlFlowInfo(pseudocode)
 
     private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): FactsControlFlowInfo? {
-        val data = pseudocode.newCollectData(
+        // collect info via CFA
+        val edgesMap = pseudocode.newCollectData(
             TraversalOrder.FORWARD,
             ::merge,
             ::update,
             FactsControlFlowInfo.EMPTY,
             LocalFunctionAnalysisStrategy.ONLY_INLINED_LAMBDAS
         )
-        return data[pseudocode.exitInstruction]?.incoming
+        // verify resulting context
+        pseudocode.traverse(
+            TraversalOrder.FORWARD,
+            edgesMap,
+            ::verify
+        )
+        return edgesMap[pseudocode.exitInstruction]?.incoming
     }
+
+    // -------------------------- Verification --------------------------
+
+    private fun verify(instruction: Instruction, incoming: FactsControlFlowInfo, outgoing: FactsControlFlowInfo) {
+        when (instruction) {
+            is SubroutineExitInstruction -> verifySubroutineExitInstruction(instruction, incoming)
+            is CallInstruction -> verifyCallInstruction(instruction, incoming)
+        }
+    }
+
+    private fun verifySubroutineExitInstruction(instruction: SubroutineExitInstruction, incoming: FactsControlFlowInfo) {
+        val lambdaExpression = instruction.subroutine.parent as? KtLambdaExpression ?: return
+        val verifiers = FactsEffectSystem.declaredVerifiers(lambdaExpression, bindingContext)
+        verifyContext(verifiers, incoming)
+    }
+
+    private fun verifyCallInstruction(instruction: CallInstruction, incoming: FactsControlFlowInfo) {
+        val callExpression = instruction.element as? KtCallExpression ?: return
+        val (_, verifiers) = FactsEffectSystem.declaredFactsAndCheckers(callExpression, bindingContext)
+        verifyContext(verifiers, incoming)
+    }
+
+    private fun verifyContext(verifiers: Collection<ContextVerifier>, info: FactsControlFlowInfo) {
+        for (verifier in verifiers) {
+            val family = verifier.family
+            val context = info[family].getOrElse(family.emptyContext)
+            verifier.verify(context, bindingTrace)
+        }
+    }
+
+    // -------------------------- Collecting data --------------------------
 
     private fun merge(incoming: Collection<FactsControlFlowInfo>): FactsControlFlowInfo {
         when (incoming.size) {
@@ -64,7 +101,9 @@ class PseudocodeEffectsData(
 
         val contextsGroupedByFamily = mutableMapOf<ContextFamily, List<Context>>()
         for (family in families) {
-            val contexts = incoming.map { it[family].getOrElse(family.emptyContext) }
+            val contexts = incoming.map {
+                it[family].getOrElse(family.emptyContext)
+            }
             contextsGroupedByFamily[family] = contexts
         }
 
@@ -76,13 +115,12 @@ class PseudocodeEffectsData(
 
     private fun update(
         instruction: Instruction,
-        info: FactsControlFlowInfo,
-        additionalInfo: AdditionalControlFlowInfo
+        info: FactsControlFlowInfo
     ): FactsControlFlowInfo =
         when (instruction) {
             is SubroutineEnterInstruction -> visitSubroutineEnter(instruction, info)
-            is SubroutineExitInstruction -> visitSubroutineExit(instruction, info, additionalInfo)
-            is CallInstruction -> visitCallInstruction(instruction, info, additionalInfo)
+            is SubroutineExitInstruction -> visitSubroutineExit(instruction, info)
+            is CallInstruction -> visitCallInstruction(instruction, info)
             is InlinedLocalFunctionDeclarationInstruction -> visitInlinedLocalFunctionDeclarationInstruction(instruction, info)
             else -> info
         }
@@ -94,41 +132,39 @@ class PseudocodeEffectsData(
     ): FactsControlFlowInfo {
         val lambdaExpression = instruction.subroutine.parent as? KtLambdaExpression ?: return info
 
-        val facts = FactsEffectSystem.declaredFacts(lambdaExpression, bindingContext)
-        val context = info.toMutableMap()
-        addFactsToContext(facts, context)
-        return FactsControlFlowInfo(context)
+        val contexts = FactsEffectSystem.declaredContexts(lambdaExpression, bindingContext)
+        val contextsGroupedByFamily= info.toMutableMap()
+        combineContexts(contextsGroupedByFamily, contexts)
+        return FactsControlFlowInfo(contextsGroupedByFamily)
     }
 
     // collect checkers
     private fun visitSubroutineExit(
         instruction: SubroutineExitInstruction,
-        info: FactsControlFlowInfo,
-        additionalInfo: AdditionalControlFlowInfo
+        info: FactsControlFlowInfo
     ): FactsControlFlowInfo {
         val lambdaExpression = instruction.subroutine.parent as? KtLambdaExpression ?: return info
 
-        val checkers = FactsEffectSystem.declaredCheckers(lambdaExpression, bindingContext)
+        val verifiers = FactsEffectSystem.declaredVerifiers(lambdaExpression, bindingContext)
         val context = info.toMutableMap()
-        applyCheckers(checkers, context, additionalInfo)
+        applyVerifiers(verifiers, context)
         return FactsControlFlowInfo(context)
     }
 
     // collect facts and checkers
     private fun visitCallInstruction(
         instruction: CallInstruction,
-        info: FactsControlFlowInfo,
-        additionalInfo: AdditionalControlFlowInfo
+        info: FactsControlFlowInfo
     ): FactsControlFlowInfo {
-        val context = info.toMutableMap()
+        val contextsGroupedByFamily = info.toMutableMap()
 
         val callExpression = instruction.element as? KtCallExpression ?: return info
 
-        val (facts, checkers) = FactsEffectSystem.declaredFactsAndCheckers(callExpression, bindingContext)
-        addFactsToContext(facts, context)
-        applyCheckers(checkers, context, additionalInfo)
+        val (contexts, verifiers) = FactsEffectSystem.declaredFactsAndCheckers(callExpression, bindingContext)
+        combineContexts(contextsGroupedByFamily, contexts)
+        applyVerifiers(verifiers, contextsGroupedByFamily)
 
-        return FactsControlFlowInfo(context)
+        return FactsControlFlowInfo(contextsGroupedByFamily)
     }
 
     private fun visitInlinedLocalFunctionDeclarationInstruction(
@@ -144,26 +180,25 @@ class PseudocodeEffectsData(
         return FactsControlFlowInfo(context)
     }
 
-    private fun addFactsToContext(
-        facts: Collection<ContextFact>,
-        contextsGroupedByFamily: MutableMap<ContextFamily, Context>
+    private fun combineContexts(
+        contextsGroupedByFamily: MutableMap<ContextFamily, Context>,
+        contexts: Collection<Context>
     ) {
-        for (fact in facts) {
-            val family = fact.family
-            val context = contextsGroupedByFamily[family] ?: family.emptyContext
-            contextsGroupedByFamily[family] = family.combiner.combine(context, fact)
+        for (context in contexts) {
+            val family = context.family
+            val existedContext = contextsGroupedByFamily[family] ?: family.emptyContext
+            contextsGroupedByFamily[family] = family.combiner.combine(existedContext, context)
         }
     }
 
-    private fun applyCheckers(
-        checkers: Collection<ContextChecker>,
-        contextsGroupedByFamily: MutableMap<ContextFamily, Context>,
-        additionalInfo: AdditionalControlFlowInfo
+    private fun applyVerifiers(
+        verifiers: Collection<ContextVerifier>,
+        contextsGroupedByFamily: MutableMap<ContextFamily, Context>
     ) {
-        for (checker in checkers) {
-            val family = checker.family
+        for (verifier in verifiers) {
+            val family = verifier.family
             val context = contextsGroupedByFamily[family] ?: family.emptyContext
-            contextsGroupedByFamily[family] = checker.verifyContext(context, bindingTrace, additionalInfo.lastCfaPass)
+            contextsGroupedByFamily[family] = verifier.cleanupProcessed(context)
         }
     }
 

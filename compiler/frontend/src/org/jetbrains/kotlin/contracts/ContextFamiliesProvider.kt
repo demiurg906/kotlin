@@ -6,11 +6,11 @@
 package org.jetbrains.kotlin.contracts
 
 import org.jetbrains.kotlin.contracts.facts.ContextFamily
-import org.jetbrains.kotlin.contracts.parsing.ContextFactParser
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
+import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
 import org.jetbrains.kotlin.resolve.BindingContext
 
-typealias FactParserConstructorKind = (BindingContext, PsiContractParserDispatcher) -> ContextFactParser
+typealias FactParserConstructorKind = (BindingContext, PsiContractParserDispatcher) -> PsiEffectDeclarationExtractor
 
 interface ContextFamiliesRegistrar {
     fun registerFamily(family: ContextFamily, newParser: FactParserConstructorKind)

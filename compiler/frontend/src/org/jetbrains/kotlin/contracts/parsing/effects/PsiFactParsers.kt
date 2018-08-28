@@ -9,9 +9,9 @@ import org.jetbrains.kotlin.contracts.FactsEffectSystem
 import org.jetbrains.kotlin.contracts.description.*
 import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
 import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
-import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryDeclaration
-import org.jetbrains.kotlin.contracts.facts.ContextEntityFactory
-import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryDeclaration
+import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
+import org.jetbrains.kotlin.contracts.facts.ContextEntityDeclaration
+import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.parsing.*
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
@@ -86,11 +86,11 @@ internal class PsiLambdaFactParser(
 
 
 // Declaration of Fact/Checker parsing
-internal fun <T : ContextEntityFactory> parseAbstractFactoryDeclaration(
+internal fun <T : ContextEntityDeclaration> parseAbstractFactoryDeclaration(
     expression: KtExpression,
     trace: BindingTrace,
     dispatcher: PsiContractParserDispatcher,
-    parseFunc: ContextFactParser.(KtExpression) -> Pair<T, List<ContractDescriptionValue>>?
+    parseFunc: PsiEffectDeclarationExtractor.(KtExpression) -> Pair<T, List<ContractDescriptionValue>>?
 ): Pair<T, List<ContractDescriptionValue>>? {
     val parsers = FactsEffectSystem.getParsers()
     return parsers.asSequence()
@@ -104,20 +104,20 @@ internal fun parseContextFactFactoryDeclaration(
     expression: KtExpression,
     trace: BindingTrace,
     dispatcher: PsiContractParserDispatcher
-): Pair<ContextFactFactoryDeclaration, List<ContractDescriptionValue>>? = parseAbstractFactoryDeclaration(
+): Pair<ContextDeclaration, List<ContractDescriptionValue>>? = parseAbstractFactoryDeclaration(
     expression,
     trace,
     dispatcher,
-    ContextFactParser::parseDeclarationForFactFactory
+    PsiEffectDeclarationExtractor::extractContextDeclaration
 )
 
 internal fun parseContextCheckerFactoryDeclaration(
     expression: KtExpression,
     trace: BindingTrace,
     dispatcher: PsiContractParserDispatcher
-): Pair<ContextCheckerFactoryDeclaration, List<ContractDescriptionValue>>? = parseAbstractFactoryDeclaration(
+): Pair<VerifierDeclaration, List<ContractDescriptionValue>>? = parseAbstractFactoryDeclaration(
     expression,
     trace,
     dispatcher,
-    ContextFactParser::parseDeclarationForCheckerFactory
+    PsiEffectDeclarationExtractor::extractVerifierDeclaration
 )

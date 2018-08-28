@@ -9,6 +9,6 @@ package org.jetbrains.kotlin.contracts.facts
 /**
  * That interfaces are needed to hacked use frontend classes in resolution module
  */
-interface ContextFactFactoryDeclarationInterface
+interface ContextDeclarationHackedInterface
 
-interface ContextCheckerFactoryDeclarationInterface
+interface VerifierDeclarationHackedInterface

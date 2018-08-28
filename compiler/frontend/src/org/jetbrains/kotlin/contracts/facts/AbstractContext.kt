@@ -5,7 +5,8 @@
 
 package org.jetbrains.kotlin.contracts.facts
 
-abstract class ContextFact {
-    abstract val family: ContextFamily
-    abstract val isAllowedStayInContext: Boolean
+import org.jetbrains.kotlin.diagnostics.DiagnosticSink
+
+abstract class AbstractContext : Context {
+    abstract fun reportRemaining(sink: DiagnosticSink)
 }

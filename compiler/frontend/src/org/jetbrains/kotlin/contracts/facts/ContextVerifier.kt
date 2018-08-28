@@ -5,9 +5,11 @@
 
 package org.jetbrains.kotlin.contracts.facts
 
-import org.jetbrains.kotlin.resolve.BindingTrace
+import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 
-abstract class ContextChecker {
+abstract class ContextVerifier {
     abstract val family: ContextFamily
-    abstract fun verifyContext(context: Context, trace: BindingTrace, shouldReport: Boolean): Context
+    abstract fun verify(context: Context, diagnosticSink: DiagnosticSink)
+    abstract fun cleanupProcessed(context: Context): Context
 }
+

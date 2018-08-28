@@ -19,10 +19,10 @@ package org.jetbrains.kotlin.contracts
 import com.intellij.util.containers.MultiMap
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactory
-import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryDeclaration
-import org.jetbrains.kotlin.contracts.facts.ContextFactFactory
-import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryDeclaration
+import org.jetbrains.kotlin.contracts.facts.Context
+import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
+import org.jetbrains.kotlin.contracts.facts.ContextVerifier
+import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.model.*
 import org.jetbrains.kotlin.contracts.model.functors.EqualsFunctor
 import org.jetbrains.kotlin.contracts.model.structure.*
@@ -109,28 +109,30 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
         bindingTrace: BindingTrace
     ) {
         // collect all factories for lambdas and functions
-        val lambdaFactFactories = MultiMap.create<KtLambdaExpression, ContextFactFactory>()
-        val lambdaCheckerFactories = MultiMap.create<KtLambdaExpression, ContextCheckerFactory>()
-        val callFactFactories = MultiMap.create<KtCallExpression, ContextFactFactory>()
-        val callCheckerFactories = MultiMap.create<KtCallExpression, ContextCheckerFactory>()
+        val lambdaContexts = MultiMap.create<KtLambdaExpression, Context>()
+        val lambdaVerifiers = MultiMap.create<KtLambdaExpression, ContextVerifier>()
+        val callContexts = MultiMap.create<KtCallExpression, Context>()
+        val callVerifiers = MultiMap.create<KtCallExpression, ContextVerifier>()
 
         loop@ for (effect in resultingContextInfo.firedEffects) {
             when (effect) {
                 is ProvidesContextFactEffect -> {
                     // hack
-                    val factory = effect.factory as ContextFactFactoryDeclaration
+                    val factory = effect.contextDeclaration as ContextDeclaration
 
                     // TODO: maybe report diagnostic?
-                    val resolvedFactory =
-                        factory.resolveFactory(effect.owner, effect.references, bindingTrace.bindingContext) ?: continue@loop
                     when (effect.owner) {
                         is ESFunction -> {
                             val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: throw AssertionError()
-                            callFactFactories.putValue(callExpression, resolvedFactory)
+                            val context =
+                                factory.bind(callExpression, effect.references, bindingTrace.bindingContext) ?: throw AssertionError()
+                            callContexts.putValue(callExpression, context)
                         }
                         is ESLambda -> {
                             val lambda = (effect.owner as ESLambda).lambda
-                            lambdaFactFactories.putValue(lambda, resolvedFactory)
+                            val context =
+                                factory.bind(lambda, effect.references, bindingTrace.bindingContext) ?: throw AssertionError()
+                            lambdaContexts.putValue(lambda, context)
                         }
                         else -> throw AssertionError()
                     }
@@ -138,18 +140,19 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
 
                 is RequiresContextEffect -> {
                     // hack
-                    val factory = effect.factory as ContextCheckerFactoryDeclaration
-                    // TODO: maybe report diagnostic?
-                    val resolvedFactory =
-                        factory.resolveFactory(effect.owner, effect.references, bindingTrace.bindingContext) ?: continue@loop
+                    val factory = effect.verifiersDeclaration as VerifierDeclaration
                     when (effect.owner) {
                         is ESFunction -> {
                             val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: throw AssertionError()
-                            callCheckerFactories.putValue(callExpression, resolvedFactory)
+                            val verifier =
+                                factory.bind(callExpression, effect.references, bindingTrace.bindingContext) ?: throw AssertionError()
+                            callVerifiers.putValue(callExpression, verifier)
                         }
                         is ESLambda -> {
                             val lambda = (effect.owner as ESLambda).lambda
-                            lambdaCheckerFactories.putValue(lambda, resolvedFactory)
+                            val verifier =
+                                factory.bind(lambda, effect.references, bindingTrace.bindingContext) ?: throw AssertionError()
+                            lambdaVerifiers.putValue(lambda, verifier)
                         }
                         else -> throw AssertionError()
                     }
@@ -158,17 +161,17 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
         }
 
         // record factories to binding context
-        val allLambdas = lambdaCheckerFactories.keySet() union lambdaFactFactories.keySet()
+        val allLambdas = lambdaVerifiers.keySet() union lambdaContexts.keySet()
         for (lambda in allLambdas) {
-            val factFactories = lambdaFactFactories[lambda]
-            val checkerFactories = lambdaCheckerFactories[lambda]
+            val factFactories = lambdaContexts[lambda]
+            val checkerFactories = lambdaVerifiers[lambda]
             bindingTrace.record(BindingContext.LAMBDA_CONTEXT_FACTS, lambda, FactsBindingInfo(factFactories, checkerFactories))
         }
 
-        val allCalls = callCheckerFactories.keySet() union callFactFactories.keySet()
+        val allCalls = callVerifiers.keySet() union callContexts.keySet()
         for (call in allCalls) {
-            val factFactories = callFactFactories[call]
-            val checkerFactories = callCheckerFactories[call]
+            val factFactories = callContexts[call]
+            val checkerFactories = callVerifiers[call]
             bindingTrace.record(BindingContext.CALL_CONTEXT_FACTS, call, FactsBindingInfo(factFactories, checkerFactories))
         }
     }

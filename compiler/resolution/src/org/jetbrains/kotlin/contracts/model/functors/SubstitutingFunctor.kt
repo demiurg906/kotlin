@@ -62,7 +62,7 @@ class SubstitutingFunctor(
                     else
                         effect.owner.accept(substitutor) as? ESValue ?: continue@effectsLoop
                     val substitutedReferences = effect.references.map { it?.accept(substitutor) as? ESValue }
-                    substitutedClauses += ProvidesContextFactEffect(effect.factory, substitutedReferences, substitutionForCallable)
+                    substitutedClauses += ProvidesContextFactEffect(effect.contextDeclaration, substitutedReferences, substitutionForCallable)
                 }
 
                 is RequiresContextEffect -> {
@@ -71,7 +71,7 @@ class SubstitutingFunctor(
                     else
                         effect.owner.accept(substitutor) as? ESValue ?: continue@effectsLoop
                     val substitutedReferences = effect.references.map { it?.accept(substitutor) as? ESValue }
-                    substitutedClauses += RequiresContextEffect(effect.factory, substitutedReferences, substitutionForCallable)
+                    substitutedClauses += RequiresContextEffect(effect.verifiersDeclaration, substitutedReferences, substitutionForCallable)
                 }
 
                 else -> substitutedClauses += effect

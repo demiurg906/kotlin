@@ -25,8 +25,8 @@ import org.jetbrains.kotlin.cfg.variable.VariableUseState.*
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.contracts.FactsEffectSystem
+import org.jetbrains.kotlin.contracts.facts.AbstractContext
 import org.jetbrains.kotlin.contracts.facts.Context
-import org.jetbrains.kotlin.contracts.facts.ContextFact
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
@@ -130,8 +130,6 @@ class ControlFlowInformationProvider private constructor(
 
     private fun checkContextualEffects() {
         if (subroutine !is KtFunction) return
-        // TODO: this line is really needed?
-//        val descriptor = trace.bindingContext[BindingContext.FUNCTION, subroutine] ?: return
 
         val controlFlowInfo = pseudocodeEffectsData.controlFlowInfo ?: return
 
@@ -142,10 +140,7 @@ class ControlFlowInformationProvider private constructor(
     }
 
     private fun reportUnhandledEffects(context: Context) {
-        context.facts
-            .filterNot(ContextFact::isAllowedStayInContext)
-            .map { CONTEXTUAL_EFFECT_WARNING.on(subroutine, it.toString()) }
-            .forEach(trace::report)
+        (context as AbstractContext).reportRemaining(trace)
     }
 
     private fun collectReturnExpressions(returnedExpressions: MutableCollection<KtElement>) {

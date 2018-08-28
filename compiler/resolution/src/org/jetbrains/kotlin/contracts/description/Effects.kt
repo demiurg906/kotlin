@@ -20,8 +20,8 @@ import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
 import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
 import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
-import org.jetbrains.kotlin.contracts.facts.ContextCheckerFactoryDeclarationInterface
-import org.jetbrains.kotlin.contracts.facts.ContextFactFactoryDeclarationInterface
+import org.jetbrains.kotlin.contracts.facts.ContextDeclarationHackedInterface
+import org.jetbrains.kotlin.contracts.facts.VerifierDeclarationHackedInterface
 
 /**
  * Effect with condition attached to it.
@@ -76,7 +76,7 @@ fun InvocationKind.canBeRevisited(): Boolean = this == InvocationKind.UNKNOWN ||
 // -----------------------------------------------------------------
 
 data class ProvidesFactEffectDeclaration(
-    val factory: ContextFactFactoryDeclarationInterface,
+    val factory: ContextDeclarationHackedInterface,
     val references: List<ContractDescriptionValue>,
     val owner: FunctionReference
 ) : EffectDeclaration {
@@ -86,7 +86,7 @@ data class ProvidesFactEffectDeclaration(
 }
 
 data class LambdaProvidesFactEffectDeclaration(
-    val factory: ContextFactFactoryDeclarationInterface,
+    val factory: ContextDeclarationHackedInterface,
     val references: List<ContractDescriptionValue>,
     val owner: VariableReference
 ) : EffectDeclaration {
@@ -96,7 +96,7 @@ data class LambdaProvidesFactEffectDeclaration(
 }
 
 data class RequiresContextEffectDeclaration(
-    val factory: ContextCheckerFactoryDeclarationInterface,
+    val factory: VerifierDeclarationHackedInterface,
     val references: List<ContractDescriptionValue>,
     val owner: FunctionReference
 ) : EffectDeclaration {
@@ -106,7 +106,7 @@ data class RequiresContextEffectDeclaration(
 }
 
 data class LambdaRequiresContextEffectDeclaration(
-    val factory: ContextCheckerFactoryDeclarationInterface,
+    val factory: VerifierDeclarationHackedInterface,
     val references: List<ContractDescriptionValue>,
     val owner: VariableReference
 ) : EffectDeclaration {

@@ -28,23 +28,15 @@ import java.util.*
 
 enum class LocalFunctionAnalysisStrategy {
     ANALYSE_EVERYTHING {
-        override val isolatedLocalFunctions = false
-        override val runLastCFA = false
         override fun allowFunction(declaration: LocalFunctionDeclarationInstruction) = true
     },
 
-
     ONLY_INLINED_LAMBDAS {
-        override val isolatedLocalFunctions = true
-        override val runLastCFA = true
-
         override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean {
             return declaration is InlinedLocalFunctionDeclarationInstruction
         }
     };
 
-    abstract val isolatedLocalFunctions: Boolean
-    abstract val runLastCFA: Boolean
     abstract fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean
 }
 
@@ -91,7 +83,7 @@ fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectData(
     do {
         collectDataFromSubgraph(
             traversalOrder, edgesMap,
-            mergeEdges, updateEdge, Collections.emptyList<Instruction>(), changed, false
+            mergeEdges, updateEdge, Collections.emptyList(), changed, false
         )
     } while (changed.any { it.value })
 
@@ -161,35 +153,25 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
     }
 }
 
-data class AdditionalControlFlowInfo(val lastCfaPass: Boolean)
-
 fun <I : ControlFlowInfo<*, *, *>> Pseudocode.newCollectData(
     traversalOrder: TraversalOrder,
     mergeContexts: (Collection<I>) -> I,
-    updateContext: (Instruction, I, AdditionalControlFlowInfo) -> I,
+    updateContext: (Instruction, I) -> I,
     initialInfo: I,
     localFunctionAnalysisStrategy: LocalFunctionAnalysisStrategy
 ): Map<Instruction, Edges<I>> {
     val edgesMap = LinkedHashMap<Instruction, Edges<I>>()
     val startInstruction = getStartInstruction(traversalOrder)
-    edgesMap.put(startInstruction, Edges(initialInfo, updateContext(startInstruction, initialInfo, AdditionalControlFlowInfo(false))))
+    edgesMap.put(startInstruction, Edges(initialInfo, updateContext(startInstruction, initialInfo)))
 
     val changed = mutableMapOf<Instruction, Boolean>()
     do {
         newCollectDataFromSubgraph(
             traversalOrder, edgesMap,
             mergeContexts, updateContext, Collections.emptyList(), changed, false,
-            localFunctionAnalysisStrategy, false
+            localFunctionAnalysisStrategy
         )
     } while (changed.any { it.value })
-
-    if (localFunctionAnalysisStrategy.runLastCFA) {
-        newCollectDataFromSubgraph(
-            traversalOrder, edgesMap,
-            mergeContexts, updateContext, Collections.emptyList(), changed, false,
-            localFunctionAnalysisStrategy, true
-        )
-    }
     return edgesMap
 }
 
@@ -197,12 +179,11 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.newCollectDataFromSubgraph
     traversalOrder: TraversalOrder,
     edgesMap: MutableMap<Instruction, Edges<I>>,
     mergeContexts: (Collection<I>) -> I,
-    updateContext: (Instruction, I, AdditionalControlFlowInfo) -> I,
+    updateContext: (Instruction, I) -> I,
     previousSubGraphInstructions: Collection<Instruction>,
     changed: MutableMap<Instruction, Boolean>,
     isLocal: Boolean,
-    localFunctionAnalysisStrategy: LocalFunctionAnalysisStrategy,
-    lastCfaPass: Boolean
+    localFunctionAnalysisStrategy: LocalFunctionAnalysisStrategy
 ) {
     val instructions = getInstructions(traversalOrder)
     val startInstruction = getStartInstruction(traversalOrder)
@@ -221,7 +202,7 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.newCollectDataFromSubgraph
             val subroutinePseudocode = instruction.body
             subroutinePseudocode.newCollectDataFromSubgraph(
                 traversalOrder, edgesMap, mergeContexts, updateContext, previousInstructions, changed, true,
-                localFunctionAnalysisStrategy, lastCfaPass
+                localFunctionAnalysisStrategy
             )
             // Special case for inlined functions: take flow from EXIT instructions (it contains flow which exits declaration normally)
             val lastInstruction = if (instruction is InlinedLocalFunctionDeclarationInstruction && traversalOrder == FORWARD)
@@ -231,7 +212,7 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.newCollectDataFromSubgraph
             val previousValue = edgesMap[instruction]
             val newValue = edgesMap[lastInstruction]
             val updatedValue = newValue?.let {
-                val updatedData = updateContext(instruction, it.outgoing, AdditionalControlFlowInfo(lastCfaPass))
+                val updatedData = updateContext(instruction, it.outgoing)
                 Edges(updatedData, updatedData)
             }
 
@@ -241,7 +222,7 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.newCollectDataFromSubgraph
 
 
         val previousDataValue = edgesMap[instruction]
-        if (!lastCfaPass && previousDataValue != null && previousInstructions.all { changed[it] == false }) {
+        if (previousDataValue != null && previousInstructions.all { changed[it] == false }) {
             changed[instruction] = false
             continue
         }
@@ -252,9 +233,9 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.newCollectDataFromSubgraph
         val mergedData = mergeContexts(incomingEdgesData)
 
         // update context via current instruction
-        val updatedData = updateContext(instruction, mergedData, AdditionalControlFlowInfo(lastCfaPass))
+        val updatedData = updateContext(instruction, mergedData)
 
-        val updatedEdges = Edges(updatedData, updatedData)
+        val updatedEdges = Edges(mergedData, updatedData)
         updateEdgeDataForInstruction(instruction, previousDataValue, updatedEdges, edgesMap, changed)
     }
 }

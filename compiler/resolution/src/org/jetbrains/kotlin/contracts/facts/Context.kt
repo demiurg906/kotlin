@@ -5,6 +5,6 @@
 
 package org.jetbrains.kotlin.contracts.facts
 
-abstract class Context {
-    abstract val facts: Collection<ContextFact>
+interface Context {
+    val family: ContextFamily
 }

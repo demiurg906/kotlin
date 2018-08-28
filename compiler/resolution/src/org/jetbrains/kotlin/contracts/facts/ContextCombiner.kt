@@ -7,8 +7,9 @@ package org.jetbrains.kotlin.contracts.facts
 
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 
-abstract class FactsCombiner {
+abstract class ContextCombiner {
     abstract fun or(a: Context, b: Context): Context
-    abstract fun combine(context: Context, fact: ContextFact): Context
+    abstract fun combine(a: Context, b: Context): Context
+    // TODO: change semantics to "update AT_MOST_ONCE"
     abstract fun updateWithInvocationKind(context: Context, invocationKind: InvocationKind): Context
 }

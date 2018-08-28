@@ -5,9 +5,11 @@
 
 package org.jetbrains.kotlin.contracts
 
-import org.jetbrains.kotlin.contracts.facts.*
-import org.jetbrains.kotlin.contracts.parsing.ContextFactParser
+import org.jetbrains.kotlin.contracts.facts.Context
+import org.jetbrains.kotlin.contracts.facts.ContextFamily
+import org.jetbrains.kotlin.contracts.facts.ContextVerifier
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
+import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -16,31 +18,32 @@ object FactsEffectSystem {
     private val contextEffectsFamiliesProvider: ContextFamiliesProvider = ContextFamiliesService
 
     fun getFamilies(): Collection<ContextFamily> = contextEffectsFamiliesProvider.getFamilies()
-    fun getParsers(): Collection<(BindingContext, PsiContractParserDispatcher) -> ContextFactParser> =
+    fun getParsers(): Collection<(BindingContext, PsiContractParserDispatcher) -> PsiEffectDeclarationExtractor> =
         contextEffectsFamiliesProvider.getParsers()
 
     // calls
     fun declaredFactsAndCheckers(
         callExpression: KtCallExpression,
         context: BindingContext
-    ): Pair<Collection<ContextFact>, Collection<ContextChecker>> {
-        val (factFactories, checkerFactories) = context[BindingContext.CALL_CONTEXT_FACTS, callExpression] ?: return emptyList() to emptyList()
-        return factFactories.map { it.createFact(callExpression) } to checkerFactories.map { it.createChecker(callExpression) }
+    ): Pair<Collection<Context>, Collection<ContextVerifier>> {
+        val (contexts, verifiers) = context[BindingContext.CALL_CONTEXT_FACTS, callExpression]
+            ?: return emptyList() to emptyList()
+        return contexts to verifiers
     }
 
     // lambdas
-    fun declaredFacts(lambdaExpression: KtLambdaExpression, context: BindingContext): Collection<ContextFact> {
-        val (factFactories, _) = context[BindingContext.LAMBDA_CONTEXT_FACTS, lambdaExpression] ?: return emptyList()
-        return factFactories.map { it.createFact(lambdaExpression) }
+    fun declaredContexts(lambdaExpression: KtLambdaExpression, context: BindingContext): Collection<Context> {
+        val (contexts, _) = context[BindingContext.LAMBDA_CONTEXT_FACTS, lambdaExpression] ?: return emptyList()
+        return contexts
     }
 
-    fun declaredCheckers(lambdaExpression: KtLambdaExpression, context: BindingContext): Collection<ContextChecker> {
-        val (_, checkerFactories) = context[BindingContext.LAMBDA_CONTEXT_FACTS, lambdaExpression] ?: return emptyList()
-        return checkerFactories.map { it.createChecker(lambdaExpression) }
+    fun declaredVerifiers(lambdaExpression: KtLambdaExpression, context: BindingContext): Collection<ContextVerifier> {
+        val (_, verifiers) = context[BindingContext.LAMBDA_CONTEXT_FACTS, lambdaExpression] ?: return emptyList()
+        return verifiers
     }
 }
 
 data class FactsBindingInfo(
-    val factFactories: Collection<ContextFactFactory> = listOf(),
-    val checkerFactories: Collection<ContextCheckerFactory> = listOf()
+    val contexts: Collection<Context> = listOf(),
+    val verifiers: Collection<ContextVerifier> = listOf()
 )

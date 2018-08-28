@@ -46,12 +46,12 @@ class Reducer(private val additionalReducer: AdditionalReducer?) : ESExpressionV
             is RequiresContextEffect -> {
                 val references = effect.references
                 val reducedReferences = references.map { it?.accept(this) as? ESValue }
-                return RequiresContextEffect(effect.factory, reducedReferences, effect.owner)
+                return RequiresContextEffect(effect.verifiersDeclaration, reducedReferences, effect.owner)
             }
             is ProvidesContextFactEffect -> {
                 val references = effect.references
                 val reducedReferences = references.map { it?.accept(this) as? ESValue }
-                return ProvidesContextFactEffect(effect.factory, reducedReferences, effect.owner)
+                return ProvidesContextFactEffect(effect.contextDeclaration, reducedReferences, effect.owner)
             }
             else -> return effect
         }
