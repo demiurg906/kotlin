@@ -10,6 +10,6 @@ import org.jetbrains.kotlin.contracts.ContextFamiliesRegistrar
 
 class CallContextEffectsComponent : ContextEffectsComponent {
     override fun registerProjectComponents(contextFamiliesRegistrar: ContextFamiliesRegistrar) {
-        contextFamiliesRegistrar.registerFamily(CallFamily, ::CallFactParser)
+        contextFamiliesRegistrar.registerFamily(CallFamily, ::PsiCallEffectDeclarationExtractor)
     }
 }

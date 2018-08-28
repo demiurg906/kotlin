@@ -8,54 +8,42 @@ package org.jetbrains.kotlin.contracts.safebuilders
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.contracts.description.InvocationKind.*
 import org.jetbrains.kotlin.contracts.facts.Context
-import org.jetbrains.kotlin.contracts.facts.ContextFact
-import org.jetbrains.kotlin.contracts.facts.FactsCombiner
+import org.jetbrains.kotlin.contracts.facts.ContextCombiner
 
-object CallCombiner : FactsCombiner() {
-    override fun or(a: Context, b: Context): Context {
+object CallCombiner : ContextCombiner() {
+    override fun or(a: Context, b: Context): Context = performOperation(a, b, ::or)
+
+    override fun combine(a: Context, b: Context): Context = performOperation(a, b, ::combine)
+
+    private fun performOperation(a: Context, b: Context, operation: (InvocationKind, InvocationKind) -> InvocationKind): Context {
         if (a !is CallContext || b !is CallContext) throw AssertionError()
 
         val functions = a.calls.keys union b.calls.keys
         val updatedCalls = functions.mapNotNull { functionReference ->
-            val aFact = a.calls[functionReference]
-            val bFact = b.calls[functionReference]
+            val aInfo = a.calls[functionReference]
+            val bInfo = b.calls[functionReference]
 
-            val aKind = aFact?.kind ?: InvocationKind.ZERO
-            val bKind = bFact?.kind ?: InvocationKind.ZERO
-            val resKind = or(aKind, bKind)
+            val aKind = aInfo?.kind ?: InvocationKind.ZERO
+            val bKind = bInfo?.kind ?: InvocationKind.ZERO
+            val resKind = operation(aKind, bKind)
 
             if (resKind == ZERO) {
                 return@mapNotNull null
             }
 
-            val calledElement = aFact?.calledElement ?: bFact?.calledElement ?: throw AssertionError()
+            val sourceElement = aInfo?.sourceElement ?: bInfo?.sourceElement ?: throw AssertionError()
 
-            functionReference to CallFact(functionReference, calledElement, resKind)
+            functionReference to CallInfo(sourceElement, resKind)
         }.toMap()
         return CallContext(updatedCalls)
-    }
-
-    override fun combine(context: Context, fact: ContextFact): Context {
-        if (context !is CallContext || fact !is CallFact) throw AssertionError()
-
-        val (function, calledElement, kind) = fact
-        val calls = context.calls.toMutableMap()
-        calls[function] = if (function in calls) {
-            val (_, factCalledElement, factKind) = calls[function]!!
-            val resKind = combine(factKind, kind)
-            CallFact(function, factCalledElement, resKind)
-        } else {
-            fact
-        }
-        return CallContext(calls)
     }
 
     override fun updateWithInvocationKind(context: Context, invocationKind: InvocationKind): Context {
         if (context !is CallContext) throw AssertionError()
 
-        val updatedCalls = context.calls.mapValues { (_, fact) ->
-            val newKind = updateWithCallKind(fact.kind, invocationKind)
-            CallFact(fact.functionReference, fact.calledElement, newKind)
+        val updatedCalls = context.calls.mapValues { (_, callInfo) ->
+            val newKind = updateWithCallKind(callInfo.kind, invocationKind)
+            CallInfo(callInfo.sourceElement, newKind)
         }
         return CallContext(updatedCalls)
     }
