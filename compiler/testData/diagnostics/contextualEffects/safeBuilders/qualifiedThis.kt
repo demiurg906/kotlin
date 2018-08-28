@@ -10,7 +10,7 @@ class XYBuilder {
     private var x_: Int? = null
     fun setValX(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setValX))
+            provides(Calls(::setValX, this@XYBuilder))
         }
         x_ = value
     }
@@ -18,12 +18,23 @@ class XYBuilder {
     private var y_: Int? = null
     fun setDefaultValY(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setDefaultValY))
+            provides(Calls(::setDefaultValY, this@XYBuilder))
         }
         y_ = value
     }
 
     fun buildXY() = XY(/*...*/)
+}
+
+fun buildXY(init: XYBuilder.() -> Unit): XY {
+    contract {
+        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
+        requires(init, CallKind(XYBuilder::setValX, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
+        requires(init, CallKind(XYBuilder::setDefaultValY, DslCallKind.AT_MOST_ONCE, ReceiverOf(init)))
+    }
+    val builder = XYBuilder()
+    builder.init()
+    return builder.buildXY()
 }
 
 data class X(/*...*/)
@@ -32,7 +43,7 @@ class XBuilder {
     private var x_: Int? = null
     fun setValX(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setValX))
+            provides(Calls(::setValX, this@XBuilder))
         }
         x_ = value
     }
@@ -40,21 +51,11 @@ class XBuilder {
     fun buildX() = X(/*...*/)
 }
 
-fun buildXY(init: XYBuilder.() -> Unit): XY {
-    contract {
-        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        consumes(init, RequiresCallEffect(XYBuilder::setValX, DslCallKind.EXACTLY_ONCE))
-        consumes(init, RequiresCallEffect(XYBuilder::setDefaultValY, DslCallKind.AT_MOST_ONCE))
-    }
-    val builder = XYBuilder()
-    builder.init()
-    return builder.buildXY()
-}
 
 fun buildX(init: XBuilder.() -> Unit): X {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        consumes(init, RequiresCallEffect(XBuilder::setValX, DslCallKind.EXACTLY_ONCE))
+        requires(init, CallKind(XBuilder::setValX, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
     }
     val builder = XBuilder()
     builder.init()
@@ -80,6 +81,7 @@ fun test_2() {
         setValX()
         buildX {
             this@outer.setValX()
+            setValX()
         }
     }
 }

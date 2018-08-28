@@ -2,15 +2,15 @@ package
 
 public fun buildAtLeastOnce(/*0*/ init: ABuilder.() -> kotlin.Unit): A
     CallsInPlace(init, EXACTLY_ONCE)
-    initkotlin.Unit consumes Call consumer: setX must be invoked AT_LEAST_ONCEkotlin.Unit
+    initkotlin.Unit requires func needs to be called AT_LEAST_ONCE
 
 public fun buildAtMostOnce(/*0*/ init: ABuilder.() -> kotlin.Unit): A
     CallsInPlace(init, EXACTLY_ONCE)
-    initkotlin.Unit consumes Call consumer: setX must be invoked AT_MOST_ONCEkotlin.Unit
+    initkotlin.Unit requires func needs to be called AT_MOST_ONCE
 
 public fun buildExactlyOnce(/*0*/ init: ABuilder.() -> kotlin.Unit): A
     CallsInPlace(init, EXACTLY_ONCE)
-    initkotlin.Unit consumes Call consumer: setX must be invoked EXACTLY_ONCEkotlin.Unit
+    initkotlin.Unit requires func needs to be called EXACTLY_ONCE
 
 public inline fun maybeRun(/*0*/ block: () -> kotlin.Unit): kotlin.Unit
     CallsInPlace(block, AT_MOST_ONCE)
@@ -51,7 +51,7 @@ public final class ABuilder {
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public final fun setX(/*0*/ value: kotlin.Int = ...): kotlin.Unit
-        Call supplier: invokes setX once
+        setXkotlin.Unit provides func called EXACTLY_ONCE
 
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 }

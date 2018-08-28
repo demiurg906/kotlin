@@ -10,7 +10,7 @@ class ABuilder {
     private var x_: Int? = null
     fun setX(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setX))
+            provides(Calls(::setX, this@ABuilder))
         }
         x_ = value
     }
@@ -21,7 +21,7 @@ class ABuilder {
 fun buildExactlyOnce(init: ABuilder.() -> Unit): A {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        consumes(init, RequiresCallEffect(ABuilder::setX, DslCallKind.EXACTLY_ONCE))
+        requires(init, CallKind(ABuilder::setX, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
     }
     val builder = ABuilder()
     builder.init()
@@ -31,7 +31,7 @@ fun buildExactlyOnce(init: ABuilder.() -> Unit): A {
 fun buildAtMostOnce(init: ABuilder.() -> Unit): A {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        consumes(init, RequiresCallEffect(ABuilder::setX, DslCallKind.AT_MOST_ONCE))
+        requires(init, CallKind(ABuilder::setX, DslCallKind.AT_MOST_ONCE, ReceiverOf(init)))
     }
     val builder = ABuilder()
     builder.init()
@@ -41,7 +41,7 @@ fun buildAtMostOnce(init: ABuilder.() -> Unit): A {
 fun buildAtLeastOnce(init: ABuilder.() -> Unit): A {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        consumes(init, RequiresCallEffect(ABuilder::setX, DslCallKind.AT_LEAST_ONCE))
+        requires(init, CallKind(ABuilder::setX, DslCallKind.AT_LEAST_ONCE, ReceiverOf(init)))
     }
     val builder = ABuilder()
     builder.init()
@@ -77,8 +77,8 @@ inline fun multipleRun(block: () -> Unit) {
 // ---------------- TESTS ----------------
 
 fun test_1() {
-    buildExactlyOnce { 
-        onceRun { 
+    buildExactlyOnce {
+        onceRun {
             setX()
         }
     }

@@ -10,7 +10,7 @@ class XBuilder {
     private var x_: Int? = null
     fun setValX(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setValX))
+            provides(Calls(::setValX, this@XBuilder))
         }
         x_ = value
     }
@@ -21,7 +21,7 @@ class XBuilder {
 fun buildX(init: XBuilder.() -> Unit): X {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        consumes(init, RequiresCallEffect(XBuilder::setValX, DslCallKind.EXACTLY_ONCE))
+        requires(init, CallKind(XBuilder::setValX, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
     }
     val builder = XBuilder()
     builder.init()

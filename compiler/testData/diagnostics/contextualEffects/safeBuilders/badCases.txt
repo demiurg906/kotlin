@@ -2,7 +2,7 @@ package
 
 public fun buildX(/*0*/ init: XBuilder.() -> kotlin.Unit): X
     CallsInPlace(init, EXACTLY_ONCE)
-    initkotlin.Unit consumes Call consumer: setValX must be invoked EXACTLY_ONCEkotlin.Unit
+    initkotlin.Unit requires func needs to be called EXACTLY_ONCE
 
 public fun test_1(): kotlin.Unit
 
@@ -21,7 +21,7 @@ public final class XBuilder {
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public final fun setValX(/*0*/ value: kotlin.Int = ...): kotlin.Unit
-        Call supplier: invokes setValX once
+        setValXkotlin.Unit provides func called EXACTLY_ONCE
 
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 }

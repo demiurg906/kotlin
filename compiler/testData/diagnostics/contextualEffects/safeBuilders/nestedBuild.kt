@@ -10,7 +10,7 @@ class XYZBuilder {
     private var x_: Int? = null
     fun setValX(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setValX))
+            provides(Calls(::setValX, this@XYZBuilder))
         }
         x_ = value
     }
@@ -18,7 +18,7 @@ class XYZBuilder {
     private var y_: Int? = null
     fun setDefaultValY(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setDefaultValY))
+            provides(Calls(::setDefaultValY, this@XYZBuilder))
         }
         y_ = value
     }
@@ -26,7 +26,7 @@ class XYZBuilder {
     private var z_: Int? = null
     fun setVarZ(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setVarZ))
+            provides(Calls(::setVarZ, this@XYZBuilder))
         }
         z_ = value
     }
@@ -37,9 +37,9 @@ class XYZBuilder {
 fun buildXYZ(init: XYZBuilder.() -> Unit): XYZ {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        consumes(init, RequiresCallEffect(XYZBuilder::setValX, DslCallKind.EXACTLY_ONCE))
-        consumes(init, RequiresCallEffect(XYZBuilder::setDefaultValY, DslCallKind.AT_MOST_ONCE))
-        consumes(init, RequiresCallEffect(XYZBuilder::setVarZ, DslCallKind.AT_LEAST_ONCE))
+        requires(init, CallKind(XYZBuilder::setValX, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
+        requires(init, CallKind(XYZBuilder::setDefaultValY, DslCallKind.AT_MOST_ONCE, ReceiverOf(init)))
+        requires(init, CallKind(XYZBuilder::setVarZ, DslCallKind.AT_LEAST_ONCE, ReceiverOf(init)))
     }
     val builder = XYZBuilder()
     builder.init()
@@ -52,18 +52,19 @@ class XBuilder {
     private var x_: Int? = null
     fun setValX(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setValX))
+            provides(Calls(::setValX, this@XBuilder))
         }
         x_ = value
     }
-    
+
     fun buildX() = X(/*...*/)
 }
+
 
 fun buildX(init: XBuilder.() -> Unit): X {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        consumes(init, RequiresCallEffect(XBuilder::setValX, DslCallKind.EXACTLY_ONCE))
+        requires(init, CallKind(XBuilder::setValX, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
     }
     val builder = XBuilder()
     builder.init()
@@ -76,7 +77,7 @@ class YBuilder {
     private var y_: Int? = null
     fun setValY(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setValY))
+            provides(Calls(::setValY, this@YBuilder))
         }
         y_ = value
     }
@@ -87,7 +88,7 @@ class YBuilder {
 fun buildY(init: YBuilder.() -> Unit): Y {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        consumes(init, RequiresCallEffect(YBuilder::setValY, DslCallKind.EXACTLY_ONCE))
+        requires(init, CallKind(YBuilder::setValY, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
     }
     val builder = YBuilder()
     builder.init()
@@ -100,7 +101,7 @@ class ZBuilder {
     private var z_: Int? = null
     fun setValZ(value: Int = 0) {
         contract {
-            supplies(CallEffect(::setValZ))
+            provides(Calls(::setValZ, this@ZBuilder))
         }
         z_ = value
     }
@@ -111,7 +112,7 @@ class ZBuilder {
 fun buildZ(init: ZBuilder.() -> Unit): Z {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        consumes(init, RequiresCallEffect(ZBuilder::setValZ, DslCallKind.EXACTLY_ONCE))
+        requires(init, CallKind(ZBuilder::setValZ, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
     }
     val builder = ZBuilder()
     builder.init()

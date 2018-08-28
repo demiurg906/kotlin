@@ -2,9 +2,9 @@ package
 
 public fun buildXYZ(/*0*/ init: XYZBuilder.() -> kotlin.Unit): XYZ
     CallsInPlace(init, EXACTLY_ONCE)
-    initkotlin.Unit consumes Call consumer: setValX must be invoked EXACTLY_ONCEkotlin.Unit
-    initkotlin.Unit consumes Call consumer: setDefaultValY must be invoked AT_MOST_ONCEkotlin.Unit
-    initkotlin.Unit consumes Call consumer: setVarZ must be invoked AT_LEAST_ONCEkotlin.Unit
+    initkotlin.Unit requires func needs to be called EXACTLY_ONCE
+    initkotlin.Unit requires func needs to be called AT_MOST_ONCE
+    initkotlin.Unit requires func needs to be called AT_LEAST_ONCE
 
 public fun test_1(): kotlin.Unit
 public fun test_2(): kotlin.Unit
@@ -27,13 +27,13 @@ public final class XYZBuilder {
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public final fun setDefaultValY(/*0*/ value: kotlin.Int = ...): kotlin.Unit
-        Call supplier: invokes setDefaultValY once
+        setDefaultValYkotlin.Unit provides func called EXACTLY_ONCE
 
     public final fun setValX(/*0*/ value: kotlin.Int = ...): kotlin.Unit
-        Call supplier: invokes setValX once
+        setValXkotlin.Unit provides func called EXACTLY_ONCE
 
     public final fun setVarZ(/*0*/ value: kotlin.Int = ...): kotlin.Unit
-        Call supplier: invokes setVarZ once
+        setVarZkotlin.Unit provides func called EXACTLY_ONCE
 
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 }
