@@ -13,17 +13,14 @@ import org.jetbrains.kotlin.contracts.facts.ContextVerifier
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.model.ESFunction
 import org.jetbrains.kotlin.contracts.model.ESValue
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 
 class CallDeclaration : ContextDeclaration {
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): Context? {
-        val function = references[0] as? ESFunction ?: return null
-        val functionDescriptor = function.descriptor
-
-        val receiver = references[1] ?: return null
-        val receiverValue = receiver.extractReceiverValue() ?: return null
-
+        val (functionDescriptor, receiverValue) = extractFunctionAndReceiver(references) ?: return null
         return CallContext(FunctionReference(functionDescriptor, receiverValue), sourceElement)
     }
 
@@ -32,14 +29,15 @@ class CallDeclaration : ContextDeclaration {
 
 class CallVerifierDeclaration(private val kind: InvocationKind) : VerifierDeclaration {
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextVerifier? {
-        val function = references[0] as? ESFunction ?: return null
-        val functionDescriptor = function.descriptor
-
-        val receiver = references[1] ?: return null
-        val receiverValue = receiver.extractReceiverValue() ?: return null
-
+        val (functionDescriptor, receiverValue) = extractFunctionAndReceiver(references) ?: return null
         return CallVerifier(FunctionReference(functionDescriptor, receiverValue), kind, sourceElement)
     }
 
     override fun toString(): String = "func needs to be called $kind"
+}
+
+fun extractFunctionAndReceiver(references: List<ESValue?>): Pair<FunctionDescriptor, ReceiverValue>? {
+    val functionDescriptor = (references[0] as? ESFunction)?.descriptor ?: return null
+    val receiverValue = references[1]?.extractReceiverValue() ?: return null
+    return functionDescriptor to receiverValue
 }
