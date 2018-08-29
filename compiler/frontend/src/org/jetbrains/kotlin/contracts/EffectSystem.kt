@@ -31,7 +31,6 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
@@ -91,89 +90,81 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
 
         val resultingContextInfo = getContextInfoWhen(ESReturns(ESConstant.WILDCARD), callExpression, bindingTrace, moduleDescriptor)
 
+        val contexts = MultiMap.create<KtExpression, Context>()
+        val verifiers = MultiMap.create<KtExpression, ContextVerifier>()
+
         loop@ for (effect in resultingContextInfo.firedEffects) {
             when (effect) {
                 is ESCalls -> {
                     val lambdaExpression = (effect.callable as? ESLambda)?.lambda ?: continue@loop
                     bindingTrace.record(BindingContext.LAMBDA_INVOCATIONS, lambdaExpression, effect.kind)
                 }
-            }
-        }
 
-        recordContextsAndVerifiers(resolvedCall, resultingContextInfo, bindingTrace)
-    }
-
-    // TODO: refactor
-    private fun recordContextsAndVerifiers(
-        resolvedCall: ResolvedCall<*>,
-        resultingContextInfo: MutableContextInfo,
-        bindingTrace: BindingTrace
-    ) {
-        // collect all factories for lambdas and functions
-        val lambdaContexts = MultiMap.create<KtLambdaExpression, Context>()
-        val lambdaVerifiers = MultiMap.create<KtLambdaExpression, ContextVerifier>()
-        val callContexts = MultiMap.create<KtCallExpression, Context>()
-        val callVerifiers = MultiMap.create<KtCallExpression, ContextVerifier>()
-
-        loop@ for (effect in resultingContextInfo.firedEffects) {
-            when (effect) {
                 is ProvidesContextEffect -> {
-                    // hack
-                    val factory = effect.contextDeclaration as ContextDeclaration
-
-                    // TODO: maybe report diagnostic?
-                    when (effect.owner) {
-                        is ESFunction -> {
-                            val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: throw AssertionError()
-                            val context =
-                                factory.bind(callExpression, effect.references, bindingTrace.bindingContext) ?: throw AssertionError()
-                            callContexts.putValue(callExpression, context)
-                        }
-                        is ESLambda -> {
-                            val lambda = (effect.owner as ESLambda).lambda
-                            val context =
-                                factory.bind(lambda, effect.references, bindingTrace.bindingContext) ?: throw AssertionError()
-                            lambdaContexts.putValue(lambda, context)
-                        }
-                        else -> throw AssertionError()
-                    }
+                    val (context, expression) = extractContext(effect, resolvedCall, bindingTrace.bindingContext)
+                    contexts.putValue(expression, context)
                 }
 
                 is RequiresContextEffect -> {
-                    // hack
-                    val factory = effect.verifiersDeclaration as VerifierDeclaration
-                    when (effect.owner) {
-                        is ESFunction -> {
-                            val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: throw AssertionError()
-                            val verifier =
-                                factory.bind(callExpression, effect.references, bindingTrace.bindingContext) ?: throw AssertionError()
-                            callVerifiers.putValue(callExpression, verifier)
-                        }
-                        is ESLambda -> {
-                            val lambda = (effect.owner as ESLambda).lambda
-                            val verifier =
-                                factory.bind(lambda, effect.references, bindingTrace.bindingContext) ?: throw AssertionError()
-                            lambdaVerifiers.putValue(lambda, verifier)
-                        }
-                        else -> throw AssertionError()
-                    }
+                    val (verifier, expression) = extractVerifier(effect, resolvedCall, bindingTrace.bindingContext)
+                    verifiers.putValue(expression, verifier)
                 }
             }
         }
 
-        // record factories to binding context
-        val allLambdas = lambdaVerifiers.keySet() union lambdaContexts.keySet()
-        for (lambda in allLambdas) {
-            val factFactories = lambdaContexts[lambda]
-            val checkerFactories = lambdaVerifiers[lambda]
-            bindingTrace.record(BindingContext.CONTEXT_FACTS, lambda, FactsBindingInfo(factFactories, checkerFactories))
+        // record contexts and verifiers to binding context
+        val expressions = verifiers.keySet() union contexts.keySet()
+        for (expression in expressions) {
+            val factFactories = contexts[expression]
+            val checkerFactories = verifiers[expression]
+            bindingTrace.record(BindingContext.CONTEXT_FACTS, expression, FactsBindingInfo(factFactories, checkerFactories))
         }
+    }
 
-        val allCalls = callVerifiers.keySet() union callContexts.keySet()
-        for (call in allCalls) {
-            val factFactories = callContexts[call]
-            val checkerFactories = callVerifiers[call]
-            bindingTrace.record(BindingContext.CONTEXT_FACTS, call, FactsBindingInfo(factFactories, checkerFactories))
+    private data class VerifierWithExpression(val verifier: ContextVerifier, val expression: KtExpression)
+    private data class ContextWithExpression(val context: Context, val expression: KtExpression)
+
+    private fun extractContext(
+        effect: ProvidesContextEffect,
+        resolvedCall: ResolvedCall<*>,
+        bindingContext: BindingContext
+    ): ContextWithExpression {
+        // hack
+        val contextDeclaration = effect.contextDeclaration as ContextDeclaration
+        return when (effect.owner) {
+            is ESFunction -> {
+                val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: throw AssertionError()
+                val context = contextDeclaration.bind(callExpression, effect.references, bindingContext) ?: throw AssertionError()
+                ContextWithExpression(context, callExpression)
+            }
+            is ESLambda -> {
+                val lambda = (effect.owner as ESLambda).lambda
+                val context = contextDeclaration.bind(lambda, effect.references, bindingContext) ?: throw AssertionError()
+                ContextWithExpression(context, lambda)
+            }
+            else -> throw AssertionError()
+        }
+    }
+
+    private fun extractVerifier(
+        effect: RequiresContextEffect,
+        resolvedCall: ResolvedCall<*>,
+        bindingContext: BindingContext
+    ): VerifierWithExpression {
+        // hack
+        val verifierDeclaration = effect.verifiersDeclaration as VerifierDeclaration
+        return when (effect.owner) {
+            is ESFunction -> {
+                val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: throw AssertionError()
+                val verifier = verifierDeclaration.bind(callExpression, effect.references, bindingContext) ?: throw AssertionError()
+                VerifierWithExpression(verifier, callExpression)
+            }
+            is ESLambda -> {
+                val lambda = (effect.owner as ESLambda).lambda
+                val verifier = verifierDeclaration.bind(lambda, effect.references, bindingContext) ?: throw AssertionError()
+                VerifierWithExpression(verifier, lambda)
+            }
+            else -> throw AssertionError()
         }
     }
 
