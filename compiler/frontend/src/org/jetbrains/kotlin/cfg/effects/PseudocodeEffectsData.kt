@@ -17,10 +17,7 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.CallInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.InlinedLocalFunctionDeclarationInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineEnterInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineExitInstruction
-import org.jetbrains.kotlin.cfg.pseudocodeTraverser.LocalFunctionAnalysisStrategy
-import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder
-import org.jetbrains.kotlin.cfg.pseudocodeTraverser.newCollectData
-import org.jetbrains.kotlin.cfg.pseudocodeTraverser.traverse
+import org.jetbrains.kotlin.cfg.pseudocodeTraverser.*
 import org.jetbrains.kotlin.contracts.FactsEffectSystem
 import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextFamily
@@ -45,12 +42,12 @@ class PseudocodeEffectsData(
 
     private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): FactsControlFlowInfo? {
         // collect info via CFA
-        val edgesMap = pseudocode.newCollectData(
+        val edgesMap = pseudocode.collectData(
             TraversalOrder.FORWARD,
-            ::merge,
-            ::update,
+            ::mergeEdges,
+            { _, _, info -> info },
             FactsControlFlowInfo.EMPTY,
-            LocalFunctionAnalysisStrategy.ONLY_INLINED_LAMBDAS
+            LocalFunctionAnalysisStrategy.ONLY_IN_PLACE_LAMBDAS
         )
         // verify resulting context
         pseudocode.traverse(
@@ -59,6 +56,12 @@ class PseudocodeEffectsData(
             ::verify
         )
         return edgesMap[pseudocode.exitInstruction]?.incoming
+    }
+
+    private fun mergeEdges(instruction: Instruction, incoming: Collection<FactsControlFlowInfo>): Edges<FactsControlFlowInfo> {
+        val mergedData = merge(incoming)
+        val updatedData = update(instruction, mergedData)
+        return Edges(mergedData, updatedData)
     }
 
     // -------------------------- Verification --------------------------
