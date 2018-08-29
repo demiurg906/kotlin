@@ -5,12 +5,20 @@
 
 package org.jetbrains.kotlin.contracts.exceptions
 
+import com.intellij.util.containers.MultiMap
 import org.jetbrains.kotlin.contracts.facts.AbstractContext
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 import org.jetbrains.kotlin.types.KotlinType
 
-data class ExceptionContext(val cachedExceptions: Set<KotlinType> = setOf()) : AbstractContext() {
-    constructor(cachedException: KotlinType) : this(setOf(cachedException))
+data class ExceptionContext(
+    val depths: MultiMap<KotlinType, Int> = MultiMap.create()
+) : AbstractContext() {
+    val cachedExceptions: Set<KotlinType>
+        get() = depths.keySet()
+
+    constructor(cachedException: KotlinType) : this(MultiMap.create()) {
+        depths.putValue(cachedException, -1)
+    }
 
     override val family = ExceptionFamily
 
