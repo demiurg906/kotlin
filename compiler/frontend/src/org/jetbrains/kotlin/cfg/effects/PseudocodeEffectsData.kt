@@ -39,17 +39,20 @@ class PseudocodeEffectsData(
     val diagnostics: List<Pair<KtElement, String>>
         get() = myDiagnostics
 
-    val controlFlowInfo: FactsControlFlowInfo? = computeEffectsControlFlowInfo(pseudocode)
+    // TODO: cast to simple map
+    val infoContracts: ContractsContextsInfo? = computeEffectsControlFlowInfo(pseudocode)
 
-    private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): FactsControlFlowInfo? {
+    private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): ContractsContextsInfo? {
         // collect info via CFA
+        // TODO: named parameters
         val edgesMap = pseudocode.collectData(
             TraversalOrder.FORWARD,
             ::mergeEdges,
             { _, _, info -> info },
-            FactsControlFlowInfo.EMPTY,
+            ContractsContextsInfo.EMPTY,
             LocalFunctionAnalysisStrategy.ONLY_IN_PLACE_LAMBDAS
         )
+
         // verify resulting context
         pseudocode.traverse(
             TraversalOrder.FORWARD,
@@ -59,34 +62,28 @@ class PseudocodeEffectsData(
         return edgesMap[pseudocode.exitInstruction]?.incoming
     }
 
-    private fun mergeEdges(instruction: Instruction, incoming: Collection<FactsControlFlowInfo>, depth: Int): Edges<FactsControlFlowInfo> {
-        val mergedData = merge(incoming)
-        val updatedData = update(instruction, mergedData, depth)
-        return Edges(mergedData, updatedData)
-    }
-
     // -------------------------- Verification --------------------------
 
-    private fun verify(instruction: Instruction, incoming: FactsControlFlowInfo, outgoing: FactsControlFlowInfo) {
+    private fun verify(instruction: Instruction, incoming: ContractsContextsInfo, outgoing: ContractsContextsInfo) {
         when (instruction) {
             is SubroutineExitInstruction -> verifySubroutineExitInstruction(instruction, incoming)
             is CallInstruction -> verifyCallInstruction(instruction, incoming)
         }
     }
 
-    private fun verifySubroutineExitInstruction(instruction: SubroutineExitInstruction, incoming: FactsControlFlowInfo) {
+    private fun verifySubroutineExitInstruction(instruction: SubroutineExitInstruction, incoming: ContractsContextsInfo) {
         val lambdaExpression = instruction.subroutine.parent as? KtLambdaExpression ?: return
         val verifiers = FactsEffectSystem.declaredVerifiers(lambdaExpression, bindingContext)
         verifyContext(verifiers, incoming)
     }
 
-    private fun verifyCallInstruction(instruction: CallInstruction, incoming: FactsControlFlowInfo) {
+    private fun verifyCallInstruction(instruction: CallInstruction, incoming: ContractsContextsInfo) {
         val callExpression = instruction.element as? KtCallExpression ?: return
         val (_, verifiers) = FactsEffectSystem.declaredFactsAndCheckers(callExpression, bindingContext)
         verifyContext(verifiers, incoming)
     }
 
-    private fun verifyContext(verifiers: Collection<ContextVerifier>, info: FactsControlFlowInfo) {
+    private fun verifyContext(verifiers: Collection<ContextVerifier>, info: ContractsContextsInfo) {
         for (verifier in verifiers) {
             val family = verifier.family
             val context = info[family].getOrElse(family.emptyContext)
@@ -96,32 +93,39 @@ class PseudocodeEffectsData(
 
     // -------------------------- Collecting data --------------------------
 
-    private fun merge(incoming: Collection<FactsControlFlowInfo>): FactsControlFlowInfo {
+    private fun mergeEdges(
+        instruction: Instruction,
+        incoming: Collection<ContractsContextsInfo>,
+        depth: Int
+    ): Edges<ContractsContextsInfo> {
+        val mergedData = merge(incoming)
+        val updatedData = update(instruction, mergedData, depth)
+        return Edges(mergedData, updatedData)
+    }
+
+    private fun merge(incoming: Collection<ContractsContextsInfo>): ContractsContextsInfo {
         when (incoming.size) {
-            0 -> return FactsControlFlowInfo.EMPTY
+            0 -> return ContractsContextsInfo.EMPTY
             1 -> return incoming.first()
         }
         val families = incoming.flatMap { it.keySet() }.toSet()
 
-        val contextsGroupedByFamily = mutableMapOf<ContextFamily, List<Context>>()
+        val reducedContextsGroupedByFamily = mutableMapOf<ContextFamily, Context>()
         for (family in families) {
-            val contexts = incoming.map {
+            val incomingContexts = incoming.map {
                 it[family].getOrElse(family.emptyContext)
             }
-            contextsGroupedByFamily[family] = contexts
+            reducedContextsGroupedByFamily[family] = incomingContexts.reduce(family.combiner::or)
         }
 
-        val reducedContextsGroupedByFamily = contextsGroupedByFamily
-            .mapValues { (family, contexts) -> contexts.reduce(family.combiner::or) }
-
-        return FactsControlFlowInfo(ImmutableHashMap.ofAll(reducedContextsGroupedByFamily))
+        return ContractsContextsInfo(ImmutableHashMap.ofAll(reducedContextsGroupedByFamily))
     }
 
     private fun update(
         instruction: Instruction,
-        info: FactsControlFlowInfo,
+        info: ContractsContextsInfo,
         depth: Int
-    ): FactsControlFlowInfo =
+    ): ContractsContextsInfo =
         when (instruction) {
             is SubroutineEnterInstruction -> visitSubroutineEnter(instruction, info, depth)
             is SubroutineExitInstruction -> visitSubroutineExit(instruction, info, depth)
@@ -133,37 +137,37 @@ class PseudocodeEffectsData(
     // collect facts
     private fun visitSubroutineEnter(
         instruction: SubroutineEnterInstruction,
-        info: FactsControlFlowInfo,
+        info: ContractsContextsInfo,
         depth: Int
-    ): FactsControlFlowInfo {
+    ): ContractsContextsInfo {
         val lambdaExpression = instruction.subroutine.parent as? KtLambdaExpression ?: return info
 
         val contexts = FactsEffectSystem.declaredContexts(lambdaExpression, bindingContext)
-        val contextsGroupedByFamily= info.toMutableMap()
+        val contextsGroupedByFamily = info.toMutableMap()
         combineContexts(contextsGroupedByFamily, contexts, depth)
-        return FactsControlFlowInfo(contextsGroupedByFamily)
+        return ContractsContextsInfo(contextsGroupedByFamily)
     }
 
     // collect checkers
     private fun visitSubroutineExit(
         instruction: SubroutineExitInstruction,
-        info: FactsControlFlowInfo,
+        info: ContractsContextsInfo,
         depth: Int
-    ): FactsControlFlowInfo {
+    ): ContractsContextsInfo {
         val lambdaExpression = instruction.subroutine.parent as? KtLambdaExpression ?: return info
 
         val verifiers = FactsEffectSystem.declaredVerifiers(lambdaExpression, bindingContext)
         val context = info.toMutableMap()
         applyVerifiers(verifiers, context)
         cleanUpContextAtExit(context, depth)
-        return FactsControlFlowInfo(context)
+        return ContractsContextsInfo(context)
     }
 
     // collect facts and checkers
     private fun visitCallInstruction(
         instruction: CallInstruction,
-        info: FactsControlFlowInfo
-    ): FactsControlFlowInfo {
+        info: ContractsContextsInfo
+    ): ContractsContextsInfo {
         val contextsGroupedByFamily = info.toMutableMap()
 
         val callExpression = instruction.element as? KtCallExpression ?: return info
@@ -172,13 +176,13 @@ class PseudocodeEffectsData(
         combineContexts(contextsGroupedByFamily, contexts, null)
         applyVerifiers(verifiers, contextsGroupedByFamily)
 
-        return FactsControlFlowInfo(contextsGroupedByFamily)
+        return ContractsContextsInfo(contextsGroupedByFamily)
     }
 
     private fun visitInlinedLocalFunctionDeclarationInstruction(
         instruction: InlinedLocalFunctionDeclarationInstruction,
-        info: FactsControlFlowInfo
-    ): FactsControlFlowInfo {
+        info: ContractsContextsInfo
+    ): ContractsContextsInfo {
         val kind = instruction.kind
         val context = info.toMutableMap()
         for (family in context.keys) {
@@ -187,9 +191,10 @@ class PseudocodeEffectsData(
                 context[family] = combiner.updateContextWhenFuncCalledAtMostOnce(context[family]!!)
             }
         }
-        return FactsControlFlowInfo(context)
+        return ContractsContextsInfo(context)
     }
 
+    // TODO: contexts to Map<>
     private fun combineContexts(
         contextsGroupedByFamily: MutableMap<ContextFamily, Context>,
         contexts: Collection<Context>,
@@ -222,7 +227,7 @@ class PseudocodeEffectsData(
         }
     }
 
-    private fun FactsControlFlowInfo.convertToMap() = iterator().map { it._1 to it._2 }.toList().toMap()
+    private fun ContractsContextsInfo.convertToMap() = iterator().map { it._1 to it._2 }.toList().toMap()
 
-    private fun FactsControlFlowInfo.toMutableMap() = convertToMap().toMutableMap()
+    private fun ContractsContextsInfo.toMutableMap() = convertToMap().toMutableMap()
 }

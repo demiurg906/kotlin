@@ -16,14 +16,14 @@ import org.jetbrains.kotlin.cfg.ImmutableMap
 import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextFamily
 
-class FactsControlFlowInfo(map: ImmutableMap<ContextFamily, Context> = ImmutableHashMap.empty()) :
-    ControlFlowInfo<FactsControlFlowInfo, ContextFamily, Context>(map) {
+class ContractsContextsInfo(map: ImmutableMap<ContextFamily, Context> = ImmutableHashMap.empty()) :
+    ControlFlowInfo<ContractsContextsInfo, ContextFamily, Context>(map) {
 
     constructor(map: Map<ContextFamily, Context>) : this(ImmutableHashMap.ofAll(map))
 
     companion object {
-        val EMPTY = FactsControlFlowInfo()
+        val EMPTY = ContractsContextsInfo()
     }
 
-    override fun copy(newMap: ImmutableMap<ContextFamily, Context>) = FactsControlFlowInfo(newMap)
+    override fun copy(newMap: ImmutableMap<ContextFamily, Context>) = ContractsContextsInfo(newMap)
 }

@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.contracts.FactsEffectSystem
 import org.jetbrains.kotlin.contracts.facts.AbstractContext
-import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
@@ -54,6 +53,7 @@ import org.jetbrains.kotlin.types.TypeUtils.*
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils
 import org.jetbrains.kotlin.types.isFlexible
 import org.jetbrains.kotlin.util.OperatorNameConventions
+import org.jetbrains.kotlin.util.javaslang.getOrNull
 
 class ControlFlowInformationProvider private constructor(
     private val subroutine: KtElement,
@@ -129,18 +129,15 @@ class ControlFlowInformationProvider private constructor(
     }
 
     private fun checkContextualEffects() {
+        // subroutine can be secondary constructor
         if (subroutine !is KtFunction) return
 
-        val controlFlowInfo = pseudocodeEffectsData.controlFlowInfo ?: return
+        val contextsInfo = pseudocodeEffectsData.infoContracts ?: return
 
         for (family in FactsEffectSystem.getFamilies()) {
-            val context = controlFlowInfo[family].firstOrNull() ?: continue
-            reportUnhandledEffects(context)
+            val context = contextsInfo[family].getOrNull() ?: continue
+            (context as AbstractContext).reportRemaining(trace)
         }
-    }
-
-    private fun reportUnhandledEffects(context: Context) {
-        (context as AbstractContext).reportRemaining(trace)
     }
 
     private fun collectReturnExpressions(returnedExpressions: MutableCollection<KtElement>) {
