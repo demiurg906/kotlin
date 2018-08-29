@@ -19,8 +19,11 @@ class CallVerifier(
 ) : ContextVerifier() {
     override val family = CallFamily
 
+    // TODO: UNKNOWN and ZERO reports to lambda, others to calls
     override fun verify(context: Context, diagnosticSink: DiagnosticSink) {
-        val (_, actualKind) = extractKindFromContext(context)
+        if (context !is CallContext) throw AssertionError()
+
+        val actualKind = context.calls[functionReference]?.kind ?: InvocationKind.ZERO
         if (!isSatisfied(expectedKind, actualKind)) {
             val message = "${functionReference.functionDescriptor.name} call mismatch: expected $expectedKind, actual $actualKind"
             diagnosticSink.report(Errors.CONTEXTUAL_EFFECT_WARNING.on(sourceElement, message))
@@ -28,15 +31,11 @@ class CallVerifier(
     }
 
     override fun cleanupProcessed(context: Context): Context {
-        val (calls, _) = extractKindFromContext(context)
-        return CallContext(calls)
-    }
-
-    private fun extractKindFromContext(context: Context): Pair<Map<FunctionReference, CallInfo>, InvocationKind> {
         if (context !is CallContext) throw AssertionError()
+
         val calls = context.calls.toMutableMap()
-        val kind = calls.remove(functionReference)?.kind ?: InvocationKind.ZERO
-        return calls to kind
+        calls.remove(functionReference)
+        return CallContext(calls)
     }
 
     private fun isSatisfied(expected: InvocationKind, actual: InvocationKind): Boolean {
