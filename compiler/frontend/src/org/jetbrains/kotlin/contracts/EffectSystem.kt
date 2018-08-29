@@ -100,10 +100,10 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
             }
         }
 
-        recordContextFactories(resolvedCall, resultingContextInfo, bindingTrace)
+        recordContextsAndVerifiers(resolvedCall, resultingContextInfo, bindingTrace)
     }
 
-    private fun recordContextFactories(
+    private fun recordContextsAndVerifiers(
         resolvedCall: ResolvedCall<*>,
         resultingContextInfo: MutableContextInfo,
         bindingTrace: BindingTrace
