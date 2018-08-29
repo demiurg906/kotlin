@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineEnterI
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineExitInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.*
 import org.jetbrains.kotlin.contracts.FactsEffectSystem
+import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextFamily
 import org.jetbrains.kotlin.contracts.facts.ContextVerifier
@@ -58,9 +59,9 @@ class PseudocodeEffectsData(
         return edgesMap[pseudocode.exitInstruction]?.incoming
     }
 
-    private fun mergeEdges(instruction: Instruction, incoming: Collection<FactsControlFlowInfo>): Edges<FactsControlFlowInfo> {
+    private fun mergeEdges(instruction: Instruction, incoming: Collection<FactsControlFlowInfo>, depth: Int): Edges<FactsControlFlowInfo> {
         val mergedData = merge(incoming)
-        val updatedData = update(instruction, mergedData)
+        val updatedData = update(instruction, mergedData, depth)
         return Edges(mergedData, updatedData)
     }
 
@@ -118,11 +119,12 @@ class PseudocodeEffectsData(
 
     private fun update(
         instruction: Instruction,
-        info: FactsControlFlowInfo
+        info: FactsControlFlowInfo,
+        depth: Int
     ): FactsControlFlowInfo =
         when (instruction) {
-            is SubroutineEnterInstruction -> visitSubroutineEnter(instruction, info)
-            is SubroutineExitInstruction -> visitSubroutineExit(instruction, info)
+            is SubroutineEnterInstruction -> visitSubroutineEnter(instruction, info, depth)
+            is SubroutineExitInstruction -> visitSubroutineExit(instruction, info, depth)
             is CallInstruction -> visitCallInstruction(instruction, info)
             is InlinedLocalFunctionDeclarationInstruction -> visitInlinedLocalFunctionDeclarationInstruction(instruction, info)
             else -> info
@@ -131,26 +133,29 @@ class PseudocodeEffectsData(
     // collect facts
     private fun visitSubroutineEnter(
         instruction: SubroutineEnterInstruction,
-        info: FactsControlFlowInfo
+        info: FactsControlFlowInfo,
+        depth: Int
     ): FactsControlFlowInfo {
         val lambdaExpression = instruction.subroutine.parent as? KtLambdaExpression ?: return info
 
         val contexts = FactsEffectSystem.declaredContexts(lambdaExpression, bindingContext)
         val contextsGroupedByFamily= info.toMutableMap()
-        combineContexts(contextsGroupedByFamily, contexts)
+        combineContexts(contextsGroupedByFamily, contexts, depth)
         return FactsControlFlowInfo(contextsGroupedByFamily)
     }
 
     // collect checkers
     private fun visitSubroutineExit(
         instruction: SubroutineExitInstruction,
-        info: FactsControlFlowInfo
+        info: FactsControlFlowInfo,
+        depth: Int
     ): FactsControlFlowInfo {
         val lambdaExpression = instruction.subroutine.parent as? KtLambdaExpression ?: return info
 
         val verifiers = FactsEffectSystem.declaredVerifiers(lambdaExpression, bindingContext)
         val context = info.toMutableMap()
         applyVerifiers(verifiers, context)
+        cleanUpContextAtExit(context, depth)
         return FactsControlFlowInfo(context)
     }
 
@@ -164,7 +169,7 @@ class PseudocodeEffectsData(
         val callExpression = instruction.element as? KtCallExpression ?: return info
 
         val (contexts, verifiers) = FactsEffectSystem.declaredFactsAndCheckers(callExpression, bindingContext)
-        combineContexts(contextsGroupedByFamily, contexts)
+        combineContexts(contextsGroupedByFamily, contexts, null)
         applyVerifiers(verifiers, contextsGroupedByFamily)
 
         return FactsControlFlowInfo(contextsGroupedByFamily)
@@ -178,19 +183,22 @@ class PseudocodeEffectsData(
         val context = info.toMutableMap()
         for (family in context.keys) {
             val combiner = family.combiner
-            context[family] = combiner.updateWithInvocationKind(context[family]!!, kind)
+            if (kind == InvocationKind.AT_MOST_ONCE) {
+                context[family] = combiner.updateContextWhenFuncCalledAtMostOnce(context[family]!!)
+            }
         }
         return FactsControlFlowInfo(context)
     }
 
     private fun combineContexts(
         contextsGroupedByFamily: MutableMap<ContextFamily, Context>,
-        contexts: Collection<Context>
+        contexts: Collection<Context>,
+        depth: Int?
     ) {
         for (context in contexts) {
             val family = context.family
             val existedContext = contextsGroupedByFamily[family] ?: family.emptyContext
-            contextsGroupedByFamily[family] = family.combiner.combine(existedContext, context)
+            contextsGroupedByFamily[family] = family.combiner.combine(existedContext, context, depth)
         }
     }
 
@@ -202,6 +210,15 @@ class PseudocodeEffectsData(
             val family = verifier.family
             val context = contextsGroupedByFamily[family] ?: family.emptyContext
             contextsGroupedByFamily[family] = verifier.cleanupProcessed(context)
+        }
+    }
+
+    private fun cleanUpContextAtExit(
+        contextsGroupedByFamily: MutableMap<ContextFamily, Context>,
+        depth: Int
+    ) {
+        for ((family, context) in contextsGroupedByFamily) {
+            contextsGroupedByFamily[family] = family.combiner.cleanupContextAtBlockExit(context, depth)
         }
     }
 
