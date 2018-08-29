@@ -32,9 +32,8 @@ enum class LocalFunctionAnalysisStrategy {
     },
 
     ONLY_IN_PLACE_LAMBDAS {
-        override fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean {
-            return declaration is InlinedLocalFunctionDeclarationInstruction
-        }
+        override fun allowFunction(declaration: LocalFunctionDeclarationInstruction) =
+            declaration is InlinedLocalFunctionDeclarationInstruction
     };
 
     abstract fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean
@@ -63,13 +62,23 @@ fun <D> Pseudocode.traverse(
         if (instruction is LocalFunctionDeclarationInstruction) {
             instruction.body.traverse(traversalOrder, edgesMap, analyzeInstruction)
         }
-        val edges = edgesMap[instruction]
-        if (edges != null) {
-            analyzeInstruction(instruction, edges.incoming, edges.outgoing)
-        }
+        val edges = edgesMap[instruction] ?: continue
+        analyzeInstruction(instruction, edges.incoming, edges.outgoing)
     }
 }
 
+/**
+ * Collects data from pseudocode using ControlFlowAnalysis
+ *
+ * [mergeEdges] is callback that takes current instruction and all data from previous edges
+ *  it has to merge previous data and return [Edges] info about current instruction
+ *
+ * [updateEdge] is callback that takes previous instruction, current instruction and control flow info
+ *  it used for cleanup control flow info if needed
+ *
+ * [localFunctionAnalysisStrategy] describes politic of analyzing [LocalFunctionDeclarationInstruction]
+ *  it decides, should CFA come into local function or not
+ */
 fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectData(
     traversalOrder: TraversalOrder,
     mergeEdges: (Instruction, Collection<I>) -> Edges<I>,
@@ -79,7 +88,7 @@ fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectData(
 ): Map<Instruction, Edges<I>> {
     val edgesMap = LinkedHashMap<Instruction, Edges<I>>()
     val startInstruction = getStartInstruction(traversalOrder)
-    edgesMap.put(startInstruction, Edges(initialInfo, initialInfo))
+    edgesMap[startInstruction] = Edges(initialInfo, initialInfo)
 
     val changed = mutableMapOf<Instruction, Boolean>()
     do {
@@ -140,18 +149,11 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
             continue
         }
 
-        val incomingEdgesData = HashSet<I>()
+        val incomingEdgesData = previousInstructions.mapNotNull { previousInstruction ->
+            val previousData = edgesMap[previousInstruction] ?: return@mapNotNull null
+            updateEdge(previousInstruction, instruction, previousData.outgoing)
+        }.toSet()
 
-        for (previousInstruction in previousInstructions) {
-            val previousData = edgesMap[previousInstruction]
-            if (previousData != null) {
-                incomingEdgesData.add(
-                    updateEdge(
-                        previousInstruction, instruction, previousData.outgoing
-                    )
-                )
-            }
-        }
         val mergedData = mergeEdges(instruction, incomingEdgesData)
         updateEdgeDataForInstruction(instruction, previousDataValue, mergedData, edgesMap, changed)
     }
@@ -181,7 +183,7 @@ private fun <I : ControlFlowInfo<*, *, *>> updateEdgeDataForInstruction(
 ) {
     if (previousValue != newValue && newValue != null) {
         changed[instruction] = true
-        edgesMap.put(instruction, newValue)
+        edgesMap[instruction] = newValue
     } else {
         changed[instruction] = false
     }
