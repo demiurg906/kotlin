@@ -39,27 +39,25 @@ class PseudocodeEffectsData(
     val diagnostics: List<Pair<KtElement, String>>
         get() = myDiagnostics
 
-    // TODO: cast to simple map
-    val infoContracts: ContractsContextsInfo? = computeEffectsControlFlowInfo(pseudocode)
+    val resultingContexts: Map<ContextFamily, Context>? = computeEffectsControlFlowInfo(pseudocode)
 
-    private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): ContractsContextsInfo? {
+    private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): Map<ContextFamily, Context>? {
         // collect info via CFA
-        // TODO: named parameters
         val edgesMap = pseudocode.collectData(
-            TraversalOrder.FORWARD,
-            ::mergeEdges,
-            { _, _, info -> info },
-            ContractsContextsInfo.EMPTY,
-            LocalFunctionAnalysisStrategy.ONLY_IN_PLACE_LAMBDAS
+            traversalOrder = TraversalOrder.FORWARD,
+            mergeEdges = ::mergeEdges,
+            updateEdge = { _, _, info -> info },
+            initialInfo = ContractsContextsInfo.EMPTY,
+            localFunctionAnalysisStrategy = LocalFunctionAnalysisStrategy.ONLY_IN_PLACE_LAMBDAS
         )
 
         // verify resulting context
         pseudocode.traverse(
-            TraversalOrder.FORWARD,
-            edgesMap,
-            ::verify
+            traversalOrder = TraversalOrder.FORWARD,
+            edgesMap = edgesMap,
+            analyzeInstruction = ::verify
         )
-        return edgesMap[pseudocode.exitInstruction]?.incoming
+        return edgesMap[pseudocode.exitInstruction]?.incoming?.toMutableMap()
     }
 
     // -------------------------- Verification --------------------------

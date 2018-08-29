@@ -53,7 +53,6 @@ import org.jetbrains.kotlin.types.TypeUtils.*
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils
 import org.jetbrains.kotlin.types.isFlexible
 import org.jetbrains.kotlin.util.OperatorNameConventions
-import org.jetbrains.kotlin.util.javaslang.getOrNull
 
 class ControlFlowInformationProvider private constructor(
     private val subroutine: KtElement,
@@ -132,10 +131,10 @@ class ControlFlowInformationProvider private constructor(
         // subroutine can be secondary constructor
         if (subroutine !is KtFunction) return
 
-        val contextsInfo = pseudocodeEffectsData.infoContracts ?: return
+        val contextsInfo = pseudocodeEffectsData.resultingContexts ?: return
 
         for (family in FactsEffectSystem.getFamilies()) {
-            val context = contextsInfo[family].getOrNull() ?: continue
+            val context = contextsInfo[family] ?: continue
             (context as AbstractContext).reportRemaining(trace)
         }
     }
