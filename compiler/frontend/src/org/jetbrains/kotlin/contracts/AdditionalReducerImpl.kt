@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.contracts.model.visitors.AdditionalReducer
 import org.jetbrains.kotlin.resolve.BindingContext
 
 class AdditionalReducerImpl(private val bindingContext: BindingContext) : AdditionalReducer {
-    override fun visitReceiverReference(esReceiverReference: ESReceiverReference): ESReceiver? {
+    override fun reduceReceiverReference(esReceiverReference: ESReceiverReference): ESReceiver? {
         val lambda = esReceiverReference.lambda as? ESLambda ?: throw AssertionError()
         val lambdaExpression = lambda.lambda
         val functionLiteral = lambdaExpression.functionLiteral

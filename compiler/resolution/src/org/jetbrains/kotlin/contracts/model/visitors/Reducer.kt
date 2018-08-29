@@ -120,7 +120,7 @@ class Reducer(private val additionalReducer: AdditionalReducer?) : ESExpressionV
     override fun visitConstant(esConstant: ESConstant): ESConstant = esConstant
 
     override fun visitReceiverReference(esReceiverReference: ESReceiverReference): ESReceiver? =
-        additionalReducer?.visitReceiverReference(esReceiverReference)
+        additionalReducer?.reduceReceiverReference(esReceiverReference)
 
     override fun visitFunction(esFunction: ESFunction): ESFunction = esFunction
 
@@ -128,5 +128,5 @@ class Reducer(private val additionalReducer: AdditionalReducer?) : ESExpressionV
 }
 
 interface AdditionalReducer {
-    fun visitReceiverReference(esReceiverReference: ESReceiverReference): ESReceiver?
+    fun reduceReceiverReference(esReceiverReference: ESReceiverReference): ESReceiver?
 }
