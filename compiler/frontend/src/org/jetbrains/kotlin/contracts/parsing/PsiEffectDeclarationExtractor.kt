@@ -11,6 +11,8 @@ import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 abstract class PsiEffectDeclarationExtractor(val context: BindingContext, val dispatcher: PsiContractParserDispatcher) {
     abstract fun extractContextDeclaration(declaration: KtExpression): ContextDeclaration?
@@ -18,4 +20,12 @@ abstract class PsiEffectDeclarationExtractor(val context: BindingContext, val di
 
     protected fun extractConstructorName(descriptor: CallableDescriptor) =
         (descriptor as? ClassConstructorDescriptor)?.constructedClass?.name?.asString()
+
+    protected fun KtExpression.getResolverCallAndResultingDescriptor(
+        context: BindingContext
+    ): Pair<ResolvedCall<*>, CallableDescriptor>? {
+        val resolvedCall = getResolvedCall(context) ?: return null
+        val descriptor = resolvedCall.resultingDescriptor
+        return resolvedCall to descriptor
+    }
 }

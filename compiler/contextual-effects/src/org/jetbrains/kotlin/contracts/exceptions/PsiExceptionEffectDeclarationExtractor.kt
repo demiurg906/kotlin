@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.types.KotlinType
 
 class PsiExceptionEffectDeclarationExtractor(context: BindingContext, dispatcher: PsiContractParserDispatcher) :
@@ -33,8 +32,8 @@ class PsiExceptionEffectDeclarationExtractor(context: BindingContext, dispatcher
 
     private fun getExceptionType(expression: KtExpression): KotlinType? {
         if (expression !is KtCallExpression) return null
-        val resolvedCall = expression.getResolvedCall(context) ?: return null
-        val descriptor = resolvedCall.resultingDescriptor
+
+        val (resolvedCall, descriptor) = expression.getResolverCallAndResultingDescriptor(context) ?: return null
 
         val constructorName = extractConstructorName(descriptor) ?: return null
         if (constructorName != CONSTRUCTOR_NAME) return null

@@ -26,8 +26,7 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
     override fun extractContextDeclaration(declaration: KtExpression): ContextDeclaration? {
         if (declaration !is KtCallExpression) return null
 
-        val resolvedCall = declaration.getResolvedCall(context) ?: return null
-        val descriptor = resolvedCall.resultingDescriptor
+        val (resolvedCall, descriptor) = declaration.getResolverCallAndResultingDescriptor(context) ?: return null
 
         val constructorName = extractConstructorName(descriptor) ?: return null
         if (constructorName != CALLS) return null
@@ -42,8 +41,7 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
     override fun extractVerifierDeclaration(declaration: KtExpression): VerifierDeclaration? {
         if (declaration !is KtCallExpression) return null
 
-        val resolvedCall = declaration.getResolvedCall(context) ?: return null
-        val descriptor = resolvedCall.resultingDescriptor
+        val (resolvedCall, descriptor) = declaration.getResolverCallAndResultingDescriptor(context) ?: return null
 
         val constructorName = extractConstructorName(descriptor) ?: return null
         if (constructorName != CALL_KIND) return null
