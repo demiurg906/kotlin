@@ -13,7 +13,10 @@ import org.jetbrains.kotlin.contracts.facts.ContextCombiner
 object CallCombiner : ContextCombiner() {
     override fun or(a: Context, b: Context): Context = performOperation(a, b, ::or)
 
-    override fun combine(a: Context, b: Context): Context = performOperation(a, b, ::combine)
+    override fun combine(existedContext: Context, newContext: Context, depth: Int?): Context {
+        if (depth != null) throw AssertionError()
+        return performOperation(existedContext, newContext, ::combine)
+    }
 
     private fun performOperation(a: Context, b: Context, operation: (InvocationKind, InvocationKind) -> InvocationKind): Context {
         if (a !is CallContext || b !is CallContext) throw AssertionError()
@@ -38,15 +41,17 @@ object CallCombiner : ContextCombiner() {
         return CallContext(updatedCalls)
     }
 
-    override fun updateWithInvocationKind(context: Context, invocationKind: InvocationKind): Context {
+    override fun updateContextWhenFuncCalledAtMostOnce(context: Context): Context {
         if (context !is CallContext) throw AssertionError()
 
         val updatedCalls = context.calls.mapValues { (_, callInfo) ->
-            val newKind = updateWithCallKind(callInfo.kind, invocationKind)
+            val newKind = updateWithAtMostOnceKind(callInfo.kind)
             CallInfo(callInfo.sourceElement, newKind)
         }
         return CallContext(updatedCalls)
     }
+
+    override fun cleanupContextAtBlockExit(context: Context, depth: Int): Context = context
 
     private fun or(x: InvocationKind, y: InvocationKind) = when (x) {
         ZERO -> when (y) {
@@ -107,16 +112,12 @@ object CallCombiner : ContextCombiner() {
         }
     }
 
-    private fun updateWithCallKind(kind: InvocationKind, functionInvocationKind: InvocationKind) = when (functionInvocationKind) {
-        AT_MOST_ONCE -> when (kind) {
+    private fun updateWithAtMostOnceKind(kind: InvocationKind) =
+        when (kind) {
             AT_MOST_ONCE -> AT_MOST_ONCE
             EXACTLY_ONCE -> AT_MOST_ONCE
             AT_LEAST_ONCE -> UNKNOWN
             ZERO -> ZERO
             UNKNOWN -> UNKNOWN
         }
-        AT_LEAST_ONCE -> kind
-        EXACTLY_ONCE -> kind
-        else -> throw AssertionError()
-    }
 }
