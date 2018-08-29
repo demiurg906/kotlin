@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.contracts.parsing.effects
 
 import org.jetbrains.kotlin.contracts.FactsEffectSystem
 import org.jetbrains.kotlin.contracts.description.*
-import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
 import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
 import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
 import org.jetbrains.kotlin.contracts.facts.ContextEntityDeclaration
@@ -38,13 +37,13 @@ internal class PsiFactParser(
 
         return when {
             descriptor.isRequiresContextDescriptor() || descriptor.isRequiresNotContextDescriptor() -> {
-                val (factory, references) = parseContextCheckerFactoryDeclaration(argumentExpression, trace, contractParserDispatcher) ?: return null
-                RequiresContextEffectDeclaration(factory, references, FunctionReference(ownerDescriptor))
+                val declaration = parseContextCheckerFactoryDeclaration(argumentExpression, trace, contractParserDispatcher) ?: return null
+                RequiresContextEffectDeclaration(declaration, declaration.references, FunctionReference(ownerDescriptor))
             }
 
             descriptor.isProvidesFactDescriptor() -> {
-                val (factory, references) = parseContextFactFactoryDeclaration(argumentExpression, trace, contractParserDispatcher) ?: return null
-                ProvidesFactEffectDeclaration(factory, references, FunctionReference(ownerDescriptor))
+                val declaration = parseContextFactFactoryDeclaration(argumentExpression, trace, contractParserDispatcher) ?: return null
+                ProvidesFactEffectDeclaration(declaration, declaration.references, FunctionReference(ownerDescriptor))
             }
 
             else -> null
@@ -70,13 +69,13 @@ internal class PsiLambdaFactParser(
 
         return when {
             descriptor.isRequiresContextDescriptor() || descriptor.isRequiresNotContextDescriptor() -> {
-                val (factory, references) = parseContextCheckerFactoryDeclaration(argumentExpression, trace, contractParserDispatcher) ?: return null
-                LambdaRequiresContextEffectDeclaration(factory, references, owner)
+                val declaration = parseContextCheckerFactoryDeclaration(argumentExpression, trace, contractParserDispatcher) ?: return null
+                LambdaRequiresContextEffectDeclaration(declaration, declaration.references, owner)
             }
 
             descriptor.isProvidesFactDescriptor() -> {
-                val (factory, references) = parseContextFactFactoryDeclaration(argumentExpression, trace, contractParserDispatcher) ?: return null
-                LambdaProvidesFactEffectDeclaration(factory, references, owner)
+                val declaration = parseContextFactFactoryDeclaration(argumentExpression, trace, contractParserDispatcher) ?: return null
+                LambdaProvidesFactEffectDeclaration(declaration, declaration.references, owner)
             }
 
             else -> null
@@ -90,21 +89,21 @@ internal fun <T : ContextEntityDeclaration> parseAbstractFactoryDeclaration(
     expression: KtExpression,
     trace: BindingTrace,
     dispatcher: PsiContractParserDispatcher,
-    parseFunc: PsiEffectDeclarationExtractor.(KtExpression) -> Pair<T, List<ContractDescriptionValue>>?
-): Pair<T, List<ContractDescriptionValue>>? {
+    parseFunc: PsiEffectDeclarationExtractor.(KtExpression) -> T?
+): T? {
     val parsers = FactsEffectSystem.getParsers()
     return parsers.asSequence()
         .map { it(trace.bindingContext, dispatcher) }
         .map { it.parseFunc(expression) }
         .filterNotNull()
-        .firstOrNull() ?: return null
+        .firstOrNull()
 }
 
 internal fun parseContextFactFactoryDeclaration(
     expression: KtExpression,
     trace: BindingTrace,
     dispatcher: PsiContractParserDispatcher
-): Pair<ContextDeclaration, List<ContractDescriptionValue>>? = parseAbstractFactoryDeclaration(
+): ContextDeclaration? = parseAbstractFactoryDeclaration(
     expression,
     trace,
     dispatcher,
@@ -115,7 +114,7 @@ internal fun parseContextCheckerFactoryDeclaration(
     expression: KtExpression,
     trace: BindingTrace,
     dispatcher: PsiContractParserDispatcher
-): Pair<VerifierDeclaration, List<ContractDescriptionValue>>? = parseAbstractFactoryDeclaration(
+): VerifierDeclaration? = parseAbstractFactoryDeclaration(
     expression,
     trace,
     dispatcher,

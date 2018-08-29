@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.facts
 
+import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
 import org.jetbrains.kotlin.contracts.model.ESValue
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -12,9 +13,13 @@ import org.jetbrains.kotlin.resolve.BindingContext
 interface ContextEntityDeclaration
 
 interface ContextDeclaration : ContextDeclarationHackedInterface, ContextEntityDeclaration {
+    val references: List<ContractDescriptionValue>
+
     fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): Context?
 }
 
 interface VerifierDeclaration : VerifierDeclarationHackedInterface, ContextEntityDeclaration {
+    val references: List<ContractDescriptionValue>
+
     fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextVerifier?
 }

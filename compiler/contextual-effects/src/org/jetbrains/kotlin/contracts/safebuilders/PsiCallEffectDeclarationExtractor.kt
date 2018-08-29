@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.contracts.safebuilders
 
 import org.jetbrains.kotlin.contracts.description.InvocationKind
-import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
 import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
@@ -24,7 +23,7 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
         private const val CALL_KIND = "CallKind"
     }
 
-    override fun extractContextDeclaration(declaration: KtExpression): Pair<ContextDeclaration, List<ContractDescriptionValue>>? {
+    override fun extractContextDeclaration(declaration: KtExpression): ContextDeclaration? {
         if (declaration !is KtCallExpression) return null
 
         val resolvedCall = declaration.getResolvedCall(context) ?: return null
@@ -36,10 +35,11 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
         val functionReference = dispatcher.parseFunction(resolvedCall.argumentAsExpressionOrNull(0)) ?: return null
         val thisReference = dispatcher.parseVariable(resolvedCall.argumentAsExpressionOrNull(1)) ?: return null
 
-        return CallDeclaration() to listOf(functionReference, thisReference)
+        val references = listOf(functionReference, thisReference)
+        return CallDeclaration(references)
     }
 
-    override fun extractVerifierDeclaration(declaration: KtExpression): Pair<VerifierDeclaration, List<ContractDescriptionValue>>? {
+    override fun extractVerifierDeclaration(declaration: KtExpression): VerifierDeclaration? {
         if (declaration !is KtCallExpression) return null
 
         val resolvedCall = declaration.getResolvedCall(context) ?: return null
@@ -58,7 +58,8 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
         val kind = parseKind(kindName)
         val receiverReference = dispatcher.parseReceiver(resolvedCall.argumentAsExpressionOrNull(2)) ?: return null
 
-        return CallVerifierDeclaration(kind) to listOf(functionReference, receiverReference)
+        val references = listOf(functionReference, receiverReference)
+        return CallVerifierDeclaration(kind, references)
     }
 
     private fun parseKind(kind: String) = when (kind) {

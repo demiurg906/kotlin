@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.exceptions
 
+import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
 import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.model.ESValue
@@ -13,6 +14,8 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.types.KotlinType
 
 class ExceptionContextDeclaration(private val exceptionType: KotlinType) : ContextDeclaration {
+    override val references: List<ContractDescriptionValue> = emptyList()
+
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ExceptionContext =
         ExceptionContext(exceptionType)
 
@@ -22,6 +25,8 @@ class ExceptionContextDeclaration(private val exceptionType: KotlinType) : Conte
 }
 
 class ExceptionVerifierDeclaration(private val exceptionType: KotlinType) : VerifierDeclaration {
+    override val references: List<ContractDescriptionValue> = emptyList()
+
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ExceptionVerifier =
         ExceptionVerifier(exceptionType, sourceElement)
 

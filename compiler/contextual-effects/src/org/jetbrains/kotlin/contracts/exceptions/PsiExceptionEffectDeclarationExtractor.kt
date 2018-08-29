@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.contracts.exceptions
 
-import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
 import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
@@ -22,16 +21,14 @@ class PsiExceptionEffectDeclarationExtractor(context: BindingContext, dispatcher
         private const val CONSTRUCTOR_NAME = "CatchesException"
     }
 
-    override fun extractContextDeclaration(declaration: KtExpression): Pair<ContextDeclaration, List<VariableReference>>? {
+    override fun extractContextDeclaration(declaration: KtExpression): ContextDeclaration? {
         val exceptionType = getExceptionType(declaration) ?: return null
-        val factory = ExceptionContextDeclaration(exceptionType)
-        return factory to emptyList()
+        return ExceptionContextDeclaration(exceptionType)
     }
 
-    override fun extractVerifierDeclaration(declaration: KtExpression): Pair<VerifierDeclaration, List<VariableReference>>? {
+    override fun extractVerifierDeclaration(declaration: KtExpression): VerifierDeclaration? {
         val exceptionType = getExceptionType(declaration) ?: return null
-        val factory = ExceptionVerifierDeclaration(exceptionType)
-        return factory to emptyList()
+        return ExceptionVerifierDeclaration(exceptionType)
     }
 
     private fun getExceptionType(expression: KtExpression): KotlinType? {

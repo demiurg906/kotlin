@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.contracts.safebuilders
 
 import org.jetbrains.kotlin.contracts.description.InvocationKind
+import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
 import org.jetbrains.kotlin.contracts.extractReceiverValue
 import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
@@ -18,7 +19,7 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 
-class CallDeclaration : ContextDeclaration {
+class CallDeclaration(override val references: List<ContractDescriptionValue>) : ContextDeclaration {
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): Context? {
         val (functionDescriptor, receiverValue) = extractFunctionAndReceiver(references) ?: return null
         return CallContext(FunctionReference(functionDescriptor, receiverValue), sourceElement)
@@ -27,7 +28,7 @@ class CallDeclaration : ContextDeclaration {
     override fun toString(): String = "func called EXACTLY_ONCE"
 }
 
-class CallVerifierDeclaration(private val kind: InvocationKind) : VerifierDeclaration {
+class CallVerifierDeclaration(private val kind: InvocationKind, override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextVerifier? {
         val (functionDescriptor, receiverValue) = extractFunctionAndReceiver(references) ?: return null
         return CallVerifier(FunctionReference(functionDescriptor, receiverValue), kind, sourceElement)
