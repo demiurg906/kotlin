@@ -165,14 +165,14 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
         for (lambda in allLambdas) {
             val factFactories = lambdaContexts[lambda]
             val checkerFactories = lambdaVerifiers[lambda]
-            bindingTrace.record(BindingContext.LAMBDA_CONTEXT_FACTS, lambda, FactsBindingInfo(factFactories, checkerFactories))
+            bindingTrace.record(BindingContext.CONTEXT_FACTS, lambda, FactsBindingInfo(factFactories, checkerFactories))
         }
 
         val allCalls = callVerifiers.keySet() union callContexts.keySet()
         for (call in allCalls) {
             val factFactories = callContexts[call]
             val checkerFactories = callVerifiers[call]
-            bindingTrace.record(BindingContext.CALL_CONTEXT_FACTS, call, FactsBindingInfo(factFactories, checkerFactories))
+            bindingTrace.record(BindingContext.CONTEXT_FACTS, call, FactsBindingInfo(factFactories, checkerFactories))
         }
     }
 

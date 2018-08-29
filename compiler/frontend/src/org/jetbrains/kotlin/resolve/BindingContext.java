@@ -212,9 +212,7 @@ public interface BindingContext {
     WritableSlice<PropertyDescriptor, Boolean> MUST_BE_LATEINIT = Slices.createSimpleSetSlice();
 
     WritableSlice<KtLambdaExpression, InvocationKind> LAMBDA_INVOCATIONS = Slices.createSimpleSlice();
-
-    WritableSlice<KtCallExpression, FactsBindingInfo> CALL_CONTEXT_FACTS = Slices.createSimpleSlice();
-    WritableSlice<KtLambdaExpression, FactsBindingInfo> LAMBDA_CONTEXT_FACTS = Slices.createSimpleSlice();
+    WritableSlice<KtExpression, FactsBindingInfo> CONTEXT_FACTS = Slices.createSimpleSlice();
 
     WritableSlice<KtLambdaExpression, Boolean> BLOCK = new SetSlice<KtLambdaExpression>(DO_NOTHING) {
         @Override

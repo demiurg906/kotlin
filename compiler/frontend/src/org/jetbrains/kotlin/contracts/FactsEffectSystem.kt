@@ -26,19 +26,19 @@ object FactsEffectSystem {
         callExpression: KtCallExpression,
         context: BindingContext
     ): Pair<Collection<Context>, Collection<ContextVerifier>> {
-        val (contexts, verifiers) = context[BindingContext.CALL_CONTEXT_FACTS, callExpression]
+        val (contexts, verifiers) = context[BindingContext.CONTEXT_FACTS, callExpression]
             ?: return emptyList() to emptyList()
         return contexts to verifiers
     }
 
     // lambdas
     fun declaredContexts(lambdaExpression: KtLambdaExpression, context: BindingContext): Collection<Context> {
-        val (contexts, _) = context[BindingContext.LAMBDA_CONTEXT_FACTS, lambdaExpression] ?: return emptyList()
+        val (contexts, _) = context[BindingContext.CONTEXT_FACTS, lambdaExpression] ?: return emptyList()
         return contexts
     }
 
     fun declaredVerifiers(lambdaExpression: KtLambdaExpression, context: BindingContext): Collection<ContextVerifier> {
-        val (_, verifiers) = context[BindingContext.LAMBDA_CONTEXT_FACTS, lambdaExpression] ?: return emptyList()
+        val (_, verifiers) = context[BindingContext.CONTEXT_FACTS, lambdaExpression] ?: return emptyList()
         return verifiers
     }
 }
