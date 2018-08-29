@@ -103,6 +103,7 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
         recordContextsAndVerifiers(resolvedCall, resultingContextInfo, bindingTrace)
     }
 
+    // TODO: refactor
     private fun recordContextsAndVerifiers(
         resolvedCall: ResolvedCall<*>,
         resultingContextInfo: MutableContextInfo,
@@ -116,7 +117,7 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
 
         loop@ for (effect in resultingContextInfo.firedEffects) {
             when (effect) {
-                is ProvidesContextFactEffect -> {
+                is ProvidesContextEffect -> {
                     // hack
                     val factory = effect.contextDeclaration as ContextDeclaration
 

@@ -56,13 +56,13 @@ class SubstitutingFunctor(
                     substitutedClauses += ESCalls(substitutionForCallable, effect.kind)
                 }
 
-                is ProvidesContextFactEffect -> {
+                is ProvidesContextEffect -> {
                     val substitutionForCallable = if (effect.owner is ESFunction)
                         effect.owner
                     else
                         effect.owner.accept(substitutor) as? ESValue ?: continue@effectsLoop
                     val substitutedReferences = effect.references.map { it?.accept(substitutor) as? ESValue }
-                    substitutedClauses += ProvidesContextFactEffect(effect.contextDeclaration, substitutedReferences, substitutionForCallable)
+                    substitutedClauses += ProvidesContextEffect(effect.contextDeclaration, substitutedReferences, substitutionForCallable)
                 }
 
                 is RequiresContextEffect -> {

@@ -49,7 +49,7 @@ class ConditionalEffect(val condition: ESExpression, val simpleEffect: SimpleEff
 
 // Fact effects
 
-class ProvidesContextFactEffect(
+class ProvidesContextEffect(
     val contextDeclaration: ContextDeclarationHackedInterface,
     val references: List<ESValue?>,
     val owner: ESValue
