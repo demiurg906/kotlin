@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.isOverridable
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.psiUtil.isContractDescriptionCallPsiCheck
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
@@ -45,10 +45,12 @@ class ContractParsingServices(val languageVersionSettings: LanguageVersionSettin
 
         val contractProviderIfAny = (scope.ownerDescriptor as? FunctionDescriptor)?.getUserData(ContractProviderKey)
 
-        if (collector.hasErrors())
-            contractProviderIfAny?.setContractDescription(null)
-        else
-            contractProviderIfAny?.setContractDescription(parsedContract)
+        // TODO: commented to allow contracts in member functions (e.g. for safe builders)
+//        if (collector.hasErrors())
+//            contractProviderIfAny?.setContractDescription(null)
+//        else
+//            contractProviderIfAny?.setContractDescription(parsedContract)
+        contractProviderIfAny?.setContractDescription(parsedContract)
     }
 
     private fun doCheckContract(collector: ContractParsingDiagnosticsCollector, callContext: ContractCallContext): ContractDescription? {
@@ -60,10 +62,12 @@ class ContractParsingServices(val languageVersionSettings: LanguageVersionSettin
         checkFeatureEnabled(collector)
         checkContractAllowedHere(collector, callContext)
 
-        return if (!collector.hasErrors())
-            PsiContractParserDispatcher(collector, callContext).parseContract()
-        else
-            null
+        // TODO: commented to allow contracts in member functions (e.g. for safe builders)
+//        return if (!collector.hasErrors())
+//            PsiContractParserDispatcher(collector, callContext).parseContract()
+//        else
+//            null
+        return PsiContractParserDispatcher(collector, callContext).parseContract()
     }
 
     private fun checkFeatureEnabled(collector: ContractParsingDiagnosticsCollector) {
