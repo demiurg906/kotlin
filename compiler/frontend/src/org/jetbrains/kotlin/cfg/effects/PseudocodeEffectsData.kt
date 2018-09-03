@@ -91,9 +91,9 @@ class PseudocodeEffectsData(
 
     private fun mergeEdges(
         instruction: Instruction,
-        incoming: Collection<ContractsContextsInfo>,
-        depth: Int
+        incoming: Collection<ContractsContextsInfo>
     ): Edges<ContractsContextsInfo> {
+        val depth = instruction.blockScope.depth
         val mergedData = merge(incoming)
         val updatedData = update(instruction, mergedData, depth)
         return Edges(mergedData, updatedData)

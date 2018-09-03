@@ -27,7 +27,7 @@ class PseudocodeVariableDataCollector(
     ): Map<Instruction, Edges<I>> {
         return pseudocode.collectData(
             traversalOrder,
-            { instruction, incomingData, _ -> instructionDataMergeStrategy(instruction, incomingData) },
+            instructionDataMergeStrategy,
             { from, to, info -> filterOutVariablesOutOfScope(from, to, info) },
             initialInfo,
             LocalFunctionAnalysisStrategy.ANALYSE_EVERYTHING
