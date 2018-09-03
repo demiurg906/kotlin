@@ -1,8 +1,8 @@
 // !LANGUAGE: +ContextualEffects +UseCallsInPlaceEffect +AllowContractsForCustomFunctions +UseReturnsEffect
-// !DIAGNOSTICS: -INVISIBLE_MEMBER -INVISIBLE_REFERENCE -DATA_CLASS_WITHOUT_PARAMETERS
+// !DIAGNOSTICS: -EXPERIMENTAL_API_USAGE_ERROR -DATA_CLASS_WITHOUT_PARAMETERS -CONTRACT_NOT_ALLOWED
 // !RENDER_DIAGNOSTICS_MESSAGES
 
-import kotlin.internal.contracts.*
+import kotlin.contracts.*
 
 data class XY(/*...*/)
 

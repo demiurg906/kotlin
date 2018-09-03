@@ -1,8 +1,8 @@
 // !LANGUAGE: +ContextualEffects +UseCallsInPlaceEffect +AllowContractsForCustomFunctions
-// !DIAGNOSTICS: -INVISIBLE_MEMBER -INVISIBLE_REFERENCE
+// !DIAGNOSTICS: -EXPERIMENTAL_API_USAGE_ERROR
 // !RENDER_DIAGNOSTICS_MESSAGES
 
-import kotlin.internal.contracts.*
+import kotlin.contracts.*
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.lang.RuntimeException
