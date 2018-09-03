@@ -3,7 +3,7 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-package kotlin.internal.contracts
+package kotlin.contracts
 
 import kotlin.internal.ContractsDsl
 import kotlin.reflect.KFunction

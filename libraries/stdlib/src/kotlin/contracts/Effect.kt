@@ -41,3 +41,41 @@ public interface ReturnsNotNull : SimpleEffect
 @ExperimentalContracts
 @SinceKotlin("1.3")
 public interface CallsInPlace : SimpleEffect
+
+// -----------------------------------------------------
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface FactDescription
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface CheckerDescription
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface CheckerNotDescription
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface ProvidesFact : Effect
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface BlockProvidesFact : Effect
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface RequiresContext : Effect
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface BlockRequiresContext : Effect
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface RequiresNotContext : Effect
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface BlockRequiresNotContext : Effect

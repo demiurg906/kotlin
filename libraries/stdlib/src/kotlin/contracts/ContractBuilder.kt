@@ -17,20 +17,54 @@ public annotation class ExperimentalContracts
 @ExperimentalContracts
 @SinceKotlin("1.3")
 public interface ContractBuilder {
-    @ContractsDsl public fun returns(): Returns
-    @ContractsDsl public fun returns(value: Any?): Returns
-    @ContractsDsl public fun returnsNotNull(): ReturnsNotNull
-    @ContractsDsl public fun <R> callsInPlace(lambda: Function<R>, kind: InvocationKind = InvocationKind.UNKNOWN): CallsInPlace
+    @ContractsDsl
+    fun returns(): Returns
+
+    @ContractsDsl
+    fun returns(value: Any?): Returns
+
+    @ContractsDsl
+    fun returnsNotNull(): ReturnsNotNull
+
+    @ContractsDsl
+    fun <R> callsInPlace(lambda: Function<R>, kind: InvocationKind = InvocationKind.UNKNOWN): CallsInPlace
+
+    // -----------------------------------------------------
+
+    @ContractsDsl
+    fun provides(fact: FactDescription): ProvidesFact
+
+    @ContractsDsl
+    fun <R> provides(block: Function<R>, fact: FactDescription): BlockProvidesFact
+
+    @ContractsDsl
+    fun requires(requirement: CheckerDescription): RequiresContext
+
+    @ContractsDsl
+    fun <R> requires(block: Function<R>, requirement: CheckerDescription): BlockRequiresContext
+
+    @ContractsDsl
+    fun requiresNot(requirement: CheckerNotDescription): RequiresNotContext
+
+    @ContractsDsl
+    fun <R> requiresNot(block: Function<R>, requirement: CheckerNotDescription): BlockRequiresNotContext
 }
 
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
 public enum class InvocationKind {
-    @ContractsDsl AT_MOST_ONCE,
-    @ContractsDsl AT_LEAST_ONCE,
-    @ContractsDsl EXACTLY_ONCE,
-    @ContractsDsl UNKNOWN
+    @ContractsDsl
+    AT_MOST_ONCE,
+
+    @ContractsDsl
+    AT_LEAST_ONCE,
+
+    @ContractsDsl
+    EXACTLY_ONCE,
+
+    @ContractsDsl
+    UNKNOWN
 }
 
 @ContractsDsl
@@ -38,4 +72,5 @@ public enum class InvocationKind {
 @InlineOnly
 @SinceKotlin("1.3")
 @Suppress("UNUSED_PARAMETER")
-public inline fun contract(builder: ContractBuilder.() -> Unit) { }
+public inline fun contract(builder: ContractBuilder.() -> Unit) {
+}

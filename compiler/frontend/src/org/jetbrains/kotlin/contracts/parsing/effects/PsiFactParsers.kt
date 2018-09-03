@@ -17,32 +17,34 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 
 // requires / provides without block: KFunction<*> parsing
 internal class PsiFactParser(
-    trace: BindingTrace,
+    collector: ContractParsingDiagnosticsCollector,
+    callContext: ContractCallContext,
     dispatcher: PsiContractParserDispatcher
-) : AbstractPsiEffectParser(trace, dispatcher) {
+) : AbstractPsiEffectParser(collector, callContext, dispatcher) {
     override fun tryParseEffect(expression: KtExpression): EffectDeclaration? {
         if (expression !is KtCallExpression) return null
 
-        val resolvedCall = expression.getResolvedCall(trace.bindingContext) ?: return null
+        val bindingContext = callContext.bindingContext
+
+        val resolvedCall = expression.getResolvedCall(bindingContext) ?: return null
         val descriptor = resolvedCall.resultingDescriptor
 
         val argumentExpression = resolvedCall.firstArgumentAsExpressionOrNull() ?: return null
         val owner = expression.parents.firstOrNull { it is KtNamedFunction } as? KtNamedFunction ?: return null
-        val ownerDescriptor = trace.bindingContext[BindingContext.FUNCTION, owner] ?: return null
+        val ownerDescriptor = bindingContext[BindingContext.FUNCTION, owner] ?: return null
 
         return when {
             descriptor.isRequiresContextDescriptor() || descriptor.isRequiresNotContextDescriptor() -> {
-                val declaration = parseContextCheckerFactoryDeclaration(argumentExpression, trace, contractParserDispatcher) ?: return null
+                val declaration = parseContextCheckerFactoryDeclaration(argumentExpression, bindingContext, contractParserDispatcher) ?: return null
                 RequiresContextEffectDeclaration(declaration, declaration.references, FunctionReference(ownerDescriptor))
             }
 
             descriptor.isProvidesFactDescriptor() -> {
-                val declaration = parseContextFactFactoryDeclaration(argumentExpression, trace, contractParserDispatcher) ?: return null
+                val declaration = parseContextFactFactoryDeclaration(argumentExpression, bindingContext, contractParserDispatcher) ?: return null
                 ProvidesFactEffectDeclaration(declaration, declaration.references, FunctionReference(ownerDescriptor))
             }
 
@@ -53,13 +55,16 @@ internal class PsiFactParser(
 
 // requires / provides with block: KFunction<*> parsing
 internal class PsiLambdaFactParser(
-    trace: BindingTrace,
+    collector: ContractParsingDiagnosticsCollector,
+    callContext: ContractCallContext,
     dispatcher: PsiContractParserDispatcher
-) : AbstractPsiEffectParser(trace, dispatcher) {
+) : AbstractPsiEffectParser(collector, callContext, dispatcher) {
     override fun tryParseEffect(expression: KtExpression): EffectDeclaration? {
         if (expression !is KtCallExpression) return null
 
-        val resolvedCall = expression.getResolvedCall(trace.bindingContext) ?: return null
+        val bindingContext = callContext.bindingContext
+
+        val resolvedCall = expression.getResolvedCall(bindingContext) ?: return null
         val descriptor = resolvedCall.resultingDescriptor
 
         val ownerExpression = resolvedCall.argumentAsExpressionOrNull(0) ?: return null
@@ -69,12 +74,12 @@ internal class PsiLambdaFactParser(
 
         return when {
             descriptor.isRequiresContextDescriptor() || descriptor.isRequiresNotContextDescriptor() -> {
-                val declaration = parseContextCheckerFactoryDeclaration(argumentExpression, trace, contractParserDispatcher) ?: return null
+                val declaration = parseContextCheckerFactoryDeclaration(argumentExpression, bindingContext, contractParserDispatcher) ?: return null
                 LambdaRequiresContextEffectDeclaration(declaration, declaration.references, owner)
             }
 
             descriptor.isProvidesFactDescriptor() -> {
-                val declaration = parseContextFactFactoryDeclaration(argumentExpression, trace, contractParserDispatcher) ?: return null
+                val declaration = parseContextFactFactoryDeclaration(argumentExpression, bindingContext, contractParserDispatcher) ?: return null
                 LambdaProvidesFactEffectDeclaration(declaration, declaration.references, owner)
             }
 
@@ -87,13 +92,13 @@ internal class PsiLambdaFactParser(
 // Declaration of Fact/Checker parsing
 internal fun <T : ContextEntityDeclaration> parseAbstractFactoryDeclaration(
     expression: KtExpression,
-    trace: BindingTrace,
+    bindingContext: BindingContext,
     dispatcher: PsiContractParserDispatcher,
     parseFunc: PsiEffectDeclarationExtractor.(KtExpression) -> T?
 ): T? {
     val parsers = FactsEffectSystem.getParsers()
     return parsers.asSequence()
-        .map { it(trace.bindingContext, dispatcher) }
+        .map { it(bindingContext, dispatcher) }
         .map { it.parseFunc(expression) }
         .filterNotNull()
         .firstOrNull()
@@ -101,22 +106,22 @@ internal fun <T : ContextEntityDeclaration> parseAbstractFactoryDeclaration(
 
 internal fun parseContextFactFactoryDeclaration(
     expression: KtExpression,
-    trace: BindingTrace,
+    bindingContext: BindingContext,
     dispatcher: PsiContractParserDispatcher
 ): ContextDeclaration? = parseAbstractFactoryDeclaration(
     expression,
-    trace,
+    bindingContext,
     dispatcher,
     PsiEffectDeclarationExtractor::extractContextDeclaration
 )
 
 internal fun parseContextCheckerFactoryDeclaration(
     expression: KtExpression,
-    trace: BindingTrace,
+    bindingContext: BindingContext,
     dispatcher: PsiContractParserDispatcher
 ): VerifierDeclaration? = parseAbstractFactoryDeclaration(
     expression,
-    trace,
+    bindingContext,
     dispatcher,
     PsiEffectDeclarationExtractor::extractVerifierDeclaration
 )

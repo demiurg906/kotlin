@@ -32,20 +32,13 @@ import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_NOT_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL_EFFECT
-import org.jetbrains.kotlin.contracts.parsing.effects.PsiCallsEffectParser
-import org.jetbrains.kotlin.contracts.parsing.effects.PsiConditionalEffectParser
-import org.jetbrains.kotlin.contracts.parsing.effects.PsiReturnsEffectParser
+import org.jetbrains.kotlin.contracts.parsing.effects.*
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
-import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi.KtBinaryExpression
-import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 
@@ -61,12 +54,12 @@ class PsiContractParserDispatcher(
         CALLS_IN_PLACE_EFFECT to PsiCallsEffectParser(collector, callContext, this),
         CONDITIONAL_EFFECT to PsiConditionalEffectParser(collector, callContext, this),
 
-        PROVIDES_FACT to PsiFactParser(trace, this),
-        REQUIRES_CONTEXT to PsiFactParser(trace, this),
-        REQUIRES_NOT_CONTEXT to PsiFactParser(trace, this),
-        BLOCK_PROVIDES_FACT to PsiLambdaFactParser(trace, this),
-        BLOCK_REQUIRES_CONTEXT to PsiLambdaFactParser(trace, this),
-        BLOCK_REQUIRES_NOT_CONTEXT to PsiLambdaFactParser(trace, this)
+        PROVIDES_FACT to PsiFactParser(collector, callContext, this),
+        REQUIRES_CONTEXT to PsiFactParser(collector, callContext, this),
+        REQUIRES_NOT_CONTEXT to PsiFactParser(collector, callContext, this),
+        BLOCK_PROVIDES_FACT to PsiLambdaFactParser(collector, callContext, this),
+        BLOCK_REQUIRES_CONTEXT to PsiLambdaFactParser(collector, callContext, this),
+        BLOCK_REQUIRES_NOT_CONTEXT to PsiLambdaFactParser(collector, callContext, this)
     )
 
     fun parseContract(): ContractDescription? {
@@ -146,7 +139,7 @@ class PsiContractParserDispatcher(
 
     fun parseReceiver(expression: KtExpression?): ReceiverReference? {
         if (expression == null) return null
-        val resolvedCall = expression.getResolvedCall(trace.bindingContext) ?: return null
+        val resolvedCall = expression.getResolvedCall(callContext.bindingContext) ?: return null
         val descriptor = resolvedCall.resultingDescriptor
 
         // TODO: why isReceiverOf not working?
@@ -162,7 +155,7 @@ class PsiContractParserDispatcher(
         if (expression == null) return null
         val reference = expression as? KtCallableReferenceExpression ?: return null
         val descriptor =
-            trace.bindingContext[BindingContext.REFERENCE_TARGET, reference.callableReference] as? FunctionDescriptor ?: return null
+            callContext.bindingContext[BindingContext.REFERENCE_TARGET, reference.callableReference] as? FunctionDescriptor ?: return null
         return FunctionReference(descriptor)
     }
 
