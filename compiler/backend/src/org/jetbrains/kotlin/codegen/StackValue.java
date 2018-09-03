@@ -36,12 +36,14 @@ import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterSignature
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue;
 import org.jetbrains.kotlin.types.KotlinType;
 import org.jetbrains.kotlin.types.SimpleType;
+import org.jetbrains.kotlin.types.TypeUtils;
 import org.jetbrains.org.objectweb.asm.Label;
 import org.jetbrains.org.objectweb.asm.Opcodes;
 import org.jetbrains.org.objectweb.asm.Type;
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import static org.jetbrains.kotlin.codegen.AsmUtil.*;
 import static org.jetbrains.kotlin.resolve.jvm.AsmTypes.*;
@@ -402,6 +404,21 @@ public abstract class StackValue {
         Type boxedType = KotlinTypeMapper.mapInlineClassTypeAsDeclaration(kotlinType);
         Type owner = KotlinTypeMapper.mapToErasedInlineClassType(kotlinType);
         Type underlyingType = KotlinTypeMapper.mapUnderlyingTypeOfInlineClassType(kotlinType);
+
+        if (TypeUtils.isNullableType(kotlinType) && !isPrimitive(underlyingType)) {
+            boxOrUnboxWithNullCheck(v, vv -> invokeBoxMethod(vv, boxedType, owner, underlyingType));
+        }
+        else {
+            invokeBoxMethod(v, boxedType, owner, underlyingType);
+        }
+    }
+
+    private static void invokeBoxMethod(
+            @NotNull InstructionAdapter v,
+            Type boxedType,
+            Type owner,
+            Type underlyingType
+    ) {
         v.invokestatic(
                 owner.getInternalName(),
                 InlineClassDescriptorResolver.BOX_METHOD_NAME.asString(),
@@ -416,12 +433,39 @@ public abstract class StackValue {
         coerce(type, owner, v);
 
         Type resultType = KotlinTypeMapper.mapUnderlyingTypeOfInlineClassType(targetInlineClassType);
+
+        if (TypeUtils.isNullableType(targetInlineClassType) && !isPrimitive(type)) {
+            boxOrUnboxWithNullCheck(v, vv -> invokeUnboxMethod(vv, owner, resultType));
+        }
+        else {
+            invokeUnboxMethod(v, owner, resultType);
+        }
+    }
+
+    private static void invokeUnboxMethod(@NotNull InstructionAdapter v, Type owner, Type resultType) {
         v.invokevirtual(
                 owner.getInternalName(),
                 InlineClassDescriptorResolver.UNBOX_METHOD_NAME.asString(),
                 "()" + resultType.getDescriptor(),
                 false
         );
+    }
+
+    private static void boxOrUnboxWithNullCheck(@NotNull InstructionAdapter v, @NotNull Consumer<InstructionAdapter> body) {
+        Label lNull = new Label();
+        Label lDone = new Label();
+        // NB The following piece of code looks sub-optimal (we have a 'null' value on stack and could just keep it there),
+        // but it is required, because bytecode verifier doesn't take into account null checks,
+        // and sees null-checked value on the top of the stack as a value of the source type (e.g., Ljava/lang/String;),
+        // which is not assignable to the expected type (destination type, e.g., LStr;).
+        v.dup();
+        v.ifnull(lNull);
+        body.accept(v);
+        v.goTo(lDone);
+        v.mark(lNull);
+        v.pop();
+        v.aconst(null);
+        v.mark(lDone);
     }
 
     protected void coerceTo(@NotNull Type toType, @Nullable KotlinType toKotlinType, @NotNull InstructionAdapter v) {
@@ -443,6 +487,33 @@ public abstract class StackValue {
         coerce(fromType, toType, v);
     }
 
+    public static boolean requiresInlineClassBoxingOrUnboxing(
+            @NotNull Type fromType,
+            @Nullable KotlinType fromKotlinType,
+            @NotNull Type toType,
+            @Nullable KotlinType toKotlinType
+    ) {
+        // NB see also coerceInlineClasses below
+
+        if (fromKotlinType == null || toKotlinType == null) return false;
+
+        boolean isFromTypeInlineClass = InlineClassesUtilsKt.isInlineClassType(fromKotlinType);
+        boolean isToTypeInlineClass = InlineClassesUtilsKt.isInlineClassType(toKotlinType);
+
+        if (!isFromTypeInlineClass && !isToTypeInlineClass) return false;
+
+        boolean isFromTypeUnboxed = isFromTypeInlineClass && isUnboxedInlineClass(fromKotlinType, fromType);
+        boolean isToTypeUnboxed = isToTypeInlineClass && isUnboxedInlineClass(toKotlinType, toType);
+
+        if (isFromTypeInlineClass && isToTypeInlineClass) {
+            return isFromTypeUnboxed != isToTypeUnboxed;
+        }
+        else {
+            return isFromTypeInlineClass /* && !isToTypeInlineClass */ && isFromTypeUnboxed ||
+                   isToTypeInlineClass /* && !isFromTypeInlineClass */ && isToTypeUnboxed;
+        }
+    }
+
     private static boolean coerceInlineClasses(
             @NotNull Type fromType,
             @Nullable KotlinType fromKotlinType,
@@ -450,6 +521,8 @@ public abstract class StackValue {
             @Nullable KotlinType toKotlinType,
             @NotNull InstructionAdapter v
     ) {
+        // NB see also requiresInlineClassBoxingOrUnboxing above
+
         if (fromKotlinType == null || toKotlinType == null) return false;
 
         boolean isFromTypeInlineClass = InlineClassesUtilsKt.isInlineClassType(fromKotlinType);
@@ -654,8 +727,8 @@ public abstract class StackValue {
         return new PostIncrement(index, increment);
     }
 
-    public static StackValue preIncrementForLocalVar(int index, int increment) {
-        return new PreIncrementForLocalVar(index, increment);
+    public static StackValue preIncrementForLocalVar(int index, int increment, @Nullable KotlinType kotlinType) {
+        return new PreIncrementForLocalVar(index, increment, kotlinType);
     }
 
     public static StackValue preIncrement(
@@ -666,7 +739,7 @@ public abstract class StackValue {
             @NotNull ExpressionCodegen codegen
     ) {
         if (stackValue instanceof StackValue.Local && Type.INT_TYPE == stackValue.type) {
-            return preIncrementForLocalVar(((StackValue.Local) stackValue).index, delta);
+            return preIncrementForLocalVar(((StackValue.Local) stackValue).index, delta, stackValue.kotlinType);
         }
         return new PrefixIncrement(type, stackValue, resolvedCall, codegen);
     }
@@ -1790,8 +1863,8 @@ public abstract class StackValue {
         private final int index;
         private final int increment;
 
-        public PreIncrementForLocalVar(int index, int increment) {
-            super(Type.INT_TYPE);
+        public PreIncrementForLocalVar(int index, int increment, @Nullable KotlinType kotlinType) {
+            super(Type.INT_TYPE, kotlinType);
             this.index = index;
             this.increment = increment;
         }
@@ -1817,7 +1890,7 @@ public abstract class StackValue {
                 ResolvedCall resolvedCall,
                 @NotNull ExpressionCodegen codegen
         ) {
-            super(type);
+            super(type, value.kotlinType);
             this.value = value;
             this.resolvedCall = resolvedCall;
             this.codegen = codegen;

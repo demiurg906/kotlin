@@ -69,6 +69,7 @@ import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.CliModuleVisibilityManagerImpl
 import org.jetbrains.kotlin.cli.common.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.cli.common.config.ContentRoot
+import org.jetbrains.kotlin.cli.common.config.KotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.kotlinSourceRoots
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.ERROR
@@ -112,6 +113,7 @@ import org.jetbrains.kotlin.resolve.jvm.extensions.PackageFragmentProviderExtens
 import org.jetbrains.kotlin.resolve.jvm.modules.JavaModuleResolver
 import org.jetbrains.kotlin.resolve.lazy.declarations.CliDeclarationProviderFactoryService
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProviderFactoryService
+import org.jetbrains.kotlin.resolve.multiplatform.isCommonSource
 import org.jetbrains.kotlin.script.ScriptDefinitionProvider
 import org.jetbrains.kotlin.script.ScriptDependenciesProvider
 import org.jetbrains.kotlin.script.ScriptReportSink
@@ -311,7 +313,7 @@ class KotlinCoreEnvironment private constructor(
 
     fun createPackagePartProvider(scope: GlobalSearchScope): JvmPackagePartProvider {
         return JvmPackagePartProvider(configuration.languageVersionSettings, scope).apply {
-            addRoots(initialRoots)
+            addRoots(initialRoots, configuration.getNotNull(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY))
             packagePartProviders += this
             (ModuleAnnotationsResolver.getInstance(project) as CliModuleAnnotationsResolver).addPackagePartProvider(this)
         }
@@ -369,7 +371,7 @@ class KotlinCoreEnvironment private constructor(
         val newRoots = classpathRootsResolver.convertClasspathRoots(contentRoots).roots
 
         for (packagePartProvider in packagePartProviders) {
-            packagePartProvider.addRoots(newRoots)
+            packagePartProvider.addRoots(newRoots, configuration.getNotNull(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY))
         }
 
         return rootsIndex.addNewIndexForRoots(newRoots)?.let { newIndex ->
@@ -406,16 +408,18 @@ class KotlinCoreEnvironment private constructor(
     private fun findJarRoot(file: File): VirtualFile? =
         applicationEnvironment.jarFileSystem.findFileByPath("$file${URLUtil.JAR_SEPARATOR}")
 
-    private fun getSourceRootsCheckingForDuplicates(): Collection<String> {
-        val uniqueSourceRoots = linkedSetOf<String>()
+    private fun getSourceRootsCheckingForDuplicates(): List<KotlinSourceRoot> {
+        val uniqueSourceRoots = hashSetOf<String>()
+        val result = mutableListOf<KotlinSourceRoot>()
 
-        configuration.kotlinSourceRoots.forEach { path ->
-            if (!uniqueSourceRoots.add(path)) {
-                report(STRONG_WARNING, "Duplicate source root: $path")
+        for (root in configuration.kotlinSourceRoots) {
+            if (!uniqueSourceRoots.add(root.path)) {
+                report(STRONG_WARNING, "Duplicate source root: ${root.path}")
             }
+            result.add(root)
         }
 
-        return uniqueSourceRoots
+        return result
     }
 
     fun getSourceFiles(): List<KtFile> = sourceFiles
@@ -431,7 +435,7 @@ class KotlinCoreEnvironment private constructor(
 
         val virtualFileCreator = PreprocessedFileCreator(project)
 
-        for (sourceRootPath in sourceRoots) {
+        for ((sourceRootPath, isCommon) in sourceRoots) {
             val vFile = localFileSystem.findFileByPath(sourceRootPath)
             if (vFile == null) {
                 val message = "Source file or directory not found: $sourceRootPath"
@@ -458,6 +462,9 @@ class KotlinCoreEnvironment private constructor(
                     val psiFile = psiManager.findFile(virtualFile)
                     if (psiFile is KtFile) {
                         result.add(psiFile)
+                        if (isCommon) {
+                            psiFile.isCommonSource = true
+                        }
                     }
                 }
             }

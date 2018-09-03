@@ -93,10 +93,12 @@ private fun JsIrBackendContext.lower(moduleFragment: IrModuleFragment) {
     moduleFragment.files.forEach(LateinitLowering(this, true)::lower)
     moduleFragment.files.forEach(DefaultArgumentStubGenerator(this)::runOnFilePostfix)
     moduleFragment.files.forEach(DefaultParameterInjector(this)::runOnFilePostfix)
+    moduleFragment.files.forEach(DefaultParameterCleaner(this)::runOnFilePostfix)
     moduleFragment.files.forEach(SharedVariablesLowering(this)::runOnFilePostfix)
     moduleFragment.files.forEach(EnumClassLowering(this)::runOnFilePostfix)
     moduleFragment.files.forEach(EnumUsageLowering(this)::lower)
     moduleFragment.files.forEach(ReturnableBlockLowering(this)::lower)
+    moduleFragment.files.forEach(LocalDelegatedPropertiesLowering()::lower)
     moduleFragment.files.forEach(LocalDeclarationsLowering(this)::runOnFilePostfix)
     moduleFragment.files.forEach(InnerClassesLowering(this)::runOnFilePostfix)
     moduleFragment.files.forEach(InnerClassConstructorCallsLowering(this)::runOnFilePostfix)
@@ -114,6 +116,8 @@ private fun JsIrBackendContext.lower(moduleFragment: IrModuleFragment) {
     moduleFragment.files.forEach(clble.getReferenceCollector())
     moduleFragment.files.forEach(clble.getClosureBuilder())
     moduleFragment.files.forEach(clble.getReferenceReplacer())
+    moduleFragment.files.forEach(ClassReferenceLowering(this)::lower)
+    moduleFragment.files.forEach(PrimitiveCompanionLowering(this)::lower)
     moduleFragment.files.forEach(IntrinsicifyCallsLowering(this)::lower)
 }
 

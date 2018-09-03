@@ -273,7 +273,7 @@ fun <T, E : PsiElement> getPsiElementPopup(
             }
         }
         addListener(object : JBPopupAdapter() {
-            override fun onClosed(event: LightweightWindowEvent?) {
+            override fun onClosed(event: LightweightWindowEvent) {
                 highlighter?.dropHighlight()
             }
         })
@@ -726,7 +726,7 @@ internal abstract class CompositeRefactoringRunner(
 fun invokeOnceOnCommandFinish(action: () -> Unit) {
     val commandProcessor = CommandProcessor.getInstance()
     val listener = object : CommandAdapter() {
-        override fun beforeCommandFinished(event: CommandEvent?) {
+        override fun beforeCommandFinished(event: CommandEvent) {
             action()
             commandProcessor.removeCommandListener(this)
         }

@@ -11,30 +11,14 @@ import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 import proguard.gradle.ProGuardTask
 
 buildscript {
-    extra["defaultSnapshotVersion"] = "1.2-SNAPSHOT"
+    extra["defaultSnapshotVersion"] = "1.3-SNAPSHOT"
 
-    kotlinBootstrapFrom(BootstrapOption.TeamCity("1.2.70-dev-491", onlySuccessBootstrap = false))
-
-    val mirrorRepo: String? = findProperty("maven.repository.mirror")?.toString()
-
-    val repos = listOfNotNull(
-            mirrorRepo,
-            bootstrapKotlinRepo,
-            "https://jcenter.bintray.com/",
-            "https://plugins.gradle.org/m2",
-            "http://dl.bintray.com/kotlin/kotlinx",
-            "https://repo.gradle.org/gradle/ext-releases-local", // for native-platform
-            "https://jetbrains.bintray.com/intellij-third-party-dependencies", // for jflex
-            "https://dl.bintray.com/jetbrains/markdown" // for org.jetbrains:markdown
-    )
-
-    extra["repos"] = repos
+    kotlinBootstrapFrom(BootstrapOption.TeamCity("1.3.0-dev-25", onlySuccessBootstrap = true))
 
     repositories {
-        for (repo in repos) {
-            maven(url = repo)
+        bootstrapKotlinRepo?.let(::maven)
+        maven("https://plugins.gradle.org/m2")
         }
-    }
 
     // a workaround for kotlin compiler classpath in kotlin project: sometimes gradle substitutes
     // kotlin-stdlib external dependency with local project :kotlin-stdlib in kotlinCompilerClasspath configuration.
@@ -42,10 +26,10 @@ buildscript {
     val bootstrapCompilerClasspath by configurations.creating
 
     dependencies {
-        bootstrapCompilerClasspath(kotlinDep("compiler-embeddable", bootstrapKotlinVersion))
+        bootstrapCompilerClasspath(kotlin("compiler-embeddable", bootstrapKotlinVersion))
 
         classpath("com.gradle.publish:plugin-publish-plugin:0.9.7")
-        classpath(kotlinDep("gradle-plugin", bootstrapKotlinVersion))
+        classpath(kotlin("gradle-plugin", bootstrapKotlinVersion))
         classpath("net.sf.proguard:proguard-gradle:5.3.3")
     }
 }
@@ -81,7 +65,7 @@ val defaultSnapshotVersion: String by extra
 val buildNumber by extra(findProperty("build.number")?.toString() ?: defaultSnapshotVersion)
 val kotlinVersion by extra(findProperty("deployVersion")?.toString() ?: buildNumber)
 
-val kotlinLanguageVersion by extra("1.2")
+val kotlinLanguageVersion by extra("1.3")
 
 allprojects {
     group = "org.jetbrains.kotlin"
@@ -90,19 +74,9 @@ allprojects {
 
 extra["kotlin_root"] = rootDir
 
-val bootstrapCompileCfg = configurations.create("bootstrapCompile")
-
-repositories {
-    for (repo in (rootProject.extra["repos"] as List<String>)) {
-        maven(url = repo)
-    }
-}
-
 val cidrKotlinPlugin by configurations.creating
 
 dependencies {
-    bootstrapCompileCfg(kotlinDep("compiler-embeddable", bootstrapKotlinVersion))
-
     cidrKotlinPlugin(project(":prepare:cidr-plugin", "runtimeJar"))
 }
 
@@ -180,17 +154,6 @@ extra["IntellijCoreDependencies"] =
                "streamex",
                "trove4j")
 
-extra["nativePlatformVariants"] =
-        listOf("windows-amd64",
-               "windows-i386",
-               "osx-amd64",
-               "osx-i386",
-               "linux-amd64",
-               "linux-i386",
-               "freebsd-amd64-libcpp",
-               "freebsd-amd64-libstdcpp",
-               "freebsd-i386-libcpp",
-               "freebsd-i386-libstdcpp")
 
 extra["compilerModules"] = arrayOf(
         ":compiler:util",
@@ -296,19 +259,24 @@ allprojects {
     // therefore it is disabled by default
     // buildDir = File(commonBuildDir, project.name)
 
-    val repos = rootProject.extra["repos"] as List<String>
+    val mirrorRepo: String? = findProperty("maven.repository.mirror")?.toString()
+
     repositories {
         intellijSdkRepo(project)
         androidDxJarRepo(project)
-
-        for (repo in repos) {
-            maven(repo)
+        mirrorRepo?.let(::maven)
+        bootstrapKotlinRepo?.let(::maven)
+        jcenter()
         }
-    }
 
     configureJvmProject(javaHome!!, jvmTarget!!)
 
-    val commonCompilerArgs = listOfNotNull("-Xallow-kotlin-package", "-Xread-deserialized-contracts", "-Xprogressive".takeIf { hasProperty("test.progressive.mode") })
+    val commonCompilerArgs = listOfNotNull(
+        "-Xallow-kotlin-package",
+        "-Xread-deserialized-contracts",
+        "-Xprogressive".takeIf { hasProperty("test.progressive.mode") },
+        "-XXLanguage:-ReleaseCoroutines"
+    )
 
     tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>> {
         kotlinOptions {
@@ -373,19 +341,24 @@ allprojects {
     }
 }
 
-if (!isTeamcityBuild) {
-    gradle.taskGraph.whenReady {
-        for (project in allprojects) {
-            for (task in project.tasks) {
-                 when (task) {
-                     is AbstractKotlinCompile<*> -> task.incremental = true
-                     is JavaCompile -> task.options.isIncremental = true
-                     is org.gradle.jvm.tasks.Jar -> task.entryCompression = ZipEntryCompression.STORED
-                 }
+gradle.taskGraph.whenReady {
+    if (isTeamcityBuild) {
+        logger.warn("CI build profile is active (IC is off, proguard is on). Use -Pteamcity=false to reproduce local build")
+        for (task in allTasks) {
+            when (task) {
+                is AbstractKotlinCompile<*> -> task.incremental = false
+                is JavaCompile -> task.options.isIncremental = false
             }
         }
-
+    } else {
         logger.warn("Local build profile is active (IC is on, proguard is off). Use -Pteamcity=true to reproduce TC build")
+        for (task in allTasks) {
+            when (task) {
+                // todo: remove when Gradle 4.10+ is used (Java IC on by default)
+                is JavaCompile -> task.options.isIncremental = true
+                is org.gradle.jvm.tasks.Jar -> task.entryCompression = ZipEntryCompression.STORED
+            }
+        }
     }
 }
 
@@ -491,6 +464,11 @@ tasks {
         dependsOn("examplesTest")
     }
 
+    "specTest" {
+        dependsOn("dist")
+        dependsOn(":compiler:tests-spec:test")
+    }
+
     "androidCodegenTest" {
         dependsOn(":compiler:android-tests:test")
     }
@@ -582,6 +560,8 @@ val zipTestData by task<Zip> {
     from("compiler/testData") { into("compiler") }
     from("idea/testData") { into("ide") }
     from("idea/idea-completion/testData") { into("ide/completion") }
+    from("libraries/stdlib/common/test") { into("stdlib/common") }
+    from("libraries/stdlib/test") { into("stdlib/test") }
     doLast {
         logger.lifecycle("Test data packed to $archivePath")
     }

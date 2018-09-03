@@ -46,6 +46,8 @@ val testDistProjects = listOf(
         ":kotlin-stdlib",
         ":kotlin-stdlib-jre7",
         ":kotlin-stdlib-jre8",
+        ":kotlin-stdlib-jdk7",
+        ":kotlin-stdlib-jdk8",
         ":kotlin-stdlib-js",
         ":kotlin-reflect",
         ":kotlin-test:kotlin-test-jvm",
@@ -75,7 +77,6 @@ dependencies {
     testCompile(project(":compiler:ir.ir2cfg"))
     testCompile(project(":compiler:ir.tree")) // used for deepCopyWithSymbols call that is removed by proguard from the compiler TODO: make it more straightforward
     testCompile(project(":kotlin-scripting-compiler"))
-    testCompile(project(":kotlin-scripting-misc"))
     testCompile(project(":kotlin-script-util"))
     testCompileOnly(projectRuntimeJar(":kotlin-daemon-client"))
     testCompileOnly(project(":kotlin-reflect-api"))

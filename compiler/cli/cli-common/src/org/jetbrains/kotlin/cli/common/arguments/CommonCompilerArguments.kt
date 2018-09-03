@@ -33,6 +33,7 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
         const val WARN = "warn"
         const val ERROR = "error"
         const val ENABLE = "enable"
+        const val DEFAULT = "default"
     }
 
     @get:Transient
@@ -108,7 +109,7 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
         valueDescription = "{enable|warn|error}",
         description = "Enable coroutines or report warnings or errors on declarations and use sites of 'suspend' modifier"
     )
-    var coroutinesState: String? by NullableStringFreezableVar(WARN)
+    var coroutinesState: String? by NullableStringFreezableVar(DEFAULT)
 
     @Argument(
         value = "-Xnew-inference",
@@ -180,6 +181,14 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
     )
     var metadataVersion: String? by FreezableVar(null)
 
+    @Argument(
+        value = "-Xcommon-sources",
+        valueDescription = "<path>",
+        description = "Sources of the common module that need to be compiled together with this module in the multi-platform mode.\n" +
+                "Should be a subset of sources passed as free arguments"
+    )
+    var commonSources: Array<String>? by FreezableVar(null)
+
     open fun configureAnalysisFlags(collector: MessageCollector): MutableMap<AnalysisFlag<*>, Any> {
         return HashMap<AnalysisFlag<*>, Any>().apply {
             put(AnalysisFlag.skipMetadataVersionCheck, skipMetadataVersionCheck)
@@ -200,7 +209,7 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
             when (coroutinesState) {
                 CommonCompilerArguments.ERROR -> put(LanguageFeature.Coroutines, LanguageFeature.State.ENABLED_WITH_ERROR)
                 CommonCompilerArguments.ENABLE -> put(LanguageFeature.Coroutines, LanguageFeature.State.ENABLED)
-                CommonCompilerArguments.WARN -> {
+                CommonCompilerArguments.WARN, CommonCompilerArguments.DEFAULT -> {
                 }
                 else -> {
                     val message = "Invalid value of -Xcoroutines (should be: enable, warn or error): " + coroutinesState
@@ -295,6 +304,18 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
             )
         }
 
+        val deprecatedVersion = when {
+            languageVersion < LanguageVersion.FIRST_SUPPORTED -> "Language version ${languageVersion.versionString}"
+            apiVersion < LanguageVersion.FIRST_SUPPORTED -> "API version ${apiVersion.versionString}"
+            else -> null
+        }
+        if (deprecatedVersion != null) {
+            collector.report(
+                CompilerMessageSeverity.STRONG_WARNING,
+                "$deprecatedVersion is deprecated and its support will be removed in a future version of Kotlin"
+            )
+        }
+
         if (progressiveMode && languageVersion < LanguageVersion.LATEST_STABLE) {
             collector.report(
                 CompilerMessageSeverity.STRONG_WARNING,
@@ -303,12 +324,23 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
             )
         }
 
-        return LanguageVersionSettingsImpl(
+        val languageVersionSettings = LanguageVersionSettingsImpl(
             languageVersion,
             ApiVersion.createByLanguageVersion(apiVersion),
             configureAnalysisFlags(collector),
             configureLanguageFeatures(collector)
         )
+
+        if (languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines)) {
+            if (coroutinesState != DEFAULT) {
+                collector.report(
+                    CompilerMessageSeverity.STRONG_WARNING,
+                    "-Xcoroutines has no effect: coroutines are enabled anyway in 1.3 and beyond"
+                )
+            }
+        }
+
+        return languageVersionSettings
     }
 
     private fun parseVersion(collector: MessageCollector, value: String?, versionOf: String): LanguageVersion? =

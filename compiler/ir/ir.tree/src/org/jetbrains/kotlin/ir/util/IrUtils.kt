@@ -15,21 +15,14 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrFieldImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrTypeParameterImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
 import org.jetbrains.kotlin.ir.expressions.*
-import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
-import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
-import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.symbols.IrValueParameterSymbol
-import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.symbols.*
-import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.toIrType
+import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.source.PsiSourceElement
-import org.jetbrains.kotlin.types.KotlinType
 
 /**
  * Binds the arguments explicitly represented in the IR to the parameters of the accessed function.
@@ -323,6 +316,29 @@ fun IrAnnotationContainer.hasAnnotation(name: FqName) =
         it.symbol.owner.parentAsClass.descriptor.fqNameSafe == name
     }
 
+val IrConstructor.constructedClassType get() = (parent as IrClass).thisReceiver?.type!!
+
+fun IrFunction.isFakeOverriddenFromAny(): Boolean {
+    if (origin != IrDeclarationOrigin.FAKE_OVERRIDE) {
+        return (parent as? IrClass)?.thisReceiver?.type?.isAny() ?: false
+    }
+
+    return (this as IrSimpleFunction).overriddenSymbols.all { it.owner.isFakeOverriddenFromAny() }
+}
+
+fun IrCall.isSuperToAny() = superQualifier?.let { this.symbol.owner.isFakeOverriddenFromAny() } ?: false
+
+fun IrDeclaration.isEffectivelyExternal(): Boolean {
+    return when (this) {
+        is IrFunction -> isExternal || parent is IrDeclaration && parent.isEffectivelyExternal()
+        is IrField -> isExternal || parent is IrDeclaration && parent.isEffectivelyExternal()
+        is IrClass -> isExternal || parent is IrDeclaration && parent.isEffectivelyExternal()
+        else -> false
+    }
+}
+
+fun IrDeclaration.isDynamic() = this is IrFunction && dispatchReceiverParameter?.type is IrDynamicType
+
 fun IrValueParameter.copy(newDescriptor: ParameterDescriptor): IrValueParameter {
     assert(this.descriptor.type == newDescriptor.type)
 
@@ -363,8 +379,7 @@ fun createField(
     ).apply {
         initialize(null, null)
 
-        val receiverType: KotlinType? = null
-        setType(type.toKotlinType(), emptyList(), owner.thisAsReceiverParameter, receiverType)
+        setType(type.toKotlinType(), emptyList(), owner.thisAsReceiverParameter, null)
     }
 
     return IrFieldImpl(startOffset, endOffset, origin, descriptor, type)

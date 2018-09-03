@@ -25,6 +25,7 @@ import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ModifiableModelsProvider
 import com.intellij.openapi.roots.ModifiableRootModel
 import org.jetbrains.kotlin.idea.KotlinIcons
+import org.jetbrains.kotlin.idea.core.platform.impl.CommonIdePlatformKindTooling.MAVEN_COMMON_STDLIB_ID
 import org.jetbrains.kotlin.idea.versions.*
 import org.jetbrains.plugins.gradle.frameworkSupport.BuildScriptDataBuilder
 import org.jetbrains.plugins.gradle.frameworkSupport.GradleFrameworkSupportProvider
@@ -196,6 +197,24 @@ open class GradleKotlinMPPCommonFrameworkSupportProvider :
     }
 
     override fun getDescription() = "Shared code for a Kotlin multiplatform project (targeting JVM and JS)"
+}
+
+class GradleKotlinMPPFrameworkSupportProvider : GradleKotlinFrameworkSupportProvider(
+    "KOTLIN_MPP", "Kotlin (Multiplatform - Experimental)", KotlinIcons.MPP
+) {
+    override fun getPluginId() = "kotlin-multiplatform"
+    override fun getPluginExpression() = "id 'kotlin-multiplatform'"
+
+    override fun getDependencies(sdk: Sdk?): List<String> = listOf()
+    override fun getTestDependencies(): List<String> = listOf()
+
+    override fun updateSettingsScript(settingsBuilder: SettingsScriptBuilder, specifyPluginVersionIfNeeded: Boolean) {
+        if (specifyPluginVersionIfNeeded) {
+            settingsBuilder.addResolutionStrategy("kotlin-multiplatform")
+        }
+    }
+
+    override fun getDescription() = "Kotlin multiplatform code"
 }
 
 class GradleKotlinMPPJavaFrameworkSupportProvider

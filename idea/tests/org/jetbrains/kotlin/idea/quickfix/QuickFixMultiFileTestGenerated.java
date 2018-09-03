@@ -459,6 +459,11 @@ public class QuickFixMultiFileTestGenerated extends AbstractQuickFixMultiFileTes
             runTest("idea/testData/quickfix/autoImports/dslMarkers.before.Main.kt");
         }
 
+        @TestMetadata("dslMarkersOnReceiver.before.Main.kt")
+        public void testDslMarkersOnReceiver() throws Exception {
+            runTest("idea/testData/quickfix/autoImports/dslMarkersOnReceiver.before.Main.kt");
+        }
+
         @TestMetadata("extensionFunctionImport.before.Main.kt")
         public void testExtensionFunctionImport() throws Exception {
             runTest("idea/testData/quickfix/autoImports/extensionFunctionImport.before.Main.kt");
@@ -4196,6 +4201,16 @@ public class QuickFixMultiFileTestGenerated extends AbstractQuickFixMultiFileTes
     public static class When extends AbstractQuickFixMultiFileTest {
         private void runTest(String testDataFilePath) throws Exception {
             KotlinTestUtils.runTest(this::doTestWithExtraFile, TargetBackend.ANY, testDataFilePath);
+        }
+
+        @TestMetadata("addRemainingBranchesAnotherPackage.before.Main.kt")
+        public void testAddRemainingBranchesAnotherPackage() throws Exception {
+            runTest("idea/testData/quickfix/when/addRemainingBranchesAnotherPackage.before.Main.kt");
+        }
+
+        @TestMetadata("addRemainingBranchesAnotherPackageAll.before.Main.kt")
+        public void testAddRemainingBranchesAnotherPackageAll() throws Exception {
+            runTest("idea/testData/quickfix/when/addRemainingBranchesAnotherPackageAll.before.Main.kt");
         }
 
         public void testAllFilesPresentInWhen() throws Exception {

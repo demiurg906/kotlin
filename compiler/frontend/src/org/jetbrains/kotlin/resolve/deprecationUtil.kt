@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedClassDescriptor
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedMemberDescriptor
+import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedMemberDescriptor.CoroutinesCompatibilityMode.*
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeUtils
@@ -104,10 +105,14 @@ private data class DeprecatedByOverridden(private val deprecations: Collection<D
 }
 
 private data class DeprecatedExperimentalCoroutine(
-    override val target: DeclarationDescriptor
+    override val target: DeclarationDescriptor,
+    override val deprecationLevel: DeprecationLevelValue
 ) : Deprecation {
-    override val deprecationLevel: DeprecationLevelValue = DeprecationLevelValue.ERROR
-    override val message: String? = "Experimental coroutine cannot be used with API version 1.3"
+    override val message: String? =
+        if (deprecationLevel == WARNING)
+            "Experimental coroutines support will be dropped in 1.4"
+        else
+            "Experimental coroutine cannot be used with API version 1.3"
 }
 
 private data class DeprecatedByVersionRequirement(
@@ -300,7 +305,7 @@ class DeprecationResolver(
 
         fun addDeprecationIfPresent(target: DeclarationDescriptor) {
             val annotation = target.annotations.findAnnotation(KotlinBuiltIns.FQ_NAMES.deprecated)
-                    ?: target.annotations.findAnnotation(JAVA_DEPRECATED)
+                ?: target.annotations.findAnnotation(JAVA_DEPRECATED)
             if (annotation != null) {
                 val deprecatedByAnnotation = DeprecatedByAnnotation(annotation, target)
                 val deprecation = when (target) {
@@ -310,7 +315,9 @@ class DeprecationResolver(
                 result.add(deprecation)
             }
 
-            getDeprecationByVersionRequirement(target)?.let(result::add)
+            for (deprecation in getDeprecationByVersionRequirement(target)) {
+                result.add(deprecation)
+            }
             getDeprecationByCoroutinesVersion(target)?.let(result::add)
         }
 
@@ -321,7 +328,7 @@ class DeprecationResolver(
                     useSiteTarget,
                     KotlinBuiltIns.FQ_NAMES.deprecated
                 )
-                        ?: Annotations.findUseSiteTargetedAnnotation(annotatedDescriptor.annotations, useSiteTarget, JAVA_DEPRECATED)
+                    ?: Annotations.findUseSiteTargetedAnnotation(annotatedDescriptor.annotations, useSiteTarget, JAVA_DEPRECATED)
                 if (annotation != null) {
                     result.add(DeprecatedByAnnotation(annotation, this))
                 }
@@ -351,35 +358,42 @@ class DeprecationResolver(
         return result.distinct()
     }
 
-    private fun getDeprecationByCoroutinesVersion(target: DeclarationDescriptor): DeprecatedExperimentalCoroutine? =
-        if (target is DeserializedMemberDescriptor && target.isExperimentalCoroutineInReleaseEnvironment)
-            DeprecatedExperimentalCoroutine(target)
-        else null
+    private fun getDeprecationByCoroutinesVersion(target: DeclarationDescriptor): DeprecatedExperimentalCoroutine? {
+        if (target !is DeserializedMemberDescriptor) return null
+        return when (target.coroutinesExperimentalCompatibilityMode) {
+            COMPATIBLE -> null
+            NEEDS_WRAPPER -> DeprecatedExperimentalCoroutine(target, WARNING)
+            INCOMPATIBLE -> DeprecatedExperimentalCoroutine(target, ERROR)
+        }
+    }
 
-    private fun getDeprecationByVersionRequirement(target: DeclarationDescriptor): DeprecatedByVersionRequirement? {
+    private fun getDeprecationByVersionRequirement(target: DeclarationDescriptor): List<DeprecatedByVersionRequirement> {
         fun createVersion(version: String): MavenComparableVersion? = try {
             MavenComparableVersion(version)
         } catch (e: Exception) {
             null
         }
 
-        val versionRequirement =
-            (target as? DeserializedMemberDescriptor)?.versionRequirement
-                    ?: (target as? DeserializedClassDescriptor)?.versionRequirement
-                    ?: return null
-        val requiredVersion = createVersion(versionRequirement.version.asString())
-        val currentVersion = when (versionRequirement.kind) {
-            ProtoBuf.VersionRequirement.VersionKind.LANGUAGE_VERSION ->
-                MavenComparableVersion(languageVersionSettings.languageVersion.versionString)
-            ProtoBuf.VersionRequirement.VersionKind.API_VERSION ->
-                languageVersionSettings.apiVersion.version
-            ProtoBuf.VersionRequirement.VersionKind.COMPILER_VERSION ->
-                KotlinCompilerVersion.getVersion()?.substringBefore('-')?.let(::createVersion)
-            else -> null
+        val versionRequirements =
+            (target as? DeserializedMemberDescriptor)?.versionRequirements
+                ?: (target as? DeserializedClassDescriptor)?.versionRequirements
+                ?: return emptyList()
+
+        return versionRequirements.mapNotNull { versionRequirement ->
+            val requiredVersion = createVersion(versionRequirement.version.asString())
+            val currentVersion = when (versionRequirement.kind) {
+                ProtoBuf.VersionRequirement.VersionKind.LANGUAGE_VERSION ->
+                    MavenComparableVersion(languageVersionSettings.languageVersion.versionString)
+                ProtoBuf.VersionRequirement.VersionKind.API_VERSION ->
+                    languageVersionSettings.apiVersion.version
+                ProtoBuf.VersionRequirement.VersionKind.COMPILER_VERSION ->
+                    KotlinCompilerVersion.getVersion()?.substringBefore('-')?.let(::createVersion)
+                else -> null
+            }
+            if (currentVersion != null && currentVersion < requiredVersion)
+                DeprecatedByVersionRequirement(versionRequirement, target)
+            else
+                null
         }
-        if (currentVersion != null && currentVersion < requiredVersion) {
-            return DeprecatedByVersionRequirement(versionRequirement, target)
-        }
-        return null
     }
 }
