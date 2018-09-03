@@ -14,12 +14,10 @@ import org.jetbrains.kotlin.cfg.ImmutableHashMap
 import org.jetbrains.kotlin.cfg.pseudocode.Pseudocode
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.CallInstruction
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.InlinedLocalFunctionDeclarationInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineEnterInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineExitInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.*
 import org.jetbrains.kotlin.contracts.FactsEffectSystem
-import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextFamily
 import org.jetbrains.kotlin.contracts.facts.ContextVerifier
@@ -128,7 +126,6 @@ class PseudocodeEffectsData(
             is SubroutineEnterInstruction -> visitSubroutineEnter(instruction, info, depth)
             is SubroutineExitInstruction -> visitSubroutineExit(instruction, info, depth)
             is CallInstruction -> visitCallInstruction(instruction, info)
-            is InlinedLocalFunctionDeclarationInstruction -> visitInlinedLocalFunctionDeclarationInstruction(instruction, info)
             else -> info
         }
 
@@ -175,21 +172,6 @@ class PseudocodeEffectsData(
         applyVerifiers(verifiers, contextsGroupedByFamily)
 
         return ContractsContextsInfo(contextsGroupedByFamily)
-    }
-
-    private fun visitInlinedLocalFunctionDeclarationInstruction(
-        instruction: InlinedLocalFunctionDeclarationInstruction,
-        info: ContractsContextsInfo
-    ): ContractsContextsInfo {
-        val kind = instruction.kind
-        val context = info.toMutableMap()
-        for (family in context.keys) {
-            val combiner = family.combiner
-            if (kind == InvocationKind.AT_MOST_ONCE) {
-                context[family] = combiner.updateContextWhenFuncCalledAtMostOnce(context[family]!!)
-            }
-        }
-        return ContractsContextsInfo(context)
     }
 
     // TODO: contexts to Map<>

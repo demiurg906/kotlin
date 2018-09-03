@@ -41,16 +41,6 @@ object CallCombiner : ContextCombiner() {
         return CallContext(updatedCalls)
     }
 
-    override fun updateContextWhenFuncCalledAtMostOnce(context: Context): Context {
-        if (context !is CallContext) throw AssertionError()
-
-        val updatedCalls = context.calls.mapValues { (_, callInfo) ->
-            val newKind = updateWithAtMostOnceKind(callInfo.kind)
-            CallInfo(callInfo.sourceElement, newKind)
-        }
-        return CallContext(updatedCalls)
-    }
-
     override fun cleanupContextAtBlockExit(context: Context, depth: Int): Context = context
 
     private fun or(x: InvocationKind, y: InvocationKind) = when (x) {
@@ -111,13 +101,4 @@ object CallCombiner : ContextCombiner() {
             else -> UNKNOWN
         }
     }
-
-    private fun updateWithAtMostOnceKind(kind: InvocationKind) =
-        when (kind) {
-            AT_MOST_ONCE -> AT_MOST_ONCE
-            EXACTLY_ONCE -> AT_MOST_ONCE
-            AT_LEAST_ONCE -> UNKNOWN
-            ZERO -> ZERO
-            UNKNOWN -> UNKNOWN
-        }
 }

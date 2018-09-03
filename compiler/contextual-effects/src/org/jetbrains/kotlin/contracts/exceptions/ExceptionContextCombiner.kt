@@ -37,6 +37,4 @@ object ExceptionContextCombiner : ContextCombiner() {
         }
         return ExceptionContext(depths)
     }
-
-    override fun updateContextWhenFuncCalledAtMostOnce(context: Context): Context = context
 }
