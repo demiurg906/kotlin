@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.SimpleType
+import org.jetbrains.kotlin.types.isNullable
 
 private typealias MemberToTransformer = MutableMap<SimpleMemberKey, (IrCall) -> IrExpression>
 private typealias SymbolToTransformer = MutableMap<IrFunctionSymbol, (IrCall) -> IrExpression>
@@ -509,6 +510,9 @@ fun shouldReplaceToStringWithRuntimeCall(call: IrCall): Boolean {
     //  - Use direct method call for dynamic types???
     //  - Define Any?.toString() in runtime library and stop intrincifying extensions
 
+    if (call.valueArgumentsCount > 0)
+        return false
+
     val receiverParameterType = with(call.symbol.owner) {
         dispatchReceiverParameter ?: extensionReceiverParameter
     }?.type ?: return false
@@ -569,7 +573,8 @@ fun translateEquals(lhs: IrType, rhs: IrType): EqualityLoweringType = when {
     lhs.isNullableBoolean() -> translateEqualsForNullableBoolean(rhs)
     lhs.isString() -> translateEqualsForString(rhs)
     lhs.isNullableString() -> translateEqualsForNullableString(rhs)
-    lhs.isNullable() -> RuntimeFunctionCall
+    // TODO: Fix unbound symbols (in inline)
+    lhs.toKotlinType().isNullable() -> RuntimeFunctionCall
     else -> RuntimeOrMethodCall
 }
 

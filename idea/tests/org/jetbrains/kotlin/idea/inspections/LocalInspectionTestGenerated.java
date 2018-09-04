@@ -3969,6 +3969,11 @@ public class LocalInspectionTestGenerated extends AbstractLocalInspectionTest {
         public void testSimple() throws Exception {
             runTest("idea/testData/inspectionsLocal/redundantLambdaArrow/simple.kt");
         }
+
+        @TestMetadata("underscore.kt")
+        public void testUnderscore() throws Exception {
+            runTest("idea/testData/inspectionsLocal/redundantLambdaArrow/underscore.kt");
+        }
     }
 
     @TestMetadata("idea/testData/inspectionsLocal/redundantObjectTypeCheck")
@@ -5403,6 +5408,11 @@ public class LocalInspectionTestGenerated extends AbstractLocalInspectionTest {
             @TestMetadata("method.kt")
             public void testMethod() throws Exception {
                 runTest("idea/testData/inspectionsLocal/scopeFunctions/applyToAlso/method.kt");
+            }
+
+            @TestMetadata("methodWithThis.kt")
+            public void testMethodWithThis() throws Exception {
+                runTest("idea/testData/inspectionsLocal/scopeFunctions/applyToAlso/methodWithThis.kt");
             }
 
             @TestMetadata("outerLambda.kt")
