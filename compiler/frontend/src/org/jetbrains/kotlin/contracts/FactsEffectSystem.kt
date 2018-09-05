@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.contracts.facts.ContextVerifier
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
 import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
 import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 
 object FactsEffectSystem {
@@ -32,12 +32,12 @@ object FactsEffectSystem {
     }
 
     // lambdas
-    fun declaredContexts(lambdaExpression: KtLambdaExpression, context: BindingContext): Collection<Context> {
+    fun declaredContexts(lambdaExpression: KtExpression, context: BindingContext): Collection<Context> {
         val (contexts, _) = context[BindingContext.CONTEXT_FACTS, lambdaExpression] ?: return emptyList()
         return contexts
     }
 
-    fun declaredVerifiers(lambdaExpression: KtLambdaExpression, context: BindingContext): Collection<ContextVerifier> {
+    fun declaredVerifiers(lambdaExpression: KtExpression, context: BindingContext): Collection<ContextVerifier> {
         val (_, verifiers) = context[BindingContext.CONTEXT_FACTS, lambdaExpression] ?: return emptyList()
         return verifiers
     }

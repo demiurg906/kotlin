@@ -13,8 +13,7 @@ import org.jetbrains.kotlin.contracts.facts.ContextCombiner
 object CallCombiner : ContextCombiner() {
     override fun or(a: Context, b: Context): Context = performOperation(a, b, ::or)
 
-    override fun combine(existedContext: Context, newContext: Context, depth: Int?): Context {
-        if (depth != null) throw AssertionError()
+    override fun combine(existedContext: Context, newContext: Context): Context {
         return performOperation(existedContext, newContext, ::combine)
     }
 

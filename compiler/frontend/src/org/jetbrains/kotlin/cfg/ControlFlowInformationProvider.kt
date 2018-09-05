@@ -134,8 +134,10 @@ class ControlFlowInformationProvider private constructor(
         val contextsInfo = pseudocodeEffectsData.resultingContexts ?: return
 
         for (family in FactsEffectSystem.getFamilies()) {
-            val context = contextsInfo[family] ?: continue
-            (context as AbstractContext).reportRemaining(trace)
+            val contexts = contextsInfo[family] ?: continue
+            for (context in contexts) {
+                (context as AbstractContext).reportRemaining(trace)
+            }
         }
     }
 

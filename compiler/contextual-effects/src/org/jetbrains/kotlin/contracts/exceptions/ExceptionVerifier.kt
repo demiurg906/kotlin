@@ -16,11 +16,15 @@ import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 class ExceptionVerifier(private val exceptionType: KotlinType, private val sourceElement: KtElement) : ContextVerifier() {
     override val family = ExceptionFamily
 
-    override fun verify(context: Context, diagnosticSink: DiagnosticSink) {
-        if (context !is ExceptionContext) throw AssertionError()
-        val isOk = context.cachedExceptions.asSequence().any {
-            exceptionType.isSubtypeOf(it)
+    override fun verify(contexts: Collection<Context>, diagnosticSink: DiagnosticSink) {
+        val exceptionContexts = contexts.map { it as? ExceptionContext ?: throw AssertionError() }
+
+        val isOk = exceptionContexts.any { context ->
+            context.cachedExceptions.asSequence().any {
+                exceptionType.isSubtypeOf(it)
+            }
         }
+
         if (!isOk) {
             diagnosticSink.report(Errors.CONTEXTUAL_EFFECT_WARNING.on(sourceElement, "Unchecked exception: $exceptionType"))
         }
