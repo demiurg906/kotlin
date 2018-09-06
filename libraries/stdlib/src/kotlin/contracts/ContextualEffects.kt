@@ -23,3 +23,7 @@ enum class DslCallKind {
     EXACTLY_ONCE,
     AT_LEAST_ONCE
 }
+
+// ------------------ Transactions ------------------
+
+class OpenedTransaction(thisReference: Any) : StartsContextDescription, ClosesContextDescription, RequiresContextDescription

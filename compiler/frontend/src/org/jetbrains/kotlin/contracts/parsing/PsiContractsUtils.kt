@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.contracts.parsing
 
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CLOSES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONTRACT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONTRACTS_DSL_ANNOTATION_FQN
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.EFFECT
@@ -27,6 +28,7 @@ import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_NOT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.STARTS
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.name.FqName
@@ -56,6 +58,8 @@ object ContractsDslNames {
     val BLOCK_REQUIRES_CONTEXT = Name.identifier("BlockRequiresContext")
     val REQUIRES_NOT_CONTEXT = Name.identifier("RequiresNotContext")
     val BLOCK_REQUIRES_NOT_CONTEXT = Name.identifier("BlockRequiresNotContext")
+    val STARTS_CONTEXT = Name.identifier("StartsContext")
+    val CLOSES_CONTEXT = Name.identifier("ClosesContext")
 
     // Structure-defining calls
     val CONTRACT = Name.identifier("contract")
@@ -68,6 +72,8 @@ object ContractsDslNames {
     val PROVIDES = Name.identifier("provides")
     val REQUIRES = Name.identifier("requires")
     val REQUIRES_NOT = Name.identifier("requiresNot")
+    val STARTS = Name.identifier("starts")
+    val CLOSES = Name.identifier("closes")
 
     // enum class InvocationKind
     val INVOCATION_KIND_ENUM = Name.identifier("InvocationKind")
@@ -101,18 +107,22 @@ fun DeclarationDescriptor.isInvocationKindEnum(): Boolean = equalsDslDescriptor(
 
 // Context providers
 
-fun DeclarationDescriptor.isProviderDescriptor(): Boolean = isProvidesFactDescriptor()
+fun DeclarationDescriptor.isProviderDescriptor(): Boolean = isProvidesFactDescriptor() || isStartsContextDescriptor()
 
 private fun DeclarationDescriptor.isProvidesFactDescriptor(): Boolean = equalsDslDescriptor(PROVIDES)
 
+private fun DeclarationDescriptor.isStartsContextDescriptor(): Boolean = equalsDslDescriptor(STARTS)
+
 // Context verifiers and cleaners
 
-fun DeclarationDescriptor.isVerifierOrCleanerDescriptor(): Boolean = isRequiresContextDescriptor() || isRequiresNotContextDescriptor()
+fun DeclarationDescriptor.isVerifierOrCleanerDescriptor(): Boolean =
+    isRequiresContextDescriptor() || isRequiresNotContextDescriptor() || isClosesContextDescriptor()
 
 private fun DeclarationDescriptor.isRequiresContextDescriptor(): Boolean = equalsDslDescriptor(REQUIRES)
 
 private fun DeclarationDescriptor.isRequiresNotContextDescriptor(): Boolean = equalsDslDescriptor(REQUIRES_NOT)
 
+private fun DeclarationDescriptor.isClosesContextDescriptor(): Boolean = equalsDslDescriptor(CLOSES)
 
 fun DeclarationDescriptor.isEqualsDescriptor(): Boolean =
     this is FunctionDescriptor && this.name == Name.identifier("equals") && // fast checks

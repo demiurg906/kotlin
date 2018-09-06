@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_PROVIDES_F
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_REQUIRES_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_REQUIRES_NOT_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE_EFFECT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CLOSES_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONDITIONAL_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDES_FACT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RECEIVER_OF
@@ -32,6 +33,7 @@ import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_NOT_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL_EFFECT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.STARTS_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.effects.*
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
@@ -55,6 +57,8 @@ class PsiContractParserDispatcher(
         CONDITIONAL_EFFECT to PsiConditionalEffectParser(collector, callContext, this),
 
         PROVIDES_FACT to PsiFactParser(collector, callContext, this),
+        STARTS_CONTEXT to PsiFactParser(collector, callContext, this),
+        CLOSES_CONTEXT to PsiFactParser(collector, callContext, this),
         REQUIRES_CONTEXT to PsiFactParser(collector, callContext, this),
         REQUIRES_NOT_CONTEXT to PsiFactParser(collector, callContext, this),
         BLOCK_PROVIDES_FACT to PsiLambdaFactParser(collector, callContext, this),
