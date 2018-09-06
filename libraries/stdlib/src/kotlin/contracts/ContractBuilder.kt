@@ -11,12 +11,12 @@ import kotlin.internal.InlineOnly
 @Retention(AnnotationRetention.BINARY)
 @SinceKotlin("1.3")
 @Experimental
-public annotation class ExperimentalContracts
+annotation class ExperimentalContracts
 
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public interface ContractBuilder {
+interface ContractBuilder {
     @ContractsDsl
     fun returns(): Returns
 
@@ -48,12 +48,18 @@ public interface ContractBuilder {
 
     @ContractsDsl
     fun <R> requiresNot(block: Function<R>, requirement: CheckerNotDescription): BlockRequiresNotContext
+
+    @ContractsDsl
+    fun starts(context: StartsContextDescription): StartsContext
+
+    @ContractsDsl
+    fun closes(context: ClosesContextDescription): ClosesContext
 }
 
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public enum class InvocationKind {
+enum class InvocationKind {
     @ContractsDsl
     AT_MOST_ONCE,
 
@@ -72,7 +78,7 @@ public enum class InvocationKind {
 @InlineOnly
 @SinceKotlin("1.3")
 @Suppress("UNUSED_PARAMETER")
-public inline fun contract(builder: ContractBuilder.() -> Unit) {
+inline fun contract(builder: ContractBuilder.() -> Unit) {
 }
 
 

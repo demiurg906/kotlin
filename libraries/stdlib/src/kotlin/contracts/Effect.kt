@@ -58,6 +58,16 @@ interface CheckerNotDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
+interface StartsContextDescription
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface ClosesContextDescription
+
+
+
+@ContractsDsl
+@SinceKotlin("1.3")
 interface ProvidesFact : Effect
 
 @ContractsDsl
@@ -79,3 +89,11 @@ interface RequiresNotContext : Effect
 @ContractsDsl
 @SinceKotlin("1.3")
 interface BlockRequiresNotContext : Effect
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface StartsContext : Effect
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface ClosesContext : Effect
