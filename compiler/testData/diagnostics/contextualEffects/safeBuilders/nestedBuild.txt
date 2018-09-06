@@ -2,21 +2,27 @@ package
 
 public fun buildX(/*0*/ init: XBuilder.() -> kotlin.Unit): X
     CallsInPlace(init, EXACTLY_ONCE)
-    initkotlin.Unit requires func needs to be called EXACTLY_ONCE
+    initkotlin.Unit verifies func needs to be called EXACTLY_ONCE
+    initkotlin.Unit cleans func needs to be called EXACTLY_ONCE
 
 public fun buildXYZ(/*0*/ init: XYZBuilder.() -> kotlin.Unit): XYZ
     CallsInPlace(init, EXACTLY_ONCE)
-    initkotlin.Unit requires func needs to be called EXACTLY_ONCE
-    initkotlin.Unit requires func needs to be called AT_MOST_ONCE
-    initkotlin.Unit requires func needs to be called AT_LEAST_ONCE
+    initkotlin.Unit verifies func needs to be called EXACTLY_ONCE
+    initkotlin.Unit cleans func needs to be called EXACTLY_ONCE
+    initkotlin.Unit verifies func needs to be called AT_MOST_ONCE
+    initkotlin.Unit cleans func needs to be called AT_MOST_ONCE
+    initkotlin.Unit verifies func needs to be called AT_LEAST_ONCE
+    initkotlin.Unit cleans func needs to be called AT_LEAST_ONCE
 
 public fun buildY(/*0*/ init: YBuilder.() -> kotlin.Unit): Y
     CallsInPlace(init, EXACTLY_ONCE)
-    initkotlin.Unit requires func needs to be called EXACTLY_ONCE
+    initkotlin.Unit verifies func needs to be called EXACTLY_ONCE
+    initkotlin.Unit cleans func needs to be called EXACTLY_ONCE
 
 public fun buildZ(/*0*/ init: ZBuilder.() -> kotlin.Unit): Z
     CallsInPlace(init, EXACTLY_ONCE)
-    initkotlin.Unit requires func needs to be called EXACTLY_ONCE
+    initkotlin.Unit verifies func needs to be called EXACTLY_ONCE
+    initkotlin.Unit cleans func needs to be called EXACTLY_ONCE
 
 public fun test_1(): kotlin.Unit
 public fun test_2(): kotlin.Unit

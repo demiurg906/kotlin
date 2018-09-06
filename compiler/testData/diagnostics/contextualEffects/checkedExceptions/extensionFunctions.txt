@@ -7,7 +7,7 @@ public inline fun myCatchIOException(/*0*/ block: () -> kotlin.Unit): kotlin.Uni
 public fun test_1(): kotlin.Unit
 public fun test_2(): kotlin.Unit
 public fun A.throwsIOException(): kotlin.Unit
-    throwsIOExceptionkotlin.Unit requires Catches IOException
+    throwsIOExceptionkotlin.Unit verifies Catches IOException
 
 public final class A {
     public constructor A()

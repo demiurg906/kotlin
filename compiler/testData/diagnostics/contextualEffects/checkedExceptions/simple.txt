@@ -13,10 +13,10 @@ public fun test_2(): kotlin.Unit
 public fun test_3(): kotlin.Unit
 public fun test_4(): kotlin.Unit
 public fun throwsFileNotFoundException(): kotlin.Unit
-    throwsFileNotFoundExceptionkotlin.Unit requires Catches FileNotFoundException
+    throwsFileNotFoundExceptionkotlin.Unit verifies Catches FileNotFoundException
 
 public fun throwsIOException(): kotlin.Unit
-    throwsIOExceptionkotlin.Unit requires Catches IOException
+    throwsIOExceptionkotlin.Unit verifies Catches IOException
 
 public fun throwsNullPointerException(): kotlin.Unit
-    throwsNullPointerExceptionkotlin.Unit requires Catches NullPointerException
+    throwsNullPointerExceptionkotlin.Unit verifies Catches NullPointerException

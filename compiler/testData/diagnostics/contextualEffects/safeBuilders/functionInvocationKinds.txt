@@ -2,15 +2,18 @@ package
 
 public fun buildAtLeastOnce(/*0*/ init: ABuilder.() -> kotlin.Unit): A
     CallsInPlace(init, EXACTLY_ONCE)
-    initkotlin.Unit requires func needs to be called AT_LEAST_ONCE
+    initkotlin.Unit verifies func needs to be called AT_LEAST_ONCE
+    initkotlin.Unit cleans func needs to be called AT_LEAST_ONCE
 
 public fun buildAtMostOnce(/*0*/ init: ABuilder.() -> kotlin.Unit): A
     CallsInPlace(init, EXACTLY_ONCE)
-    initkotlin.Unit requires func needs to be called AT_MOST_ONCE
+    initkotlin.Unit verifies func needs to be called AT_MOST_ONCE
+    initkotlin.Unit cleans func needs to be called AT_MOST_ONCE
 
 public fun buildExactlyOnce(/*0*/ init: ABuilder.() -> kotlin.Unit): A
     CallsInPlace(init, EXACTLY_ONCE)
-    initkotlin.Unit requires func needs to be called EXACTLY_ONCE
+    initkotlin.Unit verifies func needs to be called EXACTLY_ONCE
+    initkotlin.Unit cleans func needs to be called EXACTLY_ONCE
 
 public inline fun maybeRun(/*0*/ block: () -> kotlin.Unit): kotlin.Unit
     CallsInPlace(block, AT_MOST_ONCE)
