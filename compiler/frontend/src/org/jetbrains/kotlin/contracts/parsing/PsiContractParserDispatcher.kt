@@ -75,7 +75,7 @@ class PsiContractParserDispatcher(
             return null
         }
 
-        val effects = lambda.bodyExpression?.statements?.mapNotNull { parseEffect(it) } ?: return null
+        val effects = lambda.bodyExpression?.statements?.flatMap { parseEffect(it) } ?: return null
 
         if (effects.isEmpty()) return null
 
@@ -84,15 +84,15 @@ class PsiContractParserDispatcher(
 
     fun parseCondition(expression: KtExpression?): BooleanExpression? = expression?.accept(conditionParser, Unit)
 
-    fun parseEffect(expression: KtExpression?): EffectDeclaration? {
-        if (expression == null) return null
-        if (!isValidEffectDeclaration(expression)) return null
+    fun parseEffect(expression: KtExpression?): Collection<EffectDeclaration> {
+        if (expression == null) return emptyList()
+        if (!isValidEffectDeclaration(expression)) return emptyList()
 
-        val returnType = expression.getType(callContext.bindingContext) ?: return null
+        val returnType = expression.getType(callContext.bindingContext) ?: return emptyList()
         val parser = effectsParsers[returnType.constructor.declarationDescriptor?.name]
         if (parser == null) {
             collector.badDescription("unrecognized effect", expression)
-            return null
+            return emptyList()
         }
 
         return parser.tryParseEffect(expression)
