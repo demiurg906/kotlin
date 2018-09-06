@@ -76,13 +76,10 @@ class EffectsExtractingVisitor(
                 descriptor,
                 (element as KtExpression).createDataFlowValue() ?: return UNKNOWN_COMPUTATION
             )
-            descriptor is FunctionDescriptor -> {
-                val additionalReducer = AdditionalReducerImpl(trace.bindingContext)
-                CallComputation(
-                    descriptor.returnType,
-                    descriptor.getFunctor()?.invokeWithArguments(arguments, additionalReducer) ?: emptyList()
-                )
-            }
+            descriptor is FunctionDescriptor -> CallComputation(
+                descriptor.returnType,
+                descriptor.getFunctor()?.invokeWithArguments(arguments) ?: emptyList()
+            )
             else -> UNKNOWN_COMPUTATION
         }
     }
@@ -159,8 +156,8 @@ class EffectsExtractingVisitor(
 
     private fun FunctionDescriptor.getFunctor(): Functor? {
         trace[BindingContext.FUNCTOR, this]?.let { return it }
-        
-        val functor = ContractInterpretationDispatcher().resolveFunctor(this) ?: return null
+
+        val functor = ContractInterpretationDispatcher().resolveFunctor(this, AdditionalReducerImpl()) ?: return null
         trace.record(BindingContext.FUNCTOR, this, functor)
         return functor
     }
@@ -202,7 +199,7 @@ class EffectsExtractingVisitor(
 
     private fun ValueArgument.toComputation(): Computation? {
         return when (this) {
-            is KtLambdaArgument -> getLambdaExpression()?.let { ESLambda(it) }
+            is KtLambdaArgument -> getLambdaExpression()?.let { ESLambda(it, trace.bindingContext) }
             is KtValueArgument -> getArgumentExpression()?.let { extractOrGetCached(it) }
             else -> null
         }

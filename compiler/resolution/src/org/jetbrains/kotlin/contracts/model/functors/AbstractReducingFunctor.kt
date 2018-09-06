@@ -26,11 +26,10 @@ import org.jetbrains.kotlin.contracts.model.visitors.Reducer
  * Abstract implementation of Functor with some routine house-holding
  * automatically performed. *
  */
-abstract class AbstractReducingFunctor : Functor {
-    override fun invokeWithArguments(arguments: List<Computation>, additionalReducer: AdditionalReducer?): List<ESEffect> {
-        val reducer = Reducer(additionalReducer)
-        return reducer.reduceEffects(doInvocation(arguments))
-    }
+abstract class AbstractReducingFunctor(additionalReducer: AdditionalReducer? = null) : Functor {
+    private val reducer = Reducer(additionalReducer)
+
+    override fun invokeWithArguments(arguments: List<Computation>): List<ESEffect> = reducer.reduceEffects(doInvocation(arguments))
 
     protected abstract fun doInvocation(arguments: List<Computation>): List<ESEffect>
 }
