@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.contracts.parsing.effects
 import org.jetbrains.kotlin.contracts.FactsEffectSystem
 import org.jetbrains.kotlin.contracts.description.*
 import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
+import org.jetbrains.kotlin.contracts.facts.CleanerDeclaration
 import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
 import org.jetbrains.kotlin.contracts.facts.ContextEntityDeclaration
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
@@ -25,30 +26,37 @@ internal class PsiFactParser(
     callContext: ContractCallContext,
     dispatcher: PsiContractParserDispatcher
 ) : AbstractPsiEffectParser(collector, callContext, dispatcher) {
-    override fun tryParseEffect(expression: KtExpression): EffectDeclaration? {
-        if (expression !is KtCallExpression) return null
+    override fun tryParseEffect(expression: KtExpression): Collection<EffectDeclaration> {
+        if (expression !is KtCallExpression) return emptyList()
 
         val bindingContext = callContext.bindingContext
 
-        val resolvedCall = expression.getResolvedCall(bindingContext) ?: return null
+        val resolvedCall = expression.getResolvedCall(bindingContext) ?: return emptyList()
         val descriptor = resolvedCall.resultingDescriptor
 
-        val argumentExpression = resolvedCall.firstArgumentAsExpressionOrNull() ?: return null
-        val owner = expression.parents.firstOrNull { it is KtNamedFunction } as? KtNamedFunction ?: return null
-        val ownerDescriptor = bindingContext[BindingContext.FUNCTION, owner] ?: return null
-
+        val argumentExpression = resolvedCall.firstArgumentAsExpressionOrNull() ?: return emptyList()
+        val owner = expression.parents.firstOrNull { it is KtNamedFunction } as? KtNamedFunction ?: return emptyList()
+        val ownerDescriptor = bindingContext[BindingContext.FUNCTION, owner] ?: return emptyList()
+        
         return when {
             descriptor.isRequiresContextDescriptor() || descriptor.isRequiresNotContextDescriptor() -> {
-                val declaration = parseContextCheckerFactoryDeclaration(argumentExpression, bindingContext, contractParserDispatcher) ?: return null
-                RequiresContextEffectDeclaration(declaration, declaration.references, FunctionReference(ownerDescriptor))
+                val declarations = mutableListOf<EffectDeclaration?>()
+
+                declarations += parseContextVerifierDeclaration(argumentExpression, bindingContext, contractParserDispatcher)
+                    ?.let { ContextVerifierEffectDeclaration(it, it.references, FunctionReference(ownerDescriptor)) }
+
+                declarations += parseContextCleanerDeclaration(argumentExpression, bindingContext, contractParserDispatcher)
+                    ?.let { ContextCleanerEffectDeclaration(it, it.references, FunctionReference(ownerDescriptor)) }
+
+                declarations.filterNotNull()
             }
 
             descriptor.isProvidesFactDescriptor() -> {
-                val declaration = parseContextFactFactoryDeclaration(argumentExpression, bindingContext, contractParserDispatcher) ?: return null
-                ProvidesFactEffectDeclaration(declaration, declaration.references, FunctionReference(ownerDescriptor))
+                val declaration = parseContextProviderDeclaration(argumentExpression, bindingContext, contractParserDispatcher) ?: return emptyList()
+                listOf(ContextProviderEffectDeclaration(declaration, declaration.references, FunctionReference(ownerDescriptor)))
             }
 
-            else -> null
+            else -> emptyList()
         }
     }
 }
@@ -59,31 +67,38 @@ internal class PsiLambdaFactParser(
     callContext: ContractCallContext,
     dispatcher: PsiContractParserDispatcher
 ) : AbstractPsiEffectParser(collector, callContext, dispatcher) {
-    override fun tryParseEffect(expression: KtExpression): EffectDeclaration? {
-        if (expression !is KtCallExpression) return null
+    override fun tryParseEffect(expression: KtExpression): Collection<EffectDeclaration> {
+        if (expression !is KtCallExpression) return emptyList()
 
         val bindingContext = callContext.bindingContext
 
-        val resolvedCall = expression.getResolvedCall(bindingContext) ?: return null
+        val resolvedCall = expression.getResolvedCall(bindingContext) ?: return emptyList()
         val descriptor = resolvedCall.resultingDescriptor
 
-        val ownerExpression = resolvedCall.argumentAsExpressionOrNull(0) ?: return null
-        val owner = contractParserDispatcher.parseVariable(ownerExpression) ?: return null
+        val ownerExpression = resolvedCall.argumentAsExpressionOrNull(0) ?: return emptyList()
+        val owner = contractParserDispatcher.parseVariable(ownerExpression) ?: return emptyList()
 
-        val argumentExpression = resolvedCall.argumentAsExpressionOrNull(1) ?: return null
+        val argumentExpression = resolvedCall.argumentAsExpressionOrNull(1) ?: return emptyList()
 
         return when {
             descriptor.isRequiresContextDescriptor() || descriptor.isRequiresNotContextDescriptor() -> {
-                val declaration = parseContextCheckerFactoryDeclaration(argumentExpression, bindingContext, contractParserDispatcher) ?: return null
-                LambdaRequiresContextEffectDeclaration(declaration, declaration.references, owner)
+                val declarations = mutableListOf<EffectDeclaration?>()
+
+                declarations += parseContextVerifierDeclaration(argumentExpression, bindingContext, contractParserDispatcher)
+                    ?.let { LambdaContextVerifierEffectDeclaration(it, it.references, owner) }
+
+                declarations += parseContextCleanerDeclaration(argumentExpression, bindingContext, contractParserDispatcher)
+                    ?.let { LambdaContextCleanerEffectDeclaration(it, it.references, owner) }
+
+                declarations.filterNotNull()
             }
 
             descriptor.isProvidesFactDescriptor() -> {
-                val declaration = parseContextFactFactoryDeclaration(argumentExpression, bindingContext, contractParserDispatcher) ?: return null
-                LambdaProvidesFactEffectDeclaration(declaration, declaration.references, owner)
+                val declaration = parseContextProviderDeclaration(argumentExpression, bindingContext, contractParserDispatcher) ?: return emptyList()
+                listOf(LambdaContextProviderEffectDeclaration(declaration, declaration.references, owner))
             }
 
-            else -> null
+            else -> emptyList()
         }
     }
 }
@@ -104,7 +119,7 @@ internal fun <T : ContextEntityDeclaration> parseAbstractFactoryDeclaration(
         .firstOrNull()
 }
 
-internal fun parseContextFactFactoryDeclaration(
+internal fun parseContextProviderDeclaration(
     expression: KtExpression,
     bindingContext: BindingContext,
     dispatcher: PsiContractParserDispatcher
@@ -115,7 +130,7 @@ internal fun parseContextFactFactoryDeclaration(
     PsiEffectDeclarationExtractor::extractContextDeclaration
 )
 
-internal fun parseContextCheckerFactoryDeclaration(
+internal fun parseContextVerifierDeclaration(
     expression: KtExpression,
     bindingContext: BindingContext,
     dispatcher: PsiContractParserDispatcher
@@ -124,4 +139,15 @@ internal fun parseContextCheckerFactoryDeclaration(
     bindingContext,
     dispatcher,
     PsiEffectDeclarationExtractor::extractVerifierDeclaration
+)
+
+internal fun parseContextCleanerDeclaration(
+    expression: KtExpression,
+    bindingContext: BindingContext,
+    dispatcher: PsiContractParserDispatcher
+): CleanerDeclaration? = parseAbstractFactoryDeclaration(
+    expression,
+    bindingContext,
+    dispatcher,
+    PsiEffectDeclarationExtractor::extractCleanerDeclaration
 )

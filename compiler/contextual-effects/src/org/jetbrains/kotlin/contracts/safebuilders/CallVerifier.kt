@@ -30,14 +30,6 @@ class CallVerifier(
         }
     }
 
-    override fun cleanupProcessed(context: Context): Context {
-        if (context !is CallContext) throw AssertionError()
-
-        val calls = context.calls.toMutableMap()
-        calls.remove(functionReference)
-        return CallContext(calls)
-    }
-
     private fun isSatisfied(expected: InvocationKind, actual: InvocationKind): Boolean {
         if (expected == InvocationKind.ZERO || expected == InvocationKind.UNKNOWN) throw AssertionError()
         if (actual == InvocationKind.UNKNOWN) return false

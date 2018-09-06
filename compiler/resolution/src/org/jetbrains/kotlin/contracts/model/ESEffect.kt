@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.contracts.model
 
+import org.jetbrains.kotlin.contracts.facts.CleanerDeclarationHackedInterface
 import org.jetbrains.kotlin.contracts.facts.ContextDeclarationHackedInterface
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclarationHackedInterface
 
@@ -49,7 +50,7 @@ class ConditionalEffect(val condition: ESExpression, val simpleEffect: SimpleEff
 
 // Fact effects
 
-class ProvidesContextEffect(
+class ContextProviderEffect(
     val contextDeclaration: ContextDeclarationHackedInterface,
     val references: List<ESValue?>,
     val owner: ESValue
@@ -57,8 +58,16 @@ class ProvidesContextEffect(
     override fun isImplies(other: ESEffect): Boolean? = null
 }
 
-class RequiresContextEffect(
-    val verifiersDeclaration: VerifierDeclarationHackedInterface,
+class ContextVerifierEffect(
+    val verifierDeclaration: VerifierDeclarationHackedInterface,
+    val references: List<ESValue?>,
+    val owner: ESValue
+) : ESEffect() {
+    override fun isImplies(other: ESEffect): Boolean? = null
+}
+
+class ContextCleanerEffect(
+    val cleanerDeclaration: CleanerDeclarationHackedInterface,
     val references: List<ESValue?>,
     val owner: ESValue
 ) : ESEffect() {

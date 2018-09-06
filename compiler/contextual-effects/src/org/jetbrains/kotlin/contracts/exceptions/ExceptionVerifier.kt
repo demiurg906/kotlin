@@ -29,6 +29,4 @@ class ExceptionVerifier(private val exceptionType: KotlinType, private val sourc
             diagnosticSink.report(Errors.CONTEXTUAL_EFFECT_WARNING.on(sourceElement, "Unchecked exception: $exceptionType"))
         }
     }
-
-    override fun cleanupProcessed(context: Context): Context = context
 }

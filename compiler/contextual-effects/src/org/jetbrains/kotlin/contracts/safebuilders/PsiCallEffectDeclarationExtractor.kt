@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.contracts.safebuilders
 
 import org.jetbrains.kotlin.contracts.description.InvocationKind
+import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
+import org.jetbrains.kotlin.contracts.facts.CleanerDeclaration
 import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
@@ -39,6 +41,16 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
     }
 
     override fun extractVerifierDeclaration(declaration: KtExpression): VerifierDeclaration? {
+        val (kind, references) = extractKindAndReferences(declaration) ?: return null
+        return CallVerifierDeclaration(kind, references)
+    }
+
+    override fun extractCleanerDeclaration(declaration: KtExpression): CleanerDeclaration? {
+        val (kind, references) = extractKindAndReferences(declaration) ?: return null
+        return CallCleanerDeclaration(kind, references)
+    }
+
+    private fun extractKindAndReferences(declaration: KtExpression): Pair<InvocationKind, List<ContractDescriptionValue>>? {
         if (declaration !is KtCallExpression) return null
 
         val (resolvedCall, descriptor) = declaration.getResolverCallAndResultingDescriptor(context) ?: return null
@@ -57,7 +69,8 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
         val receiverReference = dispatcher.parseReceiver(resolvedCall.argumentAsExpressionOrNull(2)) ?: return null
 
         val references = listOf(functionReference, receiverReference)
-        return CallVerifierDeclaration(kind, references)
+
+        return kind to references
     }
 
     private fun parseKind(kind: String) = when (kind) {

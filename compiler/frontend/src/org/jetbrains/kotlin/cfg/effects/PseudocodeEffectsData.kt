@@ -16,8 +16,9 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.BlockScope
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.CallInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.*
-import org.jetbrains.kotlin.contracts.FactsEffectSystem
+import org.jetbrains.kotlin.contracts.declaredFactsInfo
 import org.jetbrains.kotlin.contracts.facts.Context
+import org.jetbrains.kotlin.contracts.facts.ContextCleaner
 import org.jetbrains.kotlin.contracts.facts.ContextFamily
 import org.jetbrains.kotlin.contracts.facts.ContextVerifier
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -69,7 +70,7 @@ class PseudocodeEffectsData(
     ) {
         if (instruction !is CallInstruction) return
         val callExpression = instruction.element as? KtCallExpression ?: return
-        val (_, verifiers) = FactsEffectSystem.declaredFactsAndCheckers(callExpression, bindingContext)
+        val verifiers = callExpression.declaredFactsInfo(bindingContext).verifiers
         verifyContext(verifiers, info)
     }
 
@@ -82,7 +83,7 @@ class PseudocodeEffectsData(
         val currentDepth = instruction.blockScope.depth
         if (previousDepth > currentDepth) {
             val block = instruction.blockScope.block as? KtExpression ?: return
-            val verifiers= FactsEffectSystem.declaredFactsAndCheckers(block, bindingContext).second
+            val verifiers= block.declaredFactsInfo(bindingContext).verifiers
             verifyContext(verifiers, info)
         }
     }
@@ -107,37 +108,37 @@ class PseudocodeEffectsData(
         val currentDepth = instruction.blockScope.depth
 
         return when {
-            previousDepth < currentDepth -> visitEnterBlock(previousInstruction.blockScope, info)
-            previousDepth > currentDepth -> visitExitBlock(instruction.blockScope, info)
+            previousDepth < currentDepth -> visitBlockEnter(previousInstruction.blockScope, info)
+            previousDepth > currentDepth -> visitBlockExit(instruction.blockScope, info)
             else -> info
         }
     }
 
     // collect facts
-    private fun visitEnterBlock(
+    private fun visitBlockEnter(
         blockScope: BlockScope,
         info: ContractsContextsInfo
     ): ContractsContextsInfo {
         val block = blockScope.block as? KtExpression ?: return info
-        val contexts = FactsEffectSystem.declaredContexts(block, bindingContext)
+        val contexts = block.declaredFactsInfo(bindingContext).contexts
         val contextsGroupedByFamily = info.toMutableMap()
         combineContexts(contextsGroupedByFamily, contexts, blockScope.depth)
         return ContractsContextsInfo(contextsGroupedByFamily)
     }
 
     // collect checkers
-    private fun visitExitBlock(
+    private fun visitBlockExit(
         blockScope: BlockScope,
         info: ContractsContextsInfo
     ): ContractsContextsInfo {
         val block = blockScope.block as? KtExpression ?: return info
-        val verifiers = FactsEffectSystem.declaredVerifiers(block, bindingContext)
+        val cleaners = block.declaredFactsInfo(bindingContext).cleaners
         val depth = blockScope.depth
         val context = info.toMutableMap()
         for (family in context.keys) {
             context[family]!!.remove(depth)
         }
-        applyVerifiers(verifiers, context)
+        applyCleaners(cleaners, context)
         return ContractsContextsInfo(context)
     }
 
@@ -190,9 +191,9 @@ class PseudocodeEffectsData(
 
         val callExpression = instruction.element as? KtCallExpression ?: return info
 
-        val (contexts, verifiers) = FactsEffectSystem.declaredFactsAndCheckers(callExpression, bindingContext)
+        val (contexts, _, cleaners) = callExpression.declaredFactsInfo(bindingContext)
         combineContexts(contextsGroupedByFamily, contexts, null)
-        applyVerifiers(verifiers, contextsGroupedByFamily)
+        applyCleaners(cleaners, contextsGroupedByFamily)
 
         return ContractsContextsInfo(contextsGroupedByFamily)
     }
@@ -214,18 +215,18 @@ class PseudocodeEffectsData(
         }
     }
 
-    private fun applyVerifiers(
-        verifiers: Collection<ContextVerifier>,
+    private fun applyCleaners(
+        cleaners: Collection<ContextCleaner>,
         contextsGroupedByFamily: MutableMap<ContextFamily, MutableMap<Int, Context>>
     ) {
-        for (verifier in verifiers) {
-            val family = verifier.family
+        for (cleaner in cleaners) {
+            val family = cleaner.family
             if (family !in contextsGroupedByFamily) {
                 contextsGroupedByFamily[family] = mutableMapOf()
             }
 
             contextsGroupedByFamily[family] = contextsGroupedByFamily[family]!!.mapValues { (_, context) ->
-                verifier.cleanupProcessed(context)
+                cleaner.cleanupProcessed(context)
             }.toMutableMap()
         }
     }

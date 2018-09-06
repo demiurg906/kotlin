@@ -56,16 +56,22 @@ interface ContractDescriptionVisitor<out R, in D> {
     fun visitReceiverReference(receiverReference: ReceiverReference, data: D): R = visitValue(receiverReference, data)
 
     // Facts
-    fun visitProvidesFactEffectDeclaration(effectDeclaration: ProvidesFactEffectDeclaration, data: D): R =
+    fun visitContextProviderEffectDeclaration(effectDeclaration: ContextProviderEffectDeclaration, data: D): R =
         visitEffectDeclaration(effectDeclaration, data)
 
-    fun visitLambdaProvidesFactEffectDeclaration(effectDeclaration: LambdaProvidesFactEffectDeclaration, data: D): R =
+    fun visitLambdaContextProviderEffectDeclaration(effectDeclaration: LambdaContextProviderEffectDeclaration, data: D): R =
         visitEffectDeclaration(effectDeclaration, data)
 
-    fun visitRequiresContextEffectDeclaration(effectDeclaration: RequiresContextEffectDeclaration, data: D): R =
+    fun visitContextVerifierEffectDeclaration(effectDeclaration: ContextVerifierEffectDeclaration, data: D): R =
         visitEffectDeclaration(effectDeclaration, data)
 
-    fun visitLambdaRequiresContextEffectDeclaration(effectDeclaration: LambdaRequiresContextEffectDeclaration, data: D): R =
+    fun visitLambdaContextVerifierEffectDeclaration(effectDeclaration: LambdaContextVerifierEffectDeclaration, data: D): R =
+        visitEffectDeclaration(effectDeclaration, data)
+
+    fun visitContextCleanerEffectDeclaration(effectDeclaration: ContextCleanerEffectDeclaration, data: D): R =
+        visitEffectDeclaration(effectDeclaration, data)
+
+    fun visitLambdaContextCleanerEffectDeclaration(effectDeclaration: LambdaContextCleanerEffectDeclaration, data: D): R =
         visitEffectDeclaration(effectDeclaration, data)
 
     fun visitFunctionReference(functionReference: FunctionReference, data: D) =

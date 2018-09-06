@@ -12,3 +12,5 @@ package org.jetbrains.kotlin.contracts.facts
 interface ContextDeclarationHackedInterface
 
 interface VerifierDeclarationHackedInterface
+
+interface CleanerDeclarationHackedInterface

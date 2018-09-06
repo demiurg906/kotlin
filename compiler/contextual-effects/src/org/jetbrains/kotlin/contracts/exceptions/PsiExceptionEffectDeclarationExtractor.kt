@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.exceptions
 
+import org.jetbrains.kotlin.contracts.facts.CleanerDeclaration
 import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
@@ -29,6 +30,8 @@ class PsiExceptionEffectDeclarationExtractor(context: BindingContext, dispatcher
         val exceptionType = getExceptionType(declaration) ?: return null
         return ExceptionVerifierDeclaration(exceptionType)
     }
+
+    override fun extractCleanerDeclaration(declaration: KtExpression): CleanerDeclaration? = null
 
     private fun getExceptionType(expression: KtExpression): KotlinType? {
         if (expression !is KtCallExpression) return null

@@ -8,10 +8,7 @@ package org.jetbrains.kotlin.contracts.safebuilders
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
 import org.jetbrains.kotlin.contracts.extractReceiverValue
-import org.jetbrains.kotlin.contracts.facts.Context
-import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
-import org.jetbrains.kotlin.contracts.facts.ContextVerifier
-import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
+import org.jetbrains.kotlin.contracts.facts.*
 import org.jetbrains.kotlin.contracts.model.ESFunction
 import org.jetbrains.kotlin.contracts.model.ESValue
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -28,10 +25,25 @@ class CallDeclaration(override val references: List<ContractDescriptionValue>) :
     override fun toString(): String = "func called EXACTLY_ONCE"
 }
 
-class CallVerifierDeclaration(private val kind: InvocationKind, override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
+class CallVerifierDeclaration(
+    private val kind: InvocationKind,
+    override val references: List<ContractDescriptionValue>
+) : VerifierDeclaration {
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextVerifier? {
         val (functionDescriptor, receiverValue) = extractFunctionAndReceiver(references) ?: return null
         return CallVerifier(FunctionReference(functionDescriptor, receiverValue), kind, sourceElement)
+    }
+
+    override fun toString(): String = "func needs to be called $kind"
+}
+
+class CallCleanerDeclaration(
+    private val kind: InvocationKind,
+    override val references: List<ContractDescriptionValue>
+) : CleanerDeclaration {
+    override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextCleaner? {
+        val (functionDescriptor, receiverValue) = extractFunctionAndReceiver(references) ?: return null
+        return CallCleaner(FunctionReference(functionDescriptor, receiverValue))
     }
 
     override fun toString(): String = "func needs to be called $kind"

@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
 import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
 import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
+import org.jetbrains.kotlin.contracts.facts.CleanerDeclarationHackedInterface
 import org.jetbrains.kotlin.contracts.facts.ContextDeclarationHackedInterface
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclarationHackedInterface
 
@@ -75,42 +76,62 @@ fun InvocationKind.canBeRevisited(): Boolean = this == InvocationKind.UNKNOWN ||
 
 // -----------------------------------------------------------------
 
-data class ProvidesFactEffectDeclaration(
+data class ContextProviderEffectDeclaration(
     val factory: ContextDeclarationHackedInterface,
     val references: List<ContractDescriptionValue>,
     val owner: FunctionReference
 ) : EffectDeclaration {
     override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
-        return contractDescriptionVisitor.visitProvidesFactEffectDeclaration(this, data)
+        return contractDescriptionVisitor.visitContextProviderEffectDeclaration(this, data)
     }
 }
 
-data class LambdaProvidesFactEffectDeclaration(
+data class LambdaContextProviderEffectDeclaration(
     val factory: ContextDeclarationHackedInterface,
     val references: List<ContractDescriptionValue>,
     val owner: VariableReference
 ) : EffectDeclaration {
     override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
-        return contractDescriptionVisitor.visitLambdaProvidesFactEffectDeclaration(this, data)
+        return contractDescriptionVisitor.visitLambdaContextProviderEffectDeclaration(this, data)
     }
 }
 
-data class RequiresContextEffectDeclaration(
+data class ContextVerifierEffectDeclaration(
     val factory: VerifierDeclarationHackedInterface,
     val references: List<ContractDescriptionValue>,
     val owner: FunctionReference
 ) : EffectDeclaration {
     override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
-        return contractDescriptionVisitor.visitRequiresContextEffectDeclaration(this, data)
+        return contractDescriptionVisitor.visitContextVerifierEffectDeclaration(this, data)
     }
 }
 
-data class LambdaRequiresContextEffectDeclaration(
+data class LambdaContextVerifierEffectDeclaration(
     val factory: VerifierDeclarationHackedInterface,
     val references: List<ContractDescriptionValue>,
     val owner: VariableReference
 ) : EffectDeclaration {
     override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
-        return contractDescriptionVisitor.visitLambdaRequiresContextEffectDeclaration(this, data)
+        return contractDescriptionVisitor.visitLambdaContextVerifierEffectDeclaration(this, data)
+    }
+}
+
+data class ContextCleanerEffectDeclaration(
+    val factory: CleanerDeclarationHackedInterface,
+    val references: List<ContractDescriptionValue>,
+    val owner: FunctionReference
+) : EffectDeclaration {
+    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
+        return contractDescriptionVisitor.visitContextCleanerEffectDeclaration(this, data)
+    }
+}
+
+data class LambdaContextCleanerEffectDeclaration(
+    val factory: CleanerDeclarationHackedInterface,
+    val references: List<ContractDescriptionValue>,
+    val owner: VariableReference
+) : EffectDeclaration {
+    override fun <R, D> accept(contractDescriptionVisitor: ContractDescriptionVisitor<R, D>, data: D): R {
+        return contractDescriptionVisitor.visitLambdaContextCleanerEffectDeclaration(this, data)
     }
 }

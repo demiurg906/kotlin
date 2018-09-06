@@ -10,53 +10,74 @@ import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptio
 import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
 import org.jetbrains.kotlin.contracts.description.expressions.ReceiverReference
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
+import org.jetbrains.kotlin.contracts.model.ContextCleanerEffect
+import org.jetbrains.kotlin.contracts.model.ContextProviderEffect
+import org.jetbrains.kotlin.contracts.model.ContextVerifierEffect
 import org.jetbrains.kotlin.contracts.model.ESEffect
-import org.jetbrains.kotlin.contracts.model.ProvidesContextEffect
-import org.jetbrains.kotlin.contracts.model.RequiresContextEffect
 
 internal class ProvidesRequiresInterpreter(private val dispatcher: ContractInterpretationDispatcher) : EffectDeclarationInterpreter {
     override fun tryInterpret(effectDeclaration: EffectDeclaration): ESEffect? = when (effectDeclaration) {
-        is ProvidesFactEffectDeclaration -> interpretProvidesEffect(effectDeclaration)
-        is LambdaProvidesFactEffectDeclaration -> interpretLambdaProvidesEffect(effectDeclaration)
-        is RequiresContextEffectDeclaration -> interpretRequiresContext(effectDeclaration)
-        is LambdaRequiresContextEffectDeclaration -> interpretLambdaRequiresContext(effectDeclaration)
+        is ContextProviderEffectDeclaration -> interpretContextProviderEffect(effectDeclaration)
+        is LambdaContextProviderEffectDeclaration -> interpretLambdaContextProviderEffect(effectDeclaration)
+        is ContextVerifierEffectDeclaration -> interpretContextVerifierEffect(effectDeclaration)
+        is LambdaContextVerifierEffectDeclaration -> interpretLambdaContextVerifierEffect(effectDeclaration)
+        is ContextCleanerEffectDeclaration -> interpretContextCleaner(effectDeclaration)
+        is LambdaContextCleanerEffectDeclaration -> interpretLambdaContextCleaner(effectDeclaration)
         else -> null
     }
 
-    private fun interpretProvidesEffect(effectDeclaration: ProvidesFactEffectDeclaration): ESEffect? {
+    private fun interpretContextProviderEffect(effectDeclaration: ContextProviderEffectDeclaration): ESEffect? {
         val (factory, references, owner) = effectDeclaration
 
         val interpretedReferences = interpretReferences(references)
         val interpretedFunction = dispatcher.interpretFunction(owner) ?: return null
 
-        return ProvidesContextEffect(factory, interpretedReferences, interpretedFunction)
+        return ContextProviderEffect(factory, interpretedReferences, interpretedFunction)
     }
 
-    private fun interpretLambdaProvidesEffect(effectDeclaration: LambdaProvidesFactEffectDeclaration): ESEffect? {
+    private fun interpretLambdaContextProviderEffect(effectDeclaration: LambdaContextProviderEffectDeclaration): ESEffect? {
         val (factory, references, owner) = effectDeclaration
 
         val interpretedReferences = interpretReferences(references)
         val interpretedFunction = dispatcher.interpretVariable(owner) ?: return null
 
-        return ProvidesContextEffect(factory, interpretedReferences, interpretedFunction)
+        return ContextProviderEffect(factory, interpretedReferences, interpretedFunction)
     }
 
-    private fun interpretRequiresContext(effectDeclaration: RequiresContextEffectDeclaration): ESEffect? {
+    private fun interpretContextVerifierEffect(effectDeclaration: ContextVerifierEffectDeclaration): ESEffect? {
         val (factory, references, owner) = effectDeclaration
 
         val interpretedReferences = interpretReferences(references)
         val interpretedFunction = dispatcher.interpretFunction(owner) ?: return null
 
-        return RequiresContextEffect(factory, interpretedReferences, interpretedFunction)
+        return ContextVerifierEffect(factory, interpretedReferences, interpretedFunction)
     }
 
-    private fun interpretLambdaRequiresContext(effectDeclaration: LambdaRequiresContextEffectDeclaration): ESEffect? {
+    private fun interpretLambdaContextVerifierEffect(effectDeclaration: LambdaContextVerifierEffectDeclaration): ESEffect? {
         val (factory, references, owner) = effectDeclaration
 
         val interpretedReferences = interpretReferences(references)
         val interpretedFunction = dispatcher.interpretVariable(owner) ?: return null
 
-        return RequiresContextEffect(factory, interpretedReferences, interpretedFunction)
+        return ContextVerifierEffect(factory, interpretedReferences, interpretedFunction)
+    }
+
+    private fun interpretContextCleaner(effectDeclaration: ContextCleanerEffectDeclaration): ESEffect? {
+        val (factory, references, owner) = effectDeclaration
+
+        val interpretedReferences = interpretReferences(references)
+        val interpretedFunction = dispatcher.interpretFunction(owner) ?: return null
+
+        return ContextCleanerEffect(factory, interpretedReferences, interpretedFunction)
+    }
+
+    private fun interpretLambdaContextCleaner(effectDeclaration: LambdaContextCleanerEffectDeclaration): ESEffect? {
+        val (factory, references, owner) = effectDeclaration
+
+        val interpretedReferences = interpretReferences(references)
+        val interpretedFunction = dispatcher.interpretVariable(owner) ?: return null
+
+        return ContextCleanerEffect(factory, interpretedReferences, interpretedFunction)
     }
 
     private fun interpretReferences(references: List<ContractDescriptionValue>) = references.map {

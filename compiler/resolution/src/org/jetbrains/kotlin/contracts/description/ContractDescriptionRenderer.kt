@@ -77,27 +77,39 @@ class ContractDescriptionRenderer(private val builder: StringBuilder) : Contract
         builder.append(functionReference.descriptor.name)
     }
 
-    override fun visitProvidesFactEffectDeclaration(effectDeclaration: ProvidesFactEffectDeclaration, data: Unit) {
+    override fun visitContextProviderEffectDeclaration(effectDeclaration: ContextProviderEffectDeclaration, data: Unit) {
         builder.append(effectDeclaration.owner.accept(this, data))
             .append(" provides ")
             .append(effectDeclaration.factory)
     }
 
-    override fun visitLambdaProvidesFactEffectDeclaration(effectDeclaration: LambdaProvidesFactEffectDeclaration, data: Unit) {
+    override fun visitLambdaContextProviderEffectDeclaration(effectDeclaration: LambdaContextProviderEffectDeclaration, data: Unit) {
         builder.append(effectDeclaration.owner.accept(this, data))
             .append(" provides ")
             .append(effectDeclaration.factory)
     }
 
-    override fun visitRequiresContextEffectDeclaration(effectDeclaration: RequiresContextEffectDeclaration, data: Unit) {
+    override fun visitContextVerifierEffectDeclaration(effectDeclaration: ContextVerifierEffectDeclaration, data: Unit) {
         builder.append(effectDeclaration.owner.accept(this, data))
-            .append(" requires ")
+            .append(" verifies ")
             .append(effectDeclaration.factory)
     }
 
-    override fun visitLambdaRequiresContextEffectDeclaration(effectDeclaration: LambdaRequiresContextEffectDeclaration, data: Unit) {
+    override fun visitLambdaContextVerifierEffectDeclaration(effectDeclaration: LambdaContextVerifierEffectDeclaration, data: Unit) {
         builder.append(effectDeclaration.owner.accept(this, data))
-            .append(" requires ")
+            .append(" verifies ")
+            .append(effectDeclaration.factory)
+    }
+
+    override fun visitContextCleanerEffectDeclaration(effectDeclaration: ContextCleanerEffectDeclaration, data: Unit) {
+        builder.append(effectDeclaration.owner.accept(this, data))
+            .append(" cleans ")
+            .append(effectDeclaration.factory)
+    }
+
+    override fun visitLambdaContextCleanerEffectDeclaration(effectDeclaration: LambdaContextCleanerEffectDeclaration, data: Unit) {
+        builder.append(effectDeclaration.owner.accept(this, data))
+            .append(" cleans ")
             .append(effectDeclaration.factory)
     }
 

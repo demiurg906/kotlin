@@ -5,9 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.facts
 
-import org.jetbrains.kotlin.diagnostics.DiagnosticSink
-
-abstract class ContextVerifier {
+abstract class ContextCleaner {
     abstract val family: ContextFamily
-    abstract fun verify(contexts: Collection<Context>, diagnosticSink: DiagnosticSink)
+    abstract fun cleanupProcessed(context: Context): Context
 }
