@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 
-class CallDeclaration(override val references: List<ContractDescriptionValue>) : ContextDeclaration {
+class CallProviderDeclaration(override val references: List<ContractDescriptionValue>) : ProviderDeclaration {
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextProvider? {
         val (functionDescriptor, receiverValue) = extractFunctionAndReceiver(references) ?: return null
         return CallContextProvider(FunctionReference(functionDescriptor, receiverValue), sourceElement)

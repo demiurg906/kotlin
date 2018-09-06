@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.contracts.exceptions
 
 import org.jetbrains.kotlin.contracts.facts.CleanerDeclaration
-import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
+import org.jetbrains.kotlin.contracts.facts.ProviderDeclaration
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
 import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
@@ -22,9 +22,9 @@ class PsiExceptionEffectDeclarationExtractor(context: BindingContext, dispatcher
         private const val CONSTRUCTOR_NAME = "CatchesException"
     }
 
-    override fun extractContextDeclaration(declaration: KtExpression, dslFunctionName: Name): ContextDeclaration? {
+    override fun extractProviderDeclaration(declaration: KtExpression, dslFunctionName: Name): ProviderDeclaration? {
         val exceptionType = getExceptionType(declaration) ?: return null
-        return ExceptionContextDeclaration(exceptionType)
+        return ExceptionProviderDeclaration(exceptionType)
     }
 
     override fun extractVerifierDeclaration(declaration: KtExpression, dslFunctionName: Name): VerifierDeclaration? {

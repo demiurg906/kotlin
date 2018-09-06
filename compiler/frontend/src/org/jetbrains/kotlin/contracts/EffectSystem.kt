@@ -135,16 +135,16 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
         bindingContext: BindingContext
     ): ProviderWithExpression {
         // hack
-        val contextDeclaration = effect.contextDeclaration as ContextDeclaration
+        val providerDeclaration = effect.providerDeclaration as ProviderDeclaration
         return when (effect.owner) {
             is ESFunction -> {
                 val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: throw AssertionError()
-                val provider = contextDeclaration.bind(callExpression, effect.references, bindingContext) ?: throw AssertionError()
+                val provider = providerDeclaration.bind(callExpression, effect.references, bindingContext) ?: throw AssertionError()
                 ProviderWithExpression(provider, callExpression)
             }
             is ESLambda -> {
                 val lambda = (effect.owner as ESLambda).lambda.functionLiteral
-                val provider = contextDeclaration.bind(lambda, effect.references, bindingContext) ?: throw AssertionError()
+                val provider = providerDeclaration.bind(lambda, effect.references, bindingContext) ?: throw AssertionError()
                 ProviderWithExpression(provider, lambda)
             }
             else -> throw AssertionError()

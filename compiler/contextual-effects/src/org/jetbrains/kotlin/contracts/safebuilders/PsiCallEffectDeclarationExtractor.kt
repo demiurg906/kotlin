@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.contracts.safebuilders
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
 import org.jetbrains.kotlin.contracts.facts.CleanerDeclaration
-import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
+import org.jetbrains.kotlin.contracts.facts.ProviderDeclaration
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
 import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
@@ -26,7 +26,7 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
         private const val CALL_KIND = "CallKind"
     }
 
-    override fun extractContextDeclaration(declaration: KtExpression, dslFunctionName: Name): ContextDeclaration? {
+    override fun extractProviderDeclaration(declaration: KtExpression, dslFunctionName: Name): ProviderDeclaration? {
         if (declaration !is KtCallExpression) return null
 
         val (resolvedCall, descriptor) = declaration.getResolverCallAndResultingDescriptor(context) ?: return null
@@ -38,7 +38,7 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
         val thisReference = dispatcher.parseVariable(resolvedCall.argumentAsExpressionOrNull(1)) ?: return null
 
         val references = listOf(functionReference, thisReference)
-        return CallDeclaration(references)
+        return CallProviderDeclaration(references)
     }
 
     override fun extractVerifierDeclaration(declaration: KtExpression, dslFunctionName: Name): VerifierDeclaration? {

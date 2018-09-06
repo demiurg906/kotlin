@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 
 interface ContextEntityDeclaration
 
-interface ContextDeclaration : ContextDeclarationHackedInterface, ContextEntityDeclaration {
+interface ProviderDeclaration : ProviderDeclarationHackedInterface, ContextEntityDeclaration {
     val references: List<ContractDescriptionValue>
 
     fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextProvider?

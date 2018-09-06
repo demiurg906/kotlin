@@ -9,8 +9,8 @@ import org.jetbrains.kotlin.contracts.FactsEffectSystem
 import org.jetbrains.kotlin.contracts.description.*
 import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
 import org.jetbrains.kotlin.contracts.facts.CleanerDeclaration
-import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
 import org.jetbrains.kotlin.contracts.facts.ContextEntityDeclaration
+import org.jetbrains.kotlin.contracts.facts.ProviderDeclaration
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.parsing.*
 import org.jetbrains.kotlin.name.Name
@@ -144,12 +144,12 @@ internal fun parseContextProviderDeclaration(
     name: Name,
     bindingContext: BindingContext,
     dispatcher: PsiContractParserDispatcher
-): ContextDeclaration? = parseAbstractFactoryDeclaration(
+): ProviderDeclaration? = parseAbstractFactoryDeclaration(
     expression,
     name,
     bindingContext,
     dispatcher,
-    PsiEffectDeclarationExtractor::extractContextDeclaration
+    PsiEffectDeclarationExtractor::extractProviderDeclaration
 )
 
 internal fun parseContextVerifierDeclaration(

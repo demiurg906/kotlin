@@ -6,14 +6,14 @@
 package org.jetbrains.kotlin.contracts.exceptions
 
 import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
-import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
+import org.jetbrains.kotlin.contracts.facts.ProviderDeclaration
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.model.ESValue
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.types.KotlinType
 
-class ExceptionContextDeclaration(private val exceptionType: KotlinType) : ContextDeclaration {
+class ExceptionProviderDeclaration(private val exceptionType: KotlinType) : ProviderDeclaration {
     override val references: List<ContractDescriptionValue> = emptyList()
 
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ExceptionContextProvider =

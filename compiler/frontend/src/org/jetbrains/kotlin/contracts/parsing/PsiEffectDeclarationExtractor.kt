@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.contracts.parsing
 
 import org.jetbrains.kotlin.contracts.facts.CleanerDeclaration
-import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
+import org.jetbrains.kotlin.contracts.facts.ProviderDeclaration
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 abstract class PsiEffectDeclarationExtractor(val context: BindingContext, val dispatcher: PsiContractParserDispatcher) {
-    abstract fun extractContextDeclaration(declaration: KtExpression, dslFunctionName: Name): ContextDeclaration?
+    abstract fun extractProviderDeclaration(declaration: KtExpression, dslFunctionName: Name): ProviderDeclaration?
     abstract fun extractVerifierDeclaration(declaration: KtExpression, dslFunctionName: Name): VerifierDeclaration?
     abstract fun extractCleanerDeclaration(declaration: KtExpression, dslFunctionName: Name): CleanerDeclaration?
 

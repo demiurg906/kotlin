@@ -64,7 +64,7 @@ class SubstitutingFunctor(
                     else
                         effect.owner.accept(substitutor) as? ESValue ?: continue@effectsLoop
                     val substitutedReferences = effect.references.map { it?.accept(substitutor) as? ESValue }
-                    substitutedClauses += ContextProviderEffect(effect.contextDeclaration, substitutedReferences, substitutionForCallable)
+                    substitutedClauses += ContextProviderEffect(effect.providerDeclaration, substitutedReferences, substitutionForCallable)
                 }
 
                 is ContextVerifierEffect -> {

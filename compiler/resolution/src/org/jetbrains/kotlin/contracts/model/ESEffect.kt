@@ -17,7 +17,7 @@
 package org.jetbrains.kotlin.contracts.model
 
 import org.jetbrains.kotlin.contracts.facts.CleanerDeclarationHackedInterface
-import org.jetbrains.kotlin.contracts.facts.ContextDeclarationHackedInterface
+import org.jetbrains.kotlin.contracts.facts.ProviderDeclarationHackedInterface
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclarationHackedInterface
 
 sealed class ESEffect {
@@ -51,7 +51,7 @@ class ConditionalEffect(val condition: ESExpression, val simpleEffect: SimpleEff
 // Fact effects
 
 class ContextProviderEffect(
-    val contextDeclaration: ContextDeclarationHackedInterface,
+    val providerDeclaration: ProviderDeclarationHackedInterface,
     val references: List<ESValue?>,
     val owner: ESValue
 ) : ESEffect() {

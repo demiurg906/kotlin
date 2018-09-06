@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptio
 import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
 import org.jetbrains.kotlin.contracts.facts.CleanerDeclarationHackedInterface
-import org.jetbrains.kotlin.contracts.facts.ContextDeclarationHackedInterface
+import org.jetbrains.kotlin.contracts.facts.ProviderDeclarationHackedInterface
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclarationHackedInterface
 
 /**
@@ -77,7 +77,7 @@ fun InvocationKind.canBeRevisited(): Boolean = this == InvocationKind.UNKNOWN ||
 // -----------------------------------------------------------------
 
 data class ContextProviderEffectDeclaration(
-    val factory: ContextDeclarationHackedInterface,
+    val factory: ProviderDeclarationHackedInterface,
     val references: List<ContractDescriptionValue>,
     val owner: FunctionReference
 ) : EffectDeclaration {
@@ -87,7 +87,7 @@ data class ContextProviderEffectDeclaration(
 }
 
 data class LambdaContextProviderEffectDeclaration(
-    val factory: ContextDeclarationHackedInterface,
+    val factory: ProviderDeclarationHackedInterface,
     val references: List<ContractDescriptionValue>,
     val owner: VariableReference
 ) : EffectDeclaration {
