@@ -74,3 +74,7 @@ public enum class InvocationKind {
 @Suppress("UNUSED_PARAMETER")
 public inline fun contract(builder: ContractBuilder.() -> Unit) {
 }
+
+
+@ContractsDsl
+class ReceiverOf(func: Function<*>)

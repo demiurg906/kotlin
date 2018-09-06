@@ -5,17 +5,14 @@
 
 package kotlin.contracts
 
-import kotlin.internal.ContractsDsl
 import kotlin.reflect.KFunction
 
 // ------------------ Checked Exceptions ------------------
 
 class CatchesException<T : Throwable> : FactDescription, CheckerDescription
 
-// ------------------ Safe Builders ------------------
 
-@ContractsDsl
-class ReceiverOf(func: Function<*>)
+// ------------------ Safe Builders ------------------
 
 class Calls(func: KFunction<*>, thisReference: Any) : FactDescription
 
