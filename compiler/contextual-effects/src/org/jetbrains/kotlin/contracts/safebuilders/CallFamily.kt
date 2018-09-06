@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.contracts.safebuilders
 
 import org.jetbrains.kotlin.contracts.facts.ContextFamily
 
-object CallFamily : ContextFamily() {
+object CallFamily : ContextFamily {
     override val id = "Safe builders"
     override val combiner = CallCombiner
     override val emptyContext = CallContext()

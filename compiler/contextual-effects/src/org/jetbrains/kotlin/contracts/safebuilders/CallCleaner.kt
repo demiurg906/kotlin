@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.contracts.safebuilders
 import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextCleaner
 
-class CallCleaner(val functionReference: FunctionReference) : ContextCleaner() {
+class CallCleaner(val functionReference: FunctionReference) : ContextCleaner {
     override val family = CallFamily
 
     override fun cleanupProcessed(context: Context): Context {

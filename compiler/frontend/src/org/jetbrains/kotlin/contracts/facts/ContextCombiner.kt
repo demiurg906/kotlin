@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.facts
 
-abstract class ContextCombiner {
-    abstract fun or(a: Context, b: Context): Context
-    abstract fun combine(context: Context, provider: ContextProvider): Context
+interface ContextCombiner {
+    fun or(a: Context, b: Context): Context
+    fun combine(context: Context, provider: ContextProvider): Context
 }

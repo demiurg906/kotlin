@@ -16,7 +16,7 @@ class CallVerifier(
     val functionReference: FunctionReference,
     val expectedKind: InvocationKind,
     val sourceElement: KtElement
-) : ContextVerifier() {
+) : ContextVerifier {
     override val family = CallFamily
 
     // TODO: UNKNOWN and ZERO reports to lambda, others to calls

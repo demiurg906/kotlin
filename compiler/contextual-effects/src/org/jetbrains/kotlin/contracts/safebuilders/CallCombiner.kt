@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextCombiner
 import org.jetbrains.kotlin.contracts.facts.ContextProvider
 
-object CallCombiner : ContextCombiner() {
+object CallCombiner : ContextCombiner {
     override fun or(a: Context, b: Context): Context {
         if (a !is CallContext || b !is CallContext) throw AssertionError()
 

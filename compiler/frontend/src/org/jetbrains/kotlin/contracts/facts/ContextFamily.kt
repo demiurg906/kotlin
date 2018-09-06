@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.contracts.facts
 
-abstract class ContextFamily {
-    abstract val id: String
-    abstract val combiner: ContextCombiner
-    abstract val emptyContext: Context
+interface ContextFamily {
+    val id: String
+    val combiner: ContextCombiner
+    val emptyContext: Context
 }

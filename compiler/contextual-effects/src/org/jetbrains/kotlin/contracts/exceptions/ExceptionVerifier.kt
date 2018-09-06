@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 
-class ExceptionVerifier(private val exceptionType: KotlinType, private val sourceElement: KtElement) : ContextVerifier() {
+class ExceptionVerifier(private val exceptionType: KotlinType, private val sourceElement: KtElement) : ContextVerifier {
     override val family = ExceptionFamily
 
     override fun verify(contexts: Collection<Context>, diagnosticSink: DiagnosticSink) {

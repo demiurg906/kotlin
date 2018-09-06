@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.facts
 
-abstract class ContextCleaner {
-    abstract val family: ContextFamily
-    abstract fun cleanupProcessed(context: Context): Context
+interface ContextCleaner {
+    val family: ContextFamily
+    fun cleanupProcessed(context: Context): Context
 }

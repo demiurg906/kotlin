@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextCombiner
 import org.jetbrains.kotlin.contracts.facts.ContextProvider
 
-object ExceptionContextCombiner : ContextCombiner() {
+object ExceptionContextCombiner : ContextCombiner {
     override fun or(a: Context, b: Context): Context {
         if (a !is ExceptionContext || b !is ExceptionContext) throw AssertionError()
         return ExceptionContext(a.cachedExceptions + b.cachedExceptions)
