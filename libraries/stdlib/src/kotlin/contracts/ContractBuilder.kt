@@ -44,10 +44,10 @@ interface ContractBuilder {
     fun <R> requires(block: Function<R>, requirement: RequiresContextDescription): BlockRequiresContext
 
     @ContractsDsl
-    fun requiresNot(requirement: RequirementNotDescription): RequiresNotContext
+    fun requiresNot(requirement: NotRequiresContextDescription): RequiresNotContext
 
     @ContractsDsl
-    fun <R> requiresNot(block: Function<R>, requirement: RequirementNotDescription): BlockRequiresNotContext
+    fun <R> requiresNot(block: Function<R>, requirement: NotRequiresContextDescription): BlockRequiresNotContext
 
     @ContractsDsl
     fun starts(context: StartsContextDescription): StartsContext

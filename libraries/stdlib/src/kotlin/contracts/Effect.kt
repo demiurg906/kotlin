@@ -54,7 +54,7 @@ interface RequiresContextDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
-interface RequirementNotDescription
+interface NotRequiresContextDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
