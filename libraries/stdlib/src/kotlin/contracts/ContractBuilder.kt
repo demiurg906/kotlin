@@ -32,22 +32,22 @@ interface ContractBuilder {
     // -----------------------------------------------------
 
     @ContractsDsl
-    fun provides(fact: FactDescription): ProvidesFact
+    fun provides(context: ProvidesContextDescription): ProvidesFact
 
     @ContractsDsl
-    fun <R> provides(block: Function<R>, fact: FactDescription): BlockProvidesFact
+    fun <R> provides(block: Function<R>, context: ProvidesContextDescription): BlockProvidesFact
 
     @ContractsDsl
-    fun requires(requirement: CheckerDescription): RequiresContext
+    fun requires(requirement: RequiresContextDescription): RequiresContext
 
     @ContractsDsl
-    fun <R> requires(block: Function<R>, requirement: CheckerDescription): BlockRequiresContext
+    fun <R> requires(block: Function<R>, requirement: RequiresContextDescription): BlockRequiresContext
 
     @ContractsDsl
-    fun requiresNot(requirement: CheckerNotDescription): RequiresNotContext
+    fun requiresNot(requirement: RequirementNotDescription): RequiresNotContext
 
     @ContractsDsl
-    fun <R> requiresNot(block: Function<R>, requirement: CheckerNotDescription): BlockRequiresNotContext
+    fun <R> requiresNot(block: Function<R>, requirement: RequirementNotDescription): BlockRequiresNotContext
 
     @ContractsDsl
     fun starts(context: StartsContextDescription): StartsContext

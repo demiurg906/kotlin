@@ -9,14 +9,14 @@ import kotlin.reflect.KFunction
 
 // ------------------ Checked Exceptions ------------------
 
-class CatchesException<T : Throwable> : FactDescription, CheckerDescription
+class CatchesException<T : Throwable> : ProvidesContextDescription, RequiresContextDescription
 
 
 // ------------------ Safe Builders ------------------
 
-class Calls(func: KFunction<*>, thisReference: Any) : FactDescription
+class Calls(func: KFunction<*>, thisReference: Any) : ProvidesContextDescription
 
-class CallKind(func: KFunction<*>, callKind: DslCallKind, receiver: ReceiverOf) : CheckerDescription
+class CallKind(func: KFunction<*>, callKind: DslCallKind, receiver: ReceiverOf) : RequiresContextDescription
 
 enum class DslCallKind {
     AT_MOST_ONCE,

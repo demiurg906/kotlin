@@ -46,15 +46,15 @@ public interface CallsInPlace : SimpleEffect
 
 @ContractsDsl
 @SinceKotlin("1.3")
-interface FactDescription
+interface ProvidesContextDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
-interface CheckerDescription
+interface RequiresContextDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
-interface CheckerNotDescription
+interface RequirementNotDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
