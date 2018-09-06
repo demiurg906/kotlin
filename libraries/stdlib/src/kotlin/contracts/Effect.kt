@@ -10,37 +10,37 @@ import kotlin.internal.ContractsDsl
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public interface Effect
+interface Effect
 
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public interface ConditionalEffect : Effect
+interface ConditionalEffect : Effect
 
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public interface SimpleEffect {
+interface SimpleEffect {
     @ContractsDsl
     @ExperimentalContracts
-    public infix fun implies(booleanExpression: Boolean): ConditionalEffect
+    infix fun implies(booleanExpression: Boolean): ConditionalEffect
 }
 
 
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public interface Returns : SimpleEffect
+interface Returns : SimpleEffect
 
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public interface ReturnsNotNull : SimpleEffect
+interface ReturnsNotNull : SimpleEffect
 
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public interface CallsInPlace : SimpleEffect
+interface CallsInPlace : SimpleEffect
 
 // -----------------------------------------------------
 
@@ -63,7 +63,6 @@ interface StartsContextDescription
 @ContractsDsl
 @SinceKotlin("1.3")
 interface ClosesContextDescription
-
 
 
 @ContractsDsl
