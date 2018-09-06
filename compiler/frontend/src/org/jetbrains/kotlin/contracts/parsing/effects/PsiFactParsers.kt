@@ -50,8 +50,7 @@ internal class PsiFactParser(
                     descriptorName,
                     bindingContext,
                     contractParserDispatcher
-                )
-                    ?.let { ContextVerifierEffectDeclaration(it, it.references, FunctionReference(ownerDescriptor)) }
+                )?.let { ContextVerifierEffectDeclaration(it, it.references, FunctionReference(ownerDescriptor)) }
 
                 declarations += parseContextCleanerDeclaration(argumentExpression, descriptorName, bindingContext, contractParserDispatcher)
                     ?.let { ContextCleanerEffectDeclaration(it, it.references, FunctionReference(ownerDescriptor)) }
@@ -101,8 +100,7 @@ internal class PsiLambdaFactParser(
                     descriptorName,
                     bindingContext,
                     contractParserDispatcher
-                )
-                    ?.let { LambdaContextVerifierEffectDeclaration(it, it.references, owner) }
+                )?.let { LambdaContextVerifierEffectDeclaration(it, it.references, owner) }
 
                 declarations += parseContextCleanerDeclaration(argumentExpression, descriptorName, bindingContext, contractParserDispatcher)
                     ?.let { LambdaContextCleanerEffectDeclaration(it, it.references, owner) }
