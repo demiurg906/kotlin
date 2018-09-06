@@ -10,15 +10,16 @@ import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 abstract class PsiEffectDeclarationExtractor(val context: BindingContext, val dispatcher: PsiContractParserDispatcher) {
-    abstract fun extractContextDeclaration(declaration: KtExpression): ContextDeclaration?
-    abstract fun extractVerifierDeclaration(declaration: KtExpression): VerifierDeclaration?
-    abstract fun extractCleanerDeclaration(declaration: KtExpression): CleanerDeclaration?
+    abstract fun extractContextDeclaration(declaration: KtExpression, dslFunctionName: Name): ContextDeclaration?
+    abstract fun extractVerifierDeclaration(declaration: KtExpression, dslFunctionName: Name): VerifierDeclaration?
+    abstract fun extractCleanerDeclaration(declaration: KtExpression, dslFunctionName: Name): CleanerDeclaration?
 
     protected fun extractConstructorName(descriptor: CallableDescriptor) =
         (descriptor as? ClassConstructorDescriptor)?.constructedClass?.name?.asString()

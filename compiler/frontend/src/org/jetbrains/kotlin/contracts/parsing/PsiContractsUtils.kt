@@ -99,12 +99,19 @@ fun DeclarationDescriptor.isCallsInPlaceEffectDescriptor(): Boolean = equalsDslD
 
 fun DeclarationDescriptor.isInvocationKindEnum(): Boolean = equalsDslDescriptor(INVOCATION_KIND_ENUM)
 
+// Context providers
 
-fun DeclarationDescriptor.isProvidesFactDescriptor(): Boolean = equalsDslDescriptor(PROVIDES)
+fun DeclarationDescriptor.isProviderDescriptor(): Boolean = isProvidesFactDescriptor()
 
-fun DeclarationDescriptor.isRequiresContextDescriptor(): Boolean = equalsDslDescriptor(REQUIRES)
+private fun DeclarationDescriptor.isProvidesFactDescriptor(): Boolean = equalsDslDescriptor(PROVIDES)
 
-fun DeclarationDescriptor.isRequiresNotContextDescriptor(): Boolean = equalsDslDescriptor(REQUIRES_NOT)
+// Context verifiers and cleaners
+
+fun DeclarationDescriptor.isVerifierOrCleanerDescriptor(): Boolean = isRequiresContextDescriptor() || isRequiresNotContextDescriptor()
+
+private fun DeclarationDescriptor.isRequiresContextDescriptor(): Boolean = equalsDslDescriptor(REQUIRES)
+
+private fun DeclarationDescriptor.isRequiresNotContextDescriptor(): Boolean = equalsDslDescriptor(REQUIRES_NOT)
 
 
 fun DeclarationDescriptor.isEqualsDescriptor(): Boolean =

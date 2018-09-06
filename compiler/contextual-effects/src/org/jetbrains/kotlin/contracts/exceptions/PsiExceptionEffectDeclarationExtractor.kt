@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.contracts.facts.ContextDeclaration
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
 import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -21,17 +22,17 @@ class PsiExceptionEffectDeclarationExtractor(context: BindingContext, dispatcher
         private const val CONSTRUCTOR_NAME = "CatchesException"
     }
 
-    override fun extractContextDeclaration(declaration: KtExpression): ContextDeclaration? {
+    override fun extractContextDeclaration(declaration: KtExpression, dslFunctionName: Name): ContextDeclaration? {
         val exceptionType = getExceptionType(declaration) ?: return null
         return ExceptionContextDeclaration(exceptionType)
     }
 
-    override fun extractVerifierDeclaration(declaration: KtExpression): VerifierDeclaration? {
+    override fun extractVerifierDeclaration(declaration: KtExpression, dslFunctionName: Name): VerifierDeclaration? {
         val exceptionType = getExceptionType(declaration) ?: return null
         return ExceptionVerifierDeclaration(exceptionType)
     }
 
-    override fun extractCleanerDeclaration(declaration: KtExpression): CleanerDeclaration? = null
+    override fun extractCleanerDeclaration(declaration: KtExpression, dslFunctionName: Name): CleanerDeclaration? = null
 
     private fun getExceptionType(expression: KtExpression): KotlinType? {
         if (expression !is KtCallExpression) return null

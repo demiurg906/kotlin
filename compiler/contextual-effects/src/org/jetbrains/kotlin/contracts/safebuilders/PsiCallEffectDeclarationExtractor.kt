@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
 import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
 import org.jetbrains.kotlin.contracts.parsing.argumentAsExpressionOrNull
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -25,7 +26,7 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
         private const val CALL_KIND = "CallKind"
     }
 
-    override fun extractContextDeclaration(declaration: KtExpression): ContextDeclaration? {
+    override fun extractContextDeclaration(declaration: KtExpression, dslFunctionName: Name): ContextDeclaration? {
         if (declaration !is KtCallExpression) return null
 
         val (resolvedCall, descriptor) = declaration.getResolverCallAndResultingDescriptor(context) ?: return null
@@ -40,12 +41,12 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
         return CallDeclaration(references)
     }
 
-    override fun extractVerifierDeclaration(declaration: KtExpression): VerifierDeclaration? {
+    override fun extractVerifierDeclaration(declaration: KtExpression, dslFunctionName: Name): VerifierDeclaration? {
         val (kind, references) = extractKindAndReferences(declaration) ?: return null
         return CallVerifierDeclaration(kind, references)
     }
 
-    override fun extractCleanerDeclaration(declaration: KtExpression): CleanerDeclaration? {
+    override fun extractCleanerDeclaration(declaration: KtExpression, dslFunctionName: Name): CleanerDeclaration? {
         val (kind, references) = extractKindAndReferences(declaration) ?: return null
         return CallCleanerDeclaration(kind, references)
     }
