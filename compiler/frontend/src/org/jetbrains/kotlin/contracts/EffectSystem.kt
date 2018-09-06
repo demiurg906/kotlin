@@ -138,7 +138,7 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
                 ContextWithExpression(context, callExpression)
             }
             is ESLambda -> {
-                val lambda = (effect.owner as ESLambda).lambda
+                val lambda = (effect.owner as ESLambda).lambda.functionLiteral
                 val context = contextDeclaration.bind(lambda, effect.references, bindingContext) ?: throw AssertionError()
                 ContextWithExpression(context, lambda)
             }
@@ -160,7 +160,7 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
                 VerifierWithExpression(verifier, callExpression)
             }
             is ESLambda -> {
-                val lambda = (effect.owner as ESLambda).lambda
+                val lambda = (effect.owner as ESLambda).lambda.functionLiteral
                 val verifier = verifierDeclaration.bind(lambda, effect.references, bindingContext) ?: throw AssertionError()
                 VerifierWithExpression(verifier, lambda)
             }

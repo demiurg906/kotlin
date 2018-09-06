@@ -67,6 +67,62 @@ fun <D> Pseudocode.traverse(
     }
 }
 
+fun <I : ControlFlowInfo<*, *, *>> Pseudocode.smartTraverse(
+    traversalOrder: TraversalOrder,
+    edgesMap: Map<Instruction, Edges<I>>,
+    analyzeInstruction: (Instruction, I) -> Unit,
+    analyzeIncomingEdge: (Instruction, Instruction, I) -> Unit,
+    localFunctionAnalysisStrategy: LocalFunctionAnalysisStrategy
+) {
+    collectDataForSmartTraverse(
+        traversalOrder,
+        edgesMap,
+        analyzeInstruction,
+        analyzeIncomingEdge,
+        localFunctionAnalysisStrategy,
+        previousSubGraphInstructions = Collections.emptyList(),
+        isLocal = false
+    )
+}
+
+private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataForSmartTraverse(
+    traversalOrder: TraversalOrder,
+    edgesMap: Map<Instruction, Edges<I>>,
+    analyzeInstruction: (Instruction, I) -> Unit,
+    analyzeIncomingEdge: (Instruction, Instruction, I) -> Unit,
+    localFunctionAnalysisStrategy: LocalFunctionAnalysisStrategy,
+    previousSubGraphInstructions: Collection<Instruction>,
+    isLocal: Boolean
+) {
+    val instructions = getInstructions(traversalOrder)
+    val startInstruction = getStartInstruction(traversalOrder)
+
+    for (instruction in instructions) {
+        val isStart = instruction.isStartInstruction(traversalOrder)
+        if (!isLocal && isStart)
+            continue
+
+        val previousInstructions =
+            getPreviousIncludingSubGraphInstructions(instruction, traversalOrder, startInstruction, previousSubGraphInstructions)
+
+        if (instruction is LocalFunctionDeclarationInstruction && localFunctionAnalysisStrategy.allowFunction(instruction)) {
+            val subroutinePseudocode = instruction.body
+            subroutinePseudocode.collectDataForSmartTraverse(
+                traversalOrder, edgesMap, analyzeInstruction, analyzeIncomingEdge, localFunctionAnalysisStrategy, previousInstructions, true
+            )
+            continue
+        }
+
+        previousInstructions.forEach { previousInstruction ->
+            val previousData = edgesMap[previousInstruction] ?: return@forEach
+            analyzeIncomingEdge(previousInstruction, instruction, previousData.outgoing)
+        }
+
+        val data = edgesMap[instruction] ?: continue
+        analyzeInstruction(instruction, data.incoming)
+    }
+}
+
 /**
  * Collects data from pseudocode using ControlFlowAnalysis
  *

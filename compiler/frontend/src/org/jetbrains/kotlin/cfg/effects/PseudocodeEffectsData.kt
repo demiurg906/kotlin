@@ -12,10 +12,9 @@ package org.jetbrains.kotlin.cfg.effects
 
 import org.jetbrains.kotlin.cfg.ImmutableHashMap
 import org.jetbrains.kotlin.cfg.pseudocode.Pseudocode
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.BlockScope
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.CallInstruction
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineEnterInstruction
-import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineExitInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.*
 import org.jetbrains.kotlin.contracts.FactsEffectSystem
 import org.jetbrains.kotlin.contracts.facts.Context
@@ -23,7 +22,7 @@ import org.jetbrains.kotlin.contracts.facts.ContextFamily
 import org.jetbrains.kotlin.contracts.facts.ContextVerifier
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtElement
-import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 
@@ -37,65 +36,119 @@ class PseudocodeEffectsData(
     val diagnostics: List<Pair<KtElement, String>>
         get() = myDiagnostics
 
-    val resultingContexts: Map<ContextFamily, Context>? = computeEffectsControlFlowInfo(pseudocode)
+    val resultingContexts: Map<ContextFamily, List<Context>>? = computeEffectsControlFlowInfo(pseudocode)
 
-    private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): Map<ContextFamily, Context>? {
+    private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): Map<ContextFamily, List<Context>>? {
         // collect info via CFA
         val edgesMap = pseudocode.collectData(
             traversalOrder = TraversalOrder.FORWARD,
             mergeEdges = ::mergeEdges,
-            updateEdge = { _, _, info -> info },
+            updateEdge = ::updateEdge,
             initialInfo = ContractsContextsInfo.EMPTY,
             localFunctionAnalysisStrategy = LocalFunctionAnalysisStrategy.ONLY_IN_PLACE_LAMBDAS
         )
 
         // verify resulting context
-        pseudocode.traverse(
+        pseudocode.smartTraverse(
             traversalOrder = TraversalOrder.FORWARD,
             edgesMap = edgesMap,
-            analyzeInstruction = ::verify
+            analyzeInstruction = ::verifyInstruction,
+            analyzeIncomingEdge = ::verifyIncomingEdge,
+            localFunctionAnalysisStrategy = LocalFunctionAnalysisStrategy.ONLY_IN_PLACE_LAMBDAS
         )
-        return edgesMap[pseudocode.exitInstruction]?.incoming?.toMutableMap()
+
+        val contextsGroupedByFamily = edgesMap[pseudocode.exitInstruction]?.incoming?.toMutableMap() ?: return null
+        return contextsGroupedByFamily.mapValues { (_, contextsGropedByLevel) -> contextsGropedByLevel.map { it.value } }
     }
 
     // -------------------------- Verification --------------------------
 
-    private fun verify(instruction: Instruction, incoming: ContractsContextsInfo, outgoing: ContractsContextsInfo) {
-        when (instruction) {
-            is SubroutineExitInstruction -> verifySubroutineExitInstruction(instruction, incoming)
-            is CallInstruction -> verifyCallInstruction(instruction, incoming)
-        }
-    }
-
-    private fun verifySubroutineExitInstruction(instruction: SubroutineExitInstruction, incoming: ContractsContextsInfo) {
-        val lambdaExpression = instruction.subroutine.parent as? KtLambdaExpression ?: return
-        val verifiers = FactsEffectSystem.declaredVerifiers(lambdaExpression, bindingContext)
-        verifyContext(verifiers, incoming)
-    }
-
-    private fun verifyCallInstruction(instruction: CallInstruction, incoming: ContractsContextsInfo) {
+    private fun verifyInstruction(
+        instruction: Instruction,
+        info: ContractsContextsInfo
+    ) {
+        if (instruction !is CallInstruction) return
         val callExpression = instruction.element as? KtCallExpression ?: return
         val (_, verifiers) = FactsEffectSystem.declaredFactsAndCheckers(callExpression, bindingContext)
-        verifyContext(verifiers, incoming)
+        verifyContext(verifiers, info)
+    }
+
+    private fun verifyIncomingEdge(
+        previousInstruction: Instruction,
+        instruction: Instruction,
+        info: ContractsContextsInfo
+    ) {
+        val previousDepth = previousInstruction.blockScope.depth
+        val currentDepth = instruction.blockScope.depth
+        if (previousDepth > currentDepth) {
+            val block = instruction.blockScope.block as? KtExpression ?: return
+            val verifiers= FactsEffectSystem.declaredFactsAndCheckers(block, bindingContext).second
+            verifyContext(verifiers, info)
+        }
     }
 
     private fun verifyContext(verifiers: Collection<ContextVerifier>, info: ContractsContextsInfo) {
         for (verifier in verifiers) {
             val family = verifier.family
-            val context = info[family].getOrElse(family.emptyContext)
-            verifier.verify(context, bindingTrace)
+            val contextsGroupedByLevel = info[family].getOrElse(mapOf())
+            val contexts = contextsGroupedByLevel.values
+            verifier.verify(contexts, bindingTrace)
         }
     }
 
-    // -------------------------- Collecting data --------------------------
+    // -------------------------- Collecting data (updateEdge) --------------------------
+
+    private fun updateEdge(
+        previousInstruction: Instruction,
+        instruction: Instruction,
+        info: ContractsContextsInfo
+    ): ContractsContextsInfo {
+        val previousDepth = previousInstruction.blockScope.depth
+        val currentDepth = instruction.blockScope.depth
+
+        return when {
+            previousDepth < currentDepth -> visitEnterBlock(previousInstruction.blockScope, info)
+            previousDepth > currentDepth -> visitExitBlock(instruction.blockScope, info)
+            else -> info
+        }
+    }
+
+    // collect facts
+    private fun visitEnterBlock(
+        blockScope: BlockScope,
+        info: ContractsContextsInfo
+    ): ContractsContextsInfo {
+        val block = blockScope.block as? KtExpression ?: return info
+        val contexts = FactsEffectSystem.declaredContexts(block, bindingContext)
+        val contextsGroupedByFamily = info.toMutableMap()
+        combineContexts(contextsGroupedByFamily, contexts, blockScope.depth)
+        return ContractsContextsInfo(contextsGroupedByFamily)
+    }
+
+    // collect checkers
+    private fun visitExitBlock(
+        blockScope: BlockScope,
+        info: ContractsContextsInfo
+    ): ContractsContextsInfo {
+        val block = blockScope.block as? KtExpression ?: return info
+        val verifiers = FactsEffectSystem.declaredVerifiers(block, bindingContext)
+        val depth = blockScope.depth
+        val context = info.toMutableMap()
+        for (family in context.keys) {
+            context[family]!!.remove(depth)
+        }
+        applyVerifiers(verifiers, context)
+        return ContractsContextsInfo(context)
+    }
+
+    // -------------------------- Collecting data (mergeEdges) --------------------------
 
     private fun mergeEdges(
         instruction: Instruction,
         incoming: Collection<ContractsContextsInfo>
     ): Edges<ContractsContextsInfo> {
-        val depth = instruction.blockScope.depth
         val mergedData = merge(incoming)
-        val updatedData = update(instruction, mergedData, depth)
+        val updatedData = if (instruction is CallInstruction) visitCallInstruction(instruction, mergedData) else mergedData
         return Edges(mergedData, updatedData)
     }
 
@@ -106,56 +159,26 @@ class PseudocodeEffectsData(
         }
         val families = incoming.flatMap { it.keySet() }.toSet()
 
-        val reducedContextsGroupedByFamily = mutableMapOf<ContextFamily, Context>()
+        val convertedIncoming = incoming.map { it.convertToMap() }
+
+        val reducedContextsGroupedByFamily = mutableMapOf<ContextFamily, Map<Int, Context>>()
         for (family in families) {
-            val incomingContexts = incoming.map {
-                it[family].getOrElse(family.emptyContext)
+            val familyContextsGroupedByDepth = convertedIncoming.map { it[family] }
+            val depths = familyContextsGroupedByDepth.filterNotNull().flatMap { it.keys }.toSet()
+
+            val incomingContextsGroupedByDepth = mutableMapOf<Int, List<Context>>()
+            for (depth in depths) {
+                val contexts = familyContextsGroupedByDepth.map { it?.get(depth) ?: family.emptyContext }
+                incomingContextsGroupedByDepth[depth] = contexts
             }
-            reducedContextsGroupedByFamily[family] = incomingContexts.reduce(family.combiner::or)
+
+            val reducedContextsGroupedByLevel = incomingContextsGroupedByDepth
+                .mapValues { (_, incomingContexts) -> incomingContexts.reduce(family.combiner::or) }
+
+            reducedContextsGroupedByFamily[family] = reducedContextsGroupedByLevel
         }
 
         return ContractsContextsInfo(ImmutableHashMap.ofAll(reducedContextsGroupedByFamily))
-    }
-
-    private fun update(
-        instruction: Instruction,
-        info: ContractsContextsInfo,
-        depth: Int
-    ): ContractsContextsInfo =
-        when (instruction) {
-            is SubroutineEnterInstruction -> visitSubroutineEnter(instruction, info, depth)
-            is SubroutineExitInstruction -> visitSubroutineExit(instruction, info, depth)
-            is CallInstruction -> visitCallInstruction(instruction, info)
-            else -> info
-        }
-
-    // collect facts
-    private fun visitSubroutineEnter(
-        instruction: SubroutineEnterInstruction,
-        info: ContractsContextsInfo,
-        depth: Int
-    ): ContractsContextsInfo {
-        val lambdaExpression = instruction.subroutine.parent as? KtLambdaExpression ?: return info
-
-        val contexts = FactsEffectSystem.declaredContexts(lambdaExpression, bindingContext)
-        val contextsGroupedByFamily = info.toMutableMap()
-        combineContexts(contextsGroupedByFamily, contexts, depth)
-        return ContractsContextsInfo(contextsGroupedByFamily)
-    }
-
-    // collect checkers
-    private fun visitSubroutineExit(
-        instruction: SubroutineExitInstruction,
-        info: ContractsContextsInfo,
-        depth: Int
-    ): ContractsContextsInfo {
-        val lambdaExpression = instruction.subroutine.parent as? KtLambdaExpression ?: return info
-
-        val verifiers = FactsEffectSystem.declaredVerifiers(lambdaExpression, bindingContext)
-        val context = info.toMutableMap()
-        applyVerifiers(verifiers, context)
-        cleanUpContextAtExit(context, depth)
-        return ContractsContextsInfo(context)
     }
 
     // collect facts and checkers
@@ -176,38 +199,40 @@ class PseudocodeEffectsData(
 
     // TODO: contexts to Map<>
     private fun combineContexts(
-        contextsGroupedByFamily: MutableMap<ContextFamily, Context>,
+        contextsGroupedByFamily: MutableMap<ContextFamily, MutableMap<Int, Context>>,
         contexts: Collection<Context>,
         depth: Int?
     ) {
+        val level = depth ?: -1
         for (context in contexts) {
             val family = context.family
-            val existedContext = contextsGroupedByFamily[family] ?: family.emptyContext
-            contextsGroupedByFamily[family] = family.combiner.combine(existedContext, context, depth)
+            if (family !in contextsGroupedByFamily) {
+                contextsGroupedByFamily[family] = mutableMapOf()
+            }
+            val existedContext = contextsGroupedByFamily[family]!![level] ?: family.emptyContext
+            contextsGroupedByFamily[family]!![level] = family.combiner.combine(existedContext, context)
         }
     }
 
     private fun applyVerifiers(
         verifiers: Collection<ContextVerifier>,
-        contextsGroupedByFamily: MutableMap<ContextFamily, Context>
+        contextsGroupedByFamily: MutableMap<ContextFamily, MutableMap<Int, Context>>
     ) {
         for (verifier in verifiers) {
             val family = verifier.family
-            val context = contextsGroupedByFamily[family] ?: family.emptyContext
-            contextsGroupedByFamily[family] = verifier.cleanupProcessed(context)
-        }
-    }
+            if (family !in contextsGroupedByFamily) {
+                contextsGroupedByFamily[family] = mutableMapOf()
+            }
 
-    private fun cleanUpContextAtExit(
-        contextsGroupedByFamily: MutableMap<ContextFamily, Context>,
-        depth: Int
-    ) {
-        for ((family, context) in contextsGroupedByFamily) {
-            contextsGroupedByFamily[family] = family.combiner.cleanupContextAtBlockExit(context, depth)
+            contextsGroupedByFamily[family] = contextsGroupedByFamily[family]!!.mapValues { (_, context) ->
+                verifier.cleanupProcessed(context)
+            }.toMutableMap()
         }
     }
 
     private fun ContractsContextsInfo.convertToMap() = iterator().map { it._1 to it._2 }.toList().toMap()
 
-    private fun ContractsContextsInfo.toMutableMap() = convertToMap().toMutableMap()
+    private fun ContractsContextsInfo.toMutableMap() = convertToMap()
+        .mapValues { (_, map) -> map.toMutableMap() }
+        .toMutableMap()
 }

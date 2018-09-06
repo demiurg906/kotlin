@@ -7,6 +7,5 @@ package org.jetbrains.kotlin.contracts.facts
 
 abstract class ContextCombiner {
     abstract fun or(a: Context, b: Context): Context
-    abstract fun combine(existedContext: Context, newContext: Context, depth: Int?): Context
-    abstract fun cleanupContextAtBlockExit(context: Context, depth: Int): Context
+    abstract fun combine(existedContext: Context, newContext: Context): Context
 }

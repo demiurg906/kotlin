@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 
 abstract class ContextVerifier {
     abstract val family: ContextFamily
-    abstract fun verify(context: Context, diagnosticSink: DiagnosticSink)
+    abstract fun verify(contexts: Collection<Context>, diagnosticSink: DiagnosticSink)
     abstract fun cleanupProcessed(context: Context): Context
 }
-

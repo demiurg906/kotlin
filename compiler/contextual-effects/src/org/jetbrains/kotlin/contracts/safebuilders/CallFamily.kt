@@ -12,4 +12,7 @@ object CallFamily : ContextFamily() {
     override val combiner = CallCombiner
     override val emptyContext = CallContext()
 
+    override fun toString(): String {
+        return id
+    }
 }

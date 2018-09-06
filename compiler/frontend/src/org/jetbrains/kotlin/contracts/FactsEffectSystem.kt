@@ -10,8 +10,7 @@ import org.jetbrains.kotlin.contracts.facts.ContextFamily
 import org.jetbrains.kotlin.contracts.facts.ContextVerifier
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
 import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
-import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 
 object FactsEffectSystem {
@@ -23,7 +22,7 @@ object FactsEffectSystem {
 
     // calls
     fun declaredFactsAndCheckers(
-        callExpression: KtCallExpression,
+        callExpression: KtExpression,
         context: BindingContext
     ): Pair<Collection<Context>, Collection<ContextVerifier>> {
         val (contexts, verifiers) = context[BindingContext.CONTEXT_FACTS, callExpression]
@@ -31,14 +30,14 @@ object FactsEffectSystem {
         return contexts to verifiers
     }
 
-    // lambdas
-    fun declaredContexts(lambdaExpression: KtLambdaExpression, context: BindingContext): Collection<Context> {
-        val (contexts, _) = context[BindingContext.CONTEXT_FACTS, lambdaExpression] ?: return emptyList()
+    // blocks
+    fun declaredContexts(expression: KtExpression, context: BindingContext): Collection<Context> {
+        val (contexts, _) = context[BindingContext.CONTEXT_FACTS, expression] ?: return emptyList()
         return contexts
     }
 
-    fun declaredVerifiers(lambdaExpression: KtLambdaExpression, context: BindingContext): Collection<ContextVerifier> {
-        val (_, verifiers) = context[BindingContext.CONTEXT_FACTS, lambdaExpression] ?: return emptyList()
+    fun declaredVerifiers(expression: KtExpression, context: BindingContext): Collection<ContextVerifier> {
+        val (_, verifiers) = context[BindingContext.CONTEXT_FACTS, expression] ?: return emptyList()
         return verifiers
     }
 }

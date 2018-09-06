@@ -13,9 +13,13 @@ import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 
-data class FunctionReference(val functionDescriptor: FunctionDescriptor, val receiverValue: ReceiverValue)
+data class FunctionReference(val functionDescriptor: FunctionDescriptor, val receiverValue: ReceiverValue) {
+    override fun toString(): String = functionDescriptor.name.toString()
+}
 
-data class CallInfo(val sourceElement: KtElement, val kind: InvocationKind)
+data class CallInfo(val sourceElement: KtElement, val kind: InvocationKind) {
+    override fun toString(): String = kind.toString()
+}
 
 data class CallContext(val calls: Map<FunctionReference, CallInfo> = mapOf()) : AbstractContext() {
     constructor(functionReference: FunctionReference, sourceElement: KtElement) : this(
