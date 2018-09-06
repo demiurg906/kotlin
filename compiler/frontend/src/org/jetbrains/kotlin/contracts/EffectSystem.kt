@@ -87,7 +87,7 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
 
         val resultingContextInfo = getContextInfoWhen(ESReturns(ESConstant.WILDCARD), callExpression, bindingTrace, moduleDescriptor)
 
-        val contextsGroupedByExpression = MultiMap.create<KtExpression, Context>()
+        val contextsGroupedByExpression = MultiMap.create<KtExpression, ContextProvider>()
         val verifiersGroupedByExpression = MultiMap.create<KtExpression, ContextVerifier>()
         val cleanersGroupedByExpression = MultiMap.create<KtExpression, ContextCleaner>()
 
@@ -99,7 +99,7 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
                 }
 
                 is ContextProviderEffect -> {
-                    val (context, expression) = extractContext(effect, resolvedCall, bindingTrace.bindingContext)
+                    val (context, expression) = extractProvider(effect, resolvedCall, bindingTrace.bindingContext)
                     contextsGroupedByExpression.putValue(expression, context)
                 }
 
@@ -118,34 +118,34 @@ class EffectSystem(val languageVersionSettings: LanguageVersionSettings, val dat
         // record contexts and verifiers to binding context
         val expressions = verifiersGroupedByExpression.keySet() union contextsGroupedByExpression.keySet() union cleanersGroupedByExpression.keySet()
         for (expression in expressions) {
-            val contexts = contextsGroupedByExpression[expression]
+            val providers = contextsGroupedByExpression[expression]
             val verifiers = verifiersGroupedByExpression[expression]
             val cleaners = cleanersGroupedByExpression[expression]
-            bindingTrace.record(BindingContext.CONTEXT_FACTS, expression, FactsBindingInfo(contexts, verifiers, cleaners))
+            bindingTrace.record(BindingContext.CONTEXT_FACTS, expression, FactsBindingInfo(providers, verifiers, cleaners))
         }
     }
 
-    private data class ContextWithExpression(val context: Context, val expression: KtExpression)
+    private data class ProviderWithExpression(val provider: ContextProvider, val expression: KtExpression)
     private data class VerifierWithExpression(val verifier: ContextVerifier, val expression: KtExpression)
     private data class CleanerWithExpression(val cleaner: ContextCleaner, val expression: KtExpression)
 
-    private fun extractContext(
+    private fun extractProvider(
         effect: ContextProviderEffect,
         resolvedCall: ResolvedCall<*>,
         bindingContext: BindingContext
-    ): ContextWithExpression {
+    ): ProviderWithExpression {
         // hack
         val contextDeclaration = effect.contextDeclaration as ContextDeclaration
         return when (effect.owner) {
             is ESFunction -> {
                 val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: throw AssertionError()
-                val context = contextDeclaration.bind(callExpression, effect.references, bindingContext) ?: throw AssertionError()
-                ContextWithExpression(context, callExpression)
+                val provider = contextDeclaration.bind(callExpression, effect.references, bindingContext) ?: throw AssertionError()
+                ProviderWithExpression(provider, callExpression)
             }
             is ESLambda -> {
                 val lambda = (effect.owner as ESLambda).lambda.functionLiteral
-                val context = contextDeclaration.bind(lambda, effect.references, bindingContext) ?: throw AssertionError()
-                ContextWithExpression(context, lambda)
+                val provider = contextDeclaration.bind(lambda, effect.references, bindingContext) ?: throw AssertionError()
+                ProviderWithExpression(provider, lambda)
             }
             else -> throw AssertionError()
         }

@@ -15,7 +15,7 @@ interface ContextEntityDeclaration
 interface ContextDeclaration : ContextDeclarationHackedInterface, ContextEntityDeclaration {
     val references: List<ContractDescriptionValue>
 
-    fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): Context?
+    fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextProvider?
 }
 
 interface VerifierDeclaration : VerifierDeclarationHackedInterface, ContextEntityDeclaration {

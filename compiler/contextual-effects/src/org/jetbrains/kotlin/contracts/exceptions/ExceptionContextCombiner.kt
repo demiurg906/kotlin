@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.contracts.exceptions
 
 import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextCombiner
+import org.jetbrains.kotlin.contracts.facts.ContextProvider
 
 object ExceptionContextCombiner : ContextCombiner() {
     override fun or(a: Context, b: Context): Context {
@@ -14,8 +15,8 @@ object ExceptionContextCombiner : ContextCombiner() {
         return ExceptionContext(a.cachedExceptions + b.cachedExceptions)
     }
 
-    override fun combine(existedContext: Context, newContext: Context): Context {
-        if (existedContext !is ExceptionContext || newContext !is ExceptionContext) throw AssertionError()
-        return ExceptionContext(existedContext.cachedExceptions + newContext.cachedExceptions)
+    override fun combine(context: Context, provider: ContextProvider): Context {
+        if (context !is ExceptionContext || provider !is ExceptionContextProvider) throw AssertionError()
+        return ExceptionContext(context.cachedExceptions + provider.cachedException)
     }
 }

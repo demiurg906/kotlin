@@ -17,10 +17,7 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.CallInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.*
 import org.jetbrains.kotlin.contracts.declaredFactsInfo
-import org.jetbrains.kotlin.contracts.facts.Context
-import org.jetbrains.kotlin.contracts.facts.ContextCleaner
-import org.jetbrains.kotlin.contracts.facts.ContextFamily
-import org.jetbrains.kotlin.contracts.facts.ContextVerifier
+import org.jetbrains.kotlin.contracts.facts.*
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
@@ -120,9 +117,9 @@ class PseudocodeEffectsData(
         info: ContractsContextsInfo
     ): ContractsContextsInfo {
         val block = blockScope.block as? KtExpression ?: return info
-        val contexts = block.declaredFactsInfo(bindingContext).contexts
+        val providers = block.declaredFactsInfo(bindingContext).providers
         val contextsGroupedByFamily = info.toMutableMap()
-        combineContexts(contextsGroupedByFamily, contexts, blockScope.depth)
+        applyProviders(contextsGroupedByFamily, providers, blockScope.depth)
         return ContractsContextsInfo(contextsGroupedByFamily)
     }
 
@@ -192,26 +189,26 @@ class PseudocodeEffectsData(
         val callExpression = instruction.element as? KtCallExpression ?: return info
 
         val (contexts, _, cleaners) = callExpression.declaredFactsInfo(bindingContext)
-        combineContexts(contextsGroupedByFamily, contexts, null)
+        applyProviders(contextsGroupedByFamily, contexts, null)
         applyCleaners(cleaners, contextsGroupedByFamily)
 
         return ContractsContextsInfo(contextsGroupedByFamily)
     }
 
     // TODO: contexts to Map<>
-    private fun combineContexts(
+    private fun applyProviders(
         contextsGroupedByFamily: MutableMap<ContextFamily, MutableMap<Int, Context>>,
-        contexts: Collection<Context>,
+        providers: Collection<ContextProvider>,
         depth: Int?
     ) {
         val level = depth ?: -1
-        for (context in contexts) {
-            val family = context.family
+        for (provider in providers) {
+            val family = provider.family
             if (family !in contextsGroupedByFamily) {
                 contextsGroupedByFamily[family] = mutableMapOf()
             }
             val existedContext = contextsGroupedByFamily[family]!![level] ?: family.emptyContext
-            contextsGroupedByFamily[family]!![level] = family.combiner.combine(existedContext, context)
+            contextsGroupedByFamily[family]!![level] = family.combiner.combine(existedContext, provider)
         }
     }
 

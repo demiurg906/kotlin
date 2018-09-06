@@ -17,9 +17,9 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 
 class CallDeclaration(override val references: List<ContractDescriptionValue>) : ContextDeclaration {
-    override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): Context? {
+    override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextProvider? {
         val (functionDescriptor, receiverValue) = extractFunctionAndReceiver(references) ?: return null
-        return CallContext(FunctionReference(functionDescriptor, receiverValue), sourceElement)
+        return CallContextProvider(FunctionReference(functionDescriptor, receiverValue), sourceElement)
     }
 
     override fun toString(): String = "func called EXACTLY_ONCE"

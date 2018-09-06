@@ -9,14 +9,10 @@ import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.contracts.description.InvocationKind.*
 import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextCombiner
+import org.jetbrains.kotlin.contracts.facts.ContextProvider
 
 object CallCombiner : ContextCombiner() {
-    override fun or(a: Context, b: Context): Context = performOperation(a, b, ::or)
-
-    override fun combine(existedContext: Context, newContext: Context): Context =
-        performOperation(existedContext, newContext, ::combine)
-
-    private fun performOperation(a: Context, b: Context, operation: (InvocationKind, InvocationKind) -> InvocationKind): Context {
+    override fun or(a: Context, b: Context): Context {
         if (a !is CallContext || b !is CallContext) throw AssertionError()
 
         val functions = a.calls.keys union b.calls.keys
@@ -26,7 +22,7 @@ object CallCombiner : ContextCombiner() {
 
             val aKind = aInfo?.kind ?: InvocationKind.ZERO
             val bKind = bInfo?.kind ?: InvocationKind.ZERO
-            val resKind = operation(aKind, bKind)
+            val resKind = or(aKind, bKind)
 
             if (resKind == ZERO) {
                 return@mapNotNull null
@@ -37,6 +33,22 @@ object CallCombiner : ContextCombiner() {
             functionReference to CallInfo(sourceElement, resKind)
         }.toMap()
         return CallContext(updatedCalls)
+    }
+
+    override fun combine(context: Context, provider: ContextProvider): Context {
+        if (context !is CallContext || provider !is CallContextProvider) throw AssertionError()
+
+        val (functionReference, sourceElement) = provider
+        val calls = context.calls.toMutableMap()
+        if (functionReference in calls) {
+            val callInfo = calls[functionReference]!!
+            val kind = callInfo.kind
+            calls[functionReference] = CallInfo(callInfo.sourceElement, combine(kind, EXACTLY_ONCE))
+        } else {
+            calls[functionReference] = CallInfo(sourceElement, EXACTLY_ONCE)
+        }
+
+        return CallContext(calls)
     }
 
     private fun or(x: InvocationKind, y: InvocationKind) = when (x) {

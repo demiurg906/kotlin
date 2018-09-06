@@ -6,7 +6,8 @@
 package org.jetbrains.kotlin.contracts.safebuilders
 
 import org.jetbrains.kotlin.contracts.description.InvocationKind
-import org.jetbrains.kotlin.contracts.facts.AbstractContext
+import org.jetbrains.kotlin.contracts.facts.Context
+import org.jetbrains.kotlin.contracts.facts.ContextProvider
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 import org.jetbrains.kotlin.diagnostics.Errors
@@ -21,16 +22,7 @@ data class CallInfo(val sourceElement: KtElement, val kind: InvocationKind) {
     override fun toString(): String = kind.toString()
 }
 
-data class CallContext(val calls: Map<FunctionReference, CallInfo> = mapOf()) : AbstractContext() {
-    constructor(functionReference: FunctionReference, sourceElement: KtElement) : this(
-        mapOf(
-            functionReference to CallInfo(
-                sourceElement,
-                InvocationKind.EXACTLY_ONCE
-            )
-        )
-    )
-
+data class CallContext(val calls: Map<FunctionReference, CallInfo> = mapOf()) : Context {
     override val family = CallFamily
 
     override fun reportRemaining(sink: DiagnosticSink) {
@@ -40,4 +32,8 @@ data class CallContext(val calls: Map<FunctionReference, CallInfo> = mapOf()) : 
             sink.report(Errors.CONTEXTUAL_EFFECT_WARNING.on(sourceElement, message))
         }
     }
+}
+
+data class CallContextProvider(val functionReference: FunctionReference, val sourceElement: KtElement) : ContextProvider {
+    override val family = CallFamily
 }

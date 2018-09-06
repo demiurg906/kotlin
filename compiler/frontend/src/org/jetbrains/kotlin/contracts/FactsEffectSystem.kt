@@ -5,9 +5,9 @@
 
 package org.jetbrains.kotlin.contracts
 
-import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextCleaner
 import org.jetbrains.kotlin.contracts.facts.ContextFamily
+import org.jetbrains.kotlin.contracts.facts.ContextProvider
 import org.jetbrains.kotlin.contracts.facts.ContextVerifier
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
 import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
@@ -25,7 +25,7 @@ object FactsEffectSystem {
 fun KtExpression.declaredFactsInfo(bindingContext: BindingContext): FactsBindingInfo = bindingContext[BindingContext.CONTEXT_FACTS, this] ?: FactsBindingInfo()
 
 data class FactsBindingInfo(
-    val contexts: Collection<Context> = listOf(),
+    val providers: Collection<ContextProvider> = listOf(),
     val verifiers: Collection<ContextVerifier> = listOf(),
     val cleaners: Collection<ContextCleaner> = listOf()
 )

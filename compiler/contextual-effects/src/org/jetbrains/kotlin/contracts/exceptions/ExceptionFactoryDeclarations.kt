@@ -16,8 +16,8 @@ import org.jetbrains.kotlin.types.KotlinType
 class ExceptionContextDeclaration(private val exceptionType: KotlinType) : ContextDeclaration {
     override val references: List<ContractDescriptionValue> = emptyList()
 
-    override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ExceptionContext =
-        ExceptionContext(exceptionType)
+    override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ExceptionContextProvider =
+        ExceptionContextProvider(exceptionType)
 
     override fun toString(): String {
         return "Catches $exceptionType"

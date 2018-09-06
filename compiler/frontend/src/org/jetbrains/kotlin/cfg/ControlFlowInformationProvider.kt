@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.cfg.variable.VariableUseState.*
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.contracts.FactsEffectSystem
-import org.jetbrains.kotlin.contracts.facts.AbstractContext
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
@@ -136,7 +135,7 @@ class ControlFlowInformationProvider private constructor(
         for (family in FactsEffectSystem.getFamilies()) {
             val contexts = contextsInfo[family] ?: continue
             for (context in contexts) {
-                (context as AbstractContext).reportRemaining(trace)
+                context.reportRemaining(trace)
             }
         }
     }

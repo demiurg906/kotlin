@@ -5,6 +5,9 @@
 
 package org.jetbrains.kotlin.contracts.facts
 
+import org.jetbrains.kotlin.diagnostics.DiagnosticSink
+
 interface Context {
     val family: ContextFamily
+    fun reportRemaining(sink: DiagnosticSink)
 }
