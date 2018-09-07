@@ -139,4 +139,39 @@ public class ContextualEffectsDiagnosticTestGenerated extends AbstractContextual
             runTest("compiler/testData/diagnostics/contextualEffects/safeBuilders/when.kt");
         }
     }
+
+    @TestMetadata("compiler/testData/diagnostics/contextualEffects/transactions")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Transactions extends AbstractContextualEffectsDiagnosticTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInTransactions() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(),
+                                                            new File("compiler/testData/diagnostics/contextualEffects/transactions"),
+                                                            Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+        }
+
+        @TestMetadata("if.kt")
+        public void testIf() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/transactions/if.kt");
+        }
+
+        @TestMetadata("loops.kt")
+        public void testLoops() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/transactions/loops.kt");
+        }
+
+        @TestMetadata("multipleTransactions.kt")
+        public void testMultipleTransactions() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/transactions/multipleTransactions.kt");
+        }
+
+        @TestMetadata("simple.kt")
+        public void testSimple() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/transactions/simple.kt");
+        }
+    }
 }
