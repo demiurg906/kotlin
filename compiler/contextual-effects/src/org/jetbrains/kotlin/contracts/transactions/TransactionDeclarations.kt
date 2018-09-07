@@ -20,10 +20,17 @@ class TransactionProviderDeclaration(override val references: List<ContractDescr
     }
 }
 
-class TransactionVerifierDeclaration(override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
+class ClosedTransactionVerifierDeclaration(override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextVerifier? {
         val descriptor = extractThisVariableDescriptor(references) ?: return null
-        return TransactionVerifier(descriptor, sourceElement)
+        return ClosedTransactionVerifier(descriptor, sourceElement)
+    }
+}
+
+class OpenedTransactionVerifierDeclaration(override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
+    override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextVerifier? {
+        val descriptor = extractThisVariableDescriptor(references) ?: return null
+        return OpenedTransactionVerifier(descriptor, sourceElement)
     }
 }
 

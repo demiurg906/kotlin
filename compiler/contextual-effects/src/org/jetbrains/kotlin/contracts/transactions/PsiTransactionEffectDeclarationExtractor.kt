@@ -30,14 +30,15 @@ class PsiTransactionEffectDeclarationExtractor(
         return when (dslFunctionName) {
             ContextDslNames.STARTS -> {
                 val provider = TransactionProviderDeclaration(references)
-                ContextDeclarations(provider = provider)
+                val verifier = ClosedTransactionVerifierDeclaration(references)
+                ContextDeclarations(provider = provider, verifier = verifier)
             }
             ContextDslNames.REQUIRES -> {
-                val verifier = TransactionVerifierDeclaration(references)
+                val verifier = OpenedTransactionVerifierDeclaration(references)
                 ContextDeclarations(verifier = verifier)
             }
             ContextDslNames.CLOSES -> {
-                val verifier = TransactionVerifierDeclaration(references)
+                val verifier = OpenedTransactionVerifierDeclaration(references)
                 val cleaner = TransactionCleanerDeclaration(references)
                 ContextDeclarations(verifier = verifier, cleaner = cleaner)
             }
