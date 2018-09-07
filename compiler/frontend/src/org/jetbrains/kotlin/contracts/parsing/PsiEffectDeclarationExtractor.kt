@@ -17,9 +17,12 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 
 abstract class PsiEffectDeclarationExtractor(val context: BindingContext, val dispatcher: PsiContractParserDispatcher) {
-    abstract fun extractProviderDeclaration(declaration: KtExpression, dslFunctionName: Name): ProviderDeclaration?
-    abstract fun extractVerifierDeclaration(declaration: KtExpression, dslFunctionName: Name): VerifierDeclaration?
-    abstract fun extractCleanerDeclaration(declaration: KtExpression, dslFunctionName: Name): CleanerDeclaration?
+    abstract fun extractDeclarations(declaration: KtExpression, dslFunctionName: Name): ContextDeclarations
+
+    internal fun extractDeclarationsOrNull(declaration: KtExpression, dslFunctionName: Name): ContextDeclarations? {
+        val declarations = extractDeclarations(declaration, dslFunctionName)
+        return if (declarations.isEmpty()) null else declarations
+    }
 
     protected fun extractConstructorName(descriptor: CallableDescriptor) =
         (descriptor as? ClassConstructorDescriptor)?.constructedClass?.name?.asString()
@@ -31,4 +34,12 @@ abstract class PsiEffectDeclarationExtractor(val context: BindingContext, val di
         val descriptor = resolvedCall.resultingDescriptor
         return resolvedCall to descriptor
     }
+}
+
+data class ContextDeclarations(
+    val provider: ProviderDeclaration? = null,
+    val verifier: VerifierDeclaration? = null,
+    val cleaner: CleanerDeclaration? = null
+) {
+    internal fun isEmpty() = provider == null && verifier == null && cleaner == null
 }

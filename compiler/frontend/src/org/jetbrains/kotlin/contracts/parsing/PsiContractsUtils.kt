@@ -85,6 +85,14 @@ object ContractsDslNames {
     val RECEIVER_OF = Name.identifier("ReceiverOf")
 }
 
+object ContextDslNames {
+    val PROVIDES = ContractsDslNames.PROVIDES
+    val REQUIRES = ContractsDslNames.REQUIRES
+    val REQUIRES_NOT = ContractsDslNames.REQUIRES_NOT
+    val STARTS = ContractsDslNames.STARTS
+    val CLOSES = ContractsDslNames.CLOSES
+}
+
 fun DeclarationDescriptor.isFromContractDsl(): Boolean = this.annotations.hasAnnotation(CONTRACTS_DSL_ANNOTATION_FQN)
 
 fun DeclarationDescriptor.isContractCallDescriptor(): Boolean = equalsDslDescriptor(CONTRACT)
@@ -105,18 +113,14 @@ fun DeclarationDescriptor.isCallsInPlaceEffectDescriptor(): Boolean = equalsDslD
 
 fun DeclarationDescriptor.isInvocationKindEnum(): Boolean = equalsDslDescriptor(INVOCATION_KIND_ENUM)
 
-// Context providers
+// Context providers, verifiers and cleaners
 
-fun DeclarationDescriptor.isProviderDescriptor(): Boolean = isProvidesFactDescriptor() || isStartsContextDescriptor()
+fun DeclarationDescriptor.isProviderOrVerifierOrCleanerDescriptor(): Boolean =
+    isProvidesFactDescriptor() || isStartsContextDescriptor() || isRequiresContextDescriptor() || isRequiresNotContextDescriptor() || isClosesContextDescriptor()
 
 private fun DeclarationDescriptor.isProvidesFactDescriptor(): Boolean = equalsDslDescriptor(PROVIDES)
 
 private fun DeclarationDescriptor.isStartsContextDescriptor(): Boolean = equalsDslDescriptor(STARTS)
-
-// Context verifiers and cleaners
-
-fun DeclarationDescriptor.isVerifierOrCleanerDescriptor(): Boolean =
-    isRequiresContextDescriptor() || isRequiresNotContextDescriptor() || isClosesContextDescriptor()
 
 private fun DeclarationDescriptor.isRequiresContextDescriptor(): Boolean = equalsDslDescriptor(REQUIRES)
 

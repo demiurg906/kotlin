@@ -5,9 +5,8 @@
 
 package org.jetbrains.kotlin.contracts.exceptions
 
-import org.jetbrains.kotlin.contracts.facts.CleanerDeclaration
-import org.jetbrains.kotlin.contracts.facts.ProviderDeclaration
-import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
+import org.jetbrains.kotlin.contracts.parsing.ContextDeclarations
+import org.jetbrains.kotlin.contracts.parsing.ContextDslNames
 import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
 import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
 import org.jetbrains.kotlin.name.Name
@@ -22,17 +21,21 @@ class PsiExceptionEffectDeclarationExtractor(context: BindingContext, dispatcher
         private const val CONSTRUCTOR_NAME = "CatchesException"
     }
 
-    override fun extractProviderDeclaration(declaration: KtExpression, dslFunctionName: Name): ProviderDeclaration? {
-        val exceptionType = getExceptionType(declaration) ?: return null
-        return ExceptionProviderDeclaration(exceptionType)
+    override fun extractDeclarations(declaration: KtExpression, dslFunctionName: Name): ContextDeclarations {
+        return when (dslFunctionName) {
+            ContextDslNames.PROVIDES -> {
+                val exceptionType = getExceptionType(declaration) ?: return ContextDeclarations()
+                val provider = ExceptionProviderDeclaration(exceptionType)
+                ContextDeclarations(provider = provider)
+            }
+            ContextDslNames.REQUIRES -> {
+                val exceptionType = getExceptionType(declaration) ?: return ContextDeclarations()
+                val verifier = ExceptionVerifierDeclaration(exceptionType)
+                ContextDeclarations(verifier = verifier)
+            }
+            else -> ContextDeclarations()
+        }
     }
-
-    override fun extractVerifierDeclaration(declaration: KtExpression, dslFunctionName: Name): VerifierDeclaration? {
-        val exceptionType = getExceptionType(declaration) ?: return null
-        return ExceptionVerifierDeclaration(exceptionType)
-    }
-
-    override fun extractCleanerDeclaration(declaration: KtExpression, dslFunctionName: Name): CleanerDeclaration? = null
 
     private fun getExceptionType(expression: KtExpression): KotlinType? {
         if (expression !is KtCallExpression) return null

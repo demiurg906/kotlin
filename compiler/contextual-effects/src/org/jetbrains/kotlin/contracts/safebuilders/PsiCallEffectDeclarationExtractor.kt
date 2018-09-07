@@ -7,12 +7,8 @@ package org.jetbrains.kotlin.contracts.safebuilders
 
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
-import org.jetbrains.kotlin.contracts.facts.CleanerDeclaration
 import org.jetbrains.kotlin.contracts.facts.ProviderDeclaration
-import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
-import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
-import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
-import org.jetbrains.kotlin.contracts.parsing.argumentAsExpressionOrNull
+import org.jetbrains.kotlin.contracts.parsing.*
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
@@ -26,7 +22,23 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
         private const val CALL_KIND = "CallKind"
     }
 
-    override fun extractProviderDeclaration(declaration: KtExpression, dslFunctionName: Name): ProviderDeclaration? {
+    override fun extractDeclarations(declaration: KtExpression, dslFunctionName: Name): ContextDeclarations {
+        return when (dslFunctionName) {
+            ContextDslNames.PROVIDES -> {
+                val provider = extractProviderDeclaration(declaration, dslFunctionName)
+                ContextDeclarations(provider = provider)
+            }
+            ContextDslNames.REQUIRES -> {
+                val (kind, references) = extractKindAndReferences(declaration) ?: return ContextDeclarations()
+                val verifier = CallVerifierDeclaration(kind, references)
+                val cleaner = CallCleanerDeclaration(kind, references)
+                ContextDeclarations(verifier = verifier, cleaner = cleaner)
+            }
+            else -> ContextDeclarations()
+        }
+    }
+
+    private fun extractProviderDeclaration(declaration: KtExpression, dslFunctionName: Name): ProviderDeclaration? {
         if (declaration !is KtCallExpression) return null
 
         val (resolvedCall, descriptor) = declaration.getResolverCallAndResultingDescriptor(context) ?: return null
@@ -39,16 +51,6 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
 
         val references = listOf(functionReference, thisReference)
         return CallProviderDeclaration(references)
-    }
-
-    override fun extractVerifierDeclaration(declaration: KtExpression, dslFunctionName: Name): VerifierDeclaration? {
-        val (kind, references) = extractKindAndReferences(declaration) ?: return null
-        return CallVerifierDeclaration(kind, references)
-    }
-
-    override fun extractCleanerDeclaration(declaration: KtExpression, dslFunctionName: Name): CleanerDeclaration? {
-        val (kind, references) = extractKindAndReferences(declaration) ?: return null
-        return CallCleanerDeclaration(kind, references)
     }
 
     private fun extractKindAndReferences(declaration: KtExpression): Pair<InvocationKind, List<ContractDescriptionValue>>? {

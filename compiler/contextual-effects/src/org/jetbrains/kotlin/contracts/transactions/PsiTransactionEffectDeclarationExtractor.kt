@@ -6,13 +6,7 @@
 package org.jetbrains.kotlin.contracts.transactions
 
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
-import org.jetbrains.kotlin.contracts.facts.CleanerDeclaration
-import org.jetbrains.kotlin.contracts.facts.ProviderDeclaration
-import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
-import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames
-import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
-import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
-import org.jetbrains.kotlin.contracts.parsing.firstArgumentAsExpressionOrNull
+import org.jetbrains.kotlin.contracts.parsing.*
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
@@ -26,20 +20,29 @@ class PsiTransactionEffectDeclarationExtractor(
         private const val CONSTRUCTOR_NAME = "OpenedTransaction"
     }
 
-    override fun extractProviderDeclaration(declaration: KtExpression, dslFunctionName: Name): ProviderDeclaration? {
-        val thisReference = extractThisReference(declaration) ?: return null
-        return TransactionProviderDeclaration(listOf(thisReference))
-    }
+    override fun extractDeclarations(declaration: KtExpression, dslFunctionName: Name): ContextDeclarations {
+        if (dslFunctionName !in setOf(ContractsDslNames.STARTS, ContractsDslNames.REQUIRES, ContractsDslNames.CLOSES))
+            return ContextDeclarations()
 
-    override fun extractVerifierDeclaration(declaration: KtExpression, dslFunctionName: Name): VerifierDeclaration? {
-        val thisReference = extractThisReference(declaration) ?: return null
-        return TransactionVerifierDeclaration(listOf(thisReference))
-    }
+        val thisReference = extractThisReference(declaration) ?: return ContextDeclarations()
+        val references = listOf(thisReference)
 
-    override fun extractCleanerDeclaration(declaration: KtExpression, dslFunctionName: Name): CleanerDeclaration? {
-        if (dslFunctionName != ContractsDslNames.CLOSES) return null
-        val thisReference = extractThisReference(declaration) ?: return null
-        return TransactionCleanerDeclaration(listOf(thisReference))
+        return when (dslFunctionName) {
+            ContextDslNames.STARTS -> {
+                val provider = TransactionProviderDeclaration(references)
+                ContextDeclarations(provider = provider)
+            }
+            ContextDslNames.REQUIRES -> {
+                val verifier = TransactionVerifierDeclaration(references)
+                ContextDeclarations(verifier = verifier)
+            }
+            ContextDslNames.CLOSES -> {
+                val verifier = TransactionVerifierDeclaration(references)
+                val cleaner = TransactionCleanerDeclaration(references)
+                ContextDeclarations(verifier = verifier, cleaner = cleaner)
+            }
+            else -> ContextDeclarations()
+        }
     }
 
     private fun extractThisReference(declaration: KtExpression): VariableReference? {
