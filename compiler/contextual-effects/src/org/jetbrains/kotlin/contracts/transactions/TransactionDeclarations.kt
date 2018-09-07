@@ -18,6 +18,8 @@ class TransactionProviderDeclaration(override val references: List<ContractDescr
         val descriptor = extractThisVariableDescriptor(references) ?: return null
         return TransactionProvider(descriptor)
     }
+
+    override fun toString(): String = "opened transaction"
 }
 
 class ClosedTransactionVerifierDeclaration(override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
@@ -25,6 +27,8 @@ class ClosedTransactionVerifierDeclaration(override val references: List<Contrac
         val descriptor = extractThisVariableDescriptor(references) ?: return null
         return ClosedTransactionVerifier(descriptor, sourceElement)
     }
+
+    override fun toString(): String = "no opened transaction"
 }
 
 class OpenedTransactionVerifierDeclaration(override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
@@ -32,6 +36,8 @@ class OpenedTransactionVerifierDeclaration(override val references: List<Contrac
         val descriptor = extractThisVariableDescriptor(references) ?: return null
         return OpenedTransactionVerifier(descriptor, sourceElement)
     }
+
+    override fun toString(): String = "opened transaction"
 }
 
 class TransactionCleanerDeclaration(override val references: List<ContractDescriptionValue>) : CleanerDeclaration {
@@ -39,9 +45,11 @@ class TransactionCleanerDeclaration(override val references: List<ContractDescri
         val descriptor = extractThisVariableDescriptor(references) ?: return null
         return TransactionCleaner(descriptor)
     }
+
+    override fun toString(): String = "opened transaction"
 }
 
-fun extractThisVariableDescriptor(references: List<ESValue?>): ValueDescriptor? {
+private fun extractThisVariableDescriptor(references: List<ESValue?>): ValueDescriptor? {
     val thisReference = references.firstOrNull() as? ESVariable ?: return null
     return thisReference.descriptor
 }
