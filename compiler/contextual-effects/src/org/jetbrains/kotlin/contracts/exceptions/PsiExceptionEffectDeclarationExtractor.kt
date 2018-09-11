@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.contracts.exceptions
 
 import org.jetbrains.kotlin.contracts.parsing.ContextDeclarations
 import org.jetbrains.kotlin.contracts.parsing.ContextDslNames
-import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
+import org.jetbrains.kotlin.contracts.parsing.PsiContractVariableParserDispatcher
 import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtCallExpression
@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.types.KotlinType
 
-class PsiExceptionEffectDeclarationExtractor(context: BindingContext, dispatcher: PsiContractParserDispatcher) :
+class PsiExceptionEffectDeclarationExtractor(context: BindingContext, dispatcher: PsiContractVariableParserDispatcher) :
     PsiEffectDeclarationExtractor(context, dispatcher) {
     companion object {
         private const val CONSTRUCTOR_NAME = "CatchesException"

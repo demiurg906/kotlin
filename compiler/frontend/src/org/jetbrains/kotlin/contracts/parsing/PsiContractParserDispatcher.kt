@@ -44,10 +44,18 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 
-class PsiContractParserDispatcher(
+interface PsiContractVariableParserDispatcher {
+    fun parseConstant(expression: KtExpression?): ConstantReference?
+    fun parseVariable(expression: KtExpression?): VariableReference?
+    fun parseReceiver(expression: KtExpression?): ReceiverReference?
+    fun parseFunction(expression: KtExpression?): FunctionReference?
+    fun parseValue(expression: KtExpression?): ContractDescriptionValue?
+}
+
+internal class PsiContractParserDispatcher(
     private val collector: ContractParsingDiagnosticsCollector,
     private val callContext: ContractCallContext
-) {
+) : PsiContractVariableParserDispatcher {
     private val conditionParser = PsiConditionParser(collector, callContext, this)
     private val constantParser = PsiConstantParser(callContext)
     private val effectsParsers: Map<Name, PsiEffectParser> = mapOf(
@@ -117,12 +125,12 @@ class PsiContractParserDispatcher(
         return true
     }
 
-    fun parseConstant(expression: KtExpression?): ConstantReference? {
+    override fun parseConstant(expression: KtExpression?): ConstantReference? {
         if (expression == null) return null
         return expression.accept(constantParser, Unit)
     }
 
-    fun parseVariable(expression: KtExpression?): VariableReference? {
+    override fun parseVariable(expression: KtExpression?): VariableReference? {
         if (expression == null) return null
         val descriptor = expression.getResolvedCall(callContext.bindingContext)?.resultingDescriptor ?: return null
         if (descriptor !is ParameterDescriptor) {
@@ -141,7 +149,7 @@ class PsiContractParserDispatcher(
             VariableReference(descriptor)
     }
 
-    fun parseReceiver(expression: KtExpression?): ReceiverReference? {
+    override fun parseReceiver(expression: KtExpression?): ReceiverReference? {
         if (expression == null) return null
         val resolvedCall = expression.getResolvedCall(callContext.bindingContext) ?: return null
         val descriptor = resolvedCall.resultingDescriptor
@@ -155,7 +163,7 @@ class PsiContractParserDispatcher(
         return ReceiverReference(variable)
     }
 
-    fun parseFunction(expression: KtExpression?): FunctionReference? {
+    override fun parseFunction(expression: KtExpression?): FunctionReference? {
         if (expression == null) return null
         val reference = expression as? KtCallableReferenceExpression ?: return null
         val descriptor =
@@ -163,7 +171,7 @@ class PsiContractParserDispatcher(
         return FunctionReference(descriptor)
     }
 
-    fun parseValue(expression: KtExpression?): ContractDescriptionValue? {
+    override fun parseValue(expression: KtExpression?): ContractDescriptionValue? {
         val variable = parseVariable(expression)
         if (variable != null) return variable
 

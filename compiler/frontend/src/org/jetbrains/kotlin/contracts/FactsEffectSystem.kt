@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.contracts.facts.ContextCleaner
 import org.jetbrains.kotlin.contracts.facts.ContextFamily
 import org.jetbrains.kotlin.contracts.facts.ContextProvider
 import org.jetbrains.kotlin.contracts.facts.ContextVerifier
-import org.jetbrains.kotlin.contracts.parsing.PsiContractParserDispatcher
+import org.jetbrains.kotlin.contracts.parsing.PsiContractVariableParserDispatcher
 import org.jetbrains.kotlin.contracts.parsing.PsiEffectDeclarationExtractor
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -18,7 +18,7 @@ object FactsEffectSystem {
     private val contextEffectsFamiliesProvider: ContextFamiliesProvider = ContextFamiliesService
 
     fun getFamilies(): Collection<ContextFamily> = contextEffectsFamiliesProvider.getFamilies()
-    fun getParsers(): Collection<(BindingContext, PsiContractParserDispatcher) -> PsiEffectDeclarationExtractor> =
+    fun getParsers(): Collection<(BindingContext, PsiContractVariableParserDispatcher) -> PsiEffectDeclarationExtractor> =
         contextEffectsFamiliesProvider.getParsers()
 }
 

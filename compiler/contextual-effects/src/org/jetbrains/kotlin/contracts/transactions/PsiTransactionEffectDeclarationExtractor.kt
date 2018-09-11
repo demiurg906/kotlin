@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 
 class PsiTransactionEffectDeclarationExtractor(
     context: BindingContext,
-    dispatcher: PsiContractParserDispatcher
+    dispatcher: PsiContractVariableParserDispatcher
 ) : PsiEffectDeclarationExtractor(context, dispatcher) {
     companion object {
         private const val CONSTRUCTOR_NAME = "OpenedTransaction"
