@@ -50,11 +50,23 @@ interface ProvidesContextDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
+interface BlockProvidesContextDescription
+
+@ContractsDsl
+@SinceKotlin("1.3")
 interface RequiresContextDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
+interface BlockRequiresContextDescription
+
+@ContractsDsl
+@SinceKotlin("1.3")
 interface NotRequiresContextDescription
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface BlockNotRequiresContextDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")

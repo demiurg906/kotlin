@@ -35,19 +35,19 @@ interface ContractBuilder {
     fun provides(context: ProvidesContextDescription): ProvidesFact
 
     @ContractsDsl
-    fun <R> provides(block: Function<R>, context: ProvidesContextDescription): BlockProvidesFact
+    fun <R> provides(block: Function<R>, context: BlockProvidesContextDescription): BlockProvidesFact
 
     @ContractsDsl
     fun requires(requirement: RequiresContextDescription): RequiresContext
 
     @ContractsDsl
-    fun <R> requires(block: Function<R>, requirement: RequiresContextDescription): BlockRequiresContext
+    fun <R> requires(block: Function<R>, requirement: BlockRequiresContextDescription): BlockRequiresContext
 
     @ContractsDsl
     fun requiresNot(requirement: NotRequiresContextDescription): RequiresNotContext
 
     @ContractsDsl
-    fun <R> requiresNot(block: Function<R>, requirement: NotRequiresContextDescription): BlockRequiresNotContext
+    fun <R> requiresNot(block: Function<R>, requirement: BlockNotRequiresContextDescription): BlockRequiresNotContext
 
     @ContractsDsl
     fun starts(context: StartsContextDescription): StartsContext
