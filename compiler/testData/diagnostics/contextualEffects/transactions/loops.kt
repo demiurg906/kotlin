@@ -41,7 +41,7 @@ fun test_1() {
 fun test_2() {
     val transaction = Transaction()
     for (i in 1..10) {
-        transaction.start()
+        transaction.<!CONTEXTUAL_EFFECT_WARNING(Transaction transaction already started)!>start()<!>
     }
     transaction.<!CONTEXTUAL_EFFECT_WARNING(transaction is not opened)!>setData()<!>
     transaction.<!CONTEXTUAL_EFFECT_WARNING(transaction is not opened)!>commit()<!>
