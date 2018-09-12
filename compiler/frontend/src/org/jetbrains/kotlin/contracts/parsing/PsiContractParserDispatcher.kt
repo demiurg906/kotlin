@@ -45,11 +45,9 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 
 interface PsiContractVariableParserDispatcher {
-    fun parseConstant(expression: KtExpression?): ConstantReference?
     fun parseVariable(expression: KtExpression?): VariableReference?
     fun parseReceiver(expression: KtExpression?): ReceiverReference?
     fun parseFunction(expression: KtExpression?): FunctionReference?
-    fun parseValue(expression: KtExpression?): ContractDescriptionValue?
 }
 
 internal class PsiContractParserDispatcher(
@@ -125,7 +123,7 @@ internal class PsiContractParserDispatcher(
         return true
     }
 
-    override fun parseConstant(expression: KtExpression?): ConstantReference? {
+    fun parseConstant(expression: KtExpression?): ConstantReference? {
         if (expression == null) return null
         return expression.accept(constantParser, Unit)
     }
@@ -171,7 +169,7 @@ internal class PsiContractParserDispatcher(
         return FunctionReference(descriptor)
     }
 
-    override fun parseValue(expression: KtExpression?): ContractDescriptionValue? {
+    fun parseValue(expression: KtExpression?): ContractDescriptionValue? {
         val variable = parseVariable(expression)
         if (variable != null) return variable
 
