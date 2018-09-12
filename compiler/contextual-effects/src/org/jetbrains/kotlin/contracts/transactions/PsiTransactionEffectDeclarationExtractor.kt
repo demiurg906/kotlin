@@ -48,9 +48,9 @@ class PsiTransactionEffectDeclarationExtractor(
 
     private fun extractThisReference(declaration: KtExpression): VariableReference? {
         if (declaration !is KtCallExpression) return null
-        val (resolvedCall, descriptor) = declaration.getResolverCallAndResultingDescriptor(context) ?: return null
+        val (resolvedCall, descriptor) = declaration.getResolverCallAndResultingDescriptor() ?: return null
 
-        if (extractConstructorName(descriptor) != CONSTRUCTOR_NAME) return null
+        if (descriptor.extractConstructorName() != CONSTRUCTOR_NAME) return null
 
         return dispatcher.parseVariable(resolvedCall.firstArgumentAsExpressionOrNull())
     }

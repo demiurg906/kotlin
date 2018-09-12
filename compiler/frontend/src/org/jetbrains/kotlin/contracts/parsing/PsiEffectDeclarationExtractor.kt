@@ -24,13 +24,11 @@ abstract class PsiEffectDeclarationExtractor(val context: BindingContext, val di
         return if (declarations.isEmpty()) null else declarations
     }
 
-    protected fun extractConstructorName(descriptor: CallableDescriptor) =
-        (descriptor as? ClassConstructorDescriptor)?.constructedClass?.name?.asString()
+    protected fun CallableDescriptor.extractConstructorName() =
+        (this as? ClassConstructorDescriptor)?.constructedClass?.name?.asString()
 
-    protected fun KtExpression.getResolverCallAndResultingDescriptor(
-        context: BindingContext
-    ): Pair<ResolvedCall<*>, CallableDescriptor>? {
-        val resolvedCall = getResolvedCall(context) ?: return null
+    protected fun KtExpression.getResolverCallAndResultingDescriptor(): Pair<ResolvedCall<*>, CallableDescriptor>? {
+        val resolvedCall = getResolvedCall(this@PsiEffectDeclarationExtractor.context) ?: return null
         val descriptor = resolvedCall.resultingDescriptor
         return resolvedCall to descriptor
     }

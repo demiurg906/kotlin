@@ -41,9 +41,9 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
     private fun extractProviderDeclaration(declaration: KtExpression, dslFunctionName: Name): ProviderDeclaration? {
         if (declaration !is KtCallExpression) return null
 
-        val (resolvedCall, descriptor) = declaration.getResolverCallAndResultingDescriptor(context) ?: return null
+        val (resolvedCall, descriptor) = declaration.getResolverCallAndResultingDescriptor() ?: return null
 
-        val constructorName = extractConstructorName(descriptor) ?: return null
+        val constructorName = descriptor.extractConstructorName() ?: return null
         if (constructorName != CALLS) return null
 
         val functionReference = dispatcher.parseFunction(resolvedCall.argumentAsExpressionOrNull(0)) ?: return null
@@ -56,9 +56,9 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
     private fun extractKindAndReferences(declaration: KtExpression): Pair<InvocationKind, List<ContractDescriptionValue>>? {
         if (declaration !is KtCallExpression) return null
 
-        val (resolvedCall, descriptor) = declaration.getResolverCallAndResultingDescriptor(context) ?: return null
+        val (resolvedCall, descriptor) = declaration.getResolverCallAndResultingDescriptor() ?: return null
 
-        val constructorName = extractConstructorName(descriptor) ?: return null
+        val constructorName = descriptor.extractConstructorName() ?: return null
         if (constructorName != CALL_KIND) return null
 
         val functionReference = dispatcher.parseFunction(resolvedCall.argumentAsExpressionOrNull(0)) ?: return null

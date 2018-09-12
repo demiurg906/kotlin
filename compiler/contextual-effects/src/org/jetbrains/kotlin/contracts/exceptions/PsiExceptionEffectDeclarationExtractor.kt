@@ -40,9 +40,9 @@ class PsiExceptionEffectDeclarationExtractor(context: BindingContext, dispatcher
     private fun getExceptionType(expression: KtExpression): KotlinType? {
         if (expression !is KtCallExpression) return null
 
-        val (resolvedCall, descriptor) = expression.getResolverCallAndResultingDescriptor(context) ?: return null
+        val (resolvedCall, descriptor) = expression.getResolverCallAndResultingDescriptor() ?: return null
 
-        val constructorName = extractConstructorName(descriptor) ?: return null
+        val constructorName = descriptor.extractConstructorName() ?: return null
         if (constructorName != CONSTRUCTOR_NAME) return null
 
         return resolvedCall.typeArguments.values.firstOrNull()
