@@ -6,7 +6,8 @@
 package org.jetbrains.kotlin.contracts.safebuilders
 
 import org.jetbrains.kotlin.contracts.description.InvocationKind
-import org.jetbrains.kotlin.contracts.description.InvocationKind.*
+import org.jetbrains.kotlin.contracts.description.InvocationKind.EXACTLY_ONCE
+import org.jetbrains.kotlin.contracts.description.InvocationKind.ZERO
 import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextCombiner
 import org.jetbrains.kotlin.contracts.facts.ContextProvider
@@ -22,7 +23,7 @@ object CallCombiner : ContextCombiner {
 
             val aKind = aInfo?.kind ?: InvocationKind.ZERO
             val bKind = bInfo?.kind ?: InvocationKind.ZERO
-            val resKind = or(aKind, bKind)
+            val resKind = InvocationKind.or(aKind, bKind)
 
             if (resKind == ZERO) {
                 return@mapNotNull null
@@ -43,70 +44,11 @@ object CallCombiner : ContextCombiner {
         if (functionReference in calls) {
             val callInfo = calls[functionReference]!!
             val kind = callInfo.kind
-            calls[functionReference] = CallInfo(callInfo.sourceElement, combine(kind, EXACTLY_ONCE))
+            calls[functionReference] = CallInfo(callInfo.sourceElement, InvocationKind.combine(kind, EXACTLY_ONCE))
         } else {
             calls[functionReference] = CallInfo(sourceElement, EXACTLY_ONCE)
         }
 
         return CallContext(calls)
-    }
-
-    private fun or(x: InvocationKind, y: InvocationKind) = when (x) {
-        ZERO -> when (y) {
-            ZERO -> ZERO
-            AT_MOST_ONCE -> AT_MOST_ONCE
-            EXACTLY_ONCE -> AT_MOST_ONCE
-            AT_LEAST_ONCE -> UNKNOWN
-            UNKNOWN -> UNKNOWN
-        }
-        AT_MOST_ONCE -> when (y) {
-            ZERO -> AT_MOST_ONCE
-            AT_MOST_ONCE -> AT_MOST_ONCE
-            EXACTLY_ONCE -> AT_MOST_ONCE
-            AT_LEAST_ONCE -> UNKNOWN
-            UNKNOWN -> UNKNOWN
-        }
-        EXACTLY_ONCE -> when (y) {
-            ZERO -> AT_MOST_ONCE
-            AT_MOST_ONCE -> AT_MOST_ONCE
-            EXACTLY_ONCE -> EXACTLY_ONCE
-            AT_LEAST_ONCE -> AT_LEAST_ONCE
-            UNKNOWN -> UNKNOWN
-        }
-        AT_LEAST_ONCE -> when (y) {
-            ZERO -> UNKNOWN
-            AT_MOST_ONCE -> UNKNOWN
-            EXACTLY_ONCE -> AT_LEAST_ONCE
-            AT_LEAST_ONCE -> AT_LEAST_ONCE
-            UNKNOWN -> UNKNOWN
-        }
-        UNKNOWN -> UNKNOWN
-    }
-
-    private fun combine(x: InvocationKind, y: InvocationKind) = when (x) {
-        ZERO -> when (y) {
-            ZERO -> ZERO
-            AT_MOST_ONCE -> AT_MOST_ONCE
-            EXACTLY_ONCE -> EXACTLY_ONCE
-            AT_LEAST_ONCE -> AT_LEAST_ONCE
-            UNKNOWN -> UNKNOWN
-        }
-        AT_MOST_ONCE -> when (y) {
-            ZERO -> AT_MOST_ONCE
-            AT_MOST_ONCE -> UNKNOWN
-            EXACTLY_ONCE -> AT_LEAST_ONCE
-            AT_LEAST_ONCE -> AT_LEAST_ONCE
-            UNKNOWN -> UNKNOWN
-        }
-        EXACTLY_ONCE -> when (y) {
-            ZERO -> EXACTLY_ONCE
-            else -> AT_LEAST_ONCE
-        }
-        AT_LEAST_ONCE -> AT_LEAST_ONCE
-        UNKNOWN -> when (y) {
-            EXACTLY_ONCE -> AT_LEAST_ONCE
-            AT_LEAST_ONCE -> AT_LEAST_ONCE
-            else -> UNKNOWN
-        }
     }
 }
