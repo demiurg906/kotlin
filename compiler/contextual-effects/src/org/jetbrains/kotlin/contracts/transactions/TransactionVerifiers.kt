@@ -5,6 +5,8 @@
 
 package org.jetbrains.kotlin.contracts.transactions
 
+import org.jetbrains.kotlin.contracts.description.InvocationKind
+import org.jetbrains.kotlin.contracts.description.isDefinitelyVisited
 import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextVerifier
 import org.jetbrains.kotlin.descriptors.ValueDescriptor
@@ -18,7 +20,8 @@ class OpenedTransactionVerifier(val requiredTransaction: ValueDescriptor, val so
 
     override fun verify(contexts: Collection<Context>, diagnosticSink: DiagnosticSink) {
         val openedTransactions = extractOpenedTransactions(contexts)
-        if (requiredTransaction !in openedTransactions) {
+        val kind = openedTransactions[requiredTransaction] ?: InvocationKind.ZERO
+        if (!kind.isDefinitelyVisited()) {
             val message = "${requiredTransaction.name} is not opened"
             diagnosticSink.report(Errors.CONTEXTUAL_EFFECT_WARNING.on(sourceElement, message))
         }
@@ -31,15 +34,16 @@ class ClosedTransactionVerifier(val requiredTransaction: ValueDescriptor, val so
 
     override fun verify(contexts: Collection<Context>, diagnosticSink: DiagnosticSink) {
         val openedTransactions = extractOpenedTransactions(contexts)
-        if (requiredTransaction in openedTransactions) {
+        val kind = openedTransactions[requiredTransaction] ?: InvocationKind.ZERO
+        if (kind != InvocationKind.ZERO) {
             val message = "Transaction ${requiredTransaction.name} already started"
             diagnosticSink.report(Errors.CONTEXTUAL_EFFECT_WARNING.on(sourceElement, message))
         }
     }
 }
 
-private fun extractOpenedTransactions(contexts: Collection<Context>): Set<ValueDescriptor> {
+private fun extractOpenedTransactions(contexts: Collection<Context>): Map<ValueDescriptor, InvocationKind> {
     return contexts.mapNotNull { it as? TransactionContext }
         .map { it.openedTransactions }
-        .firstOrNull() ?: setOf()
+        .firstOrNull() ?: mapOf()
 }

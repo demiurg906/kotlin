@@ -15,7 +15,8 @@ class TransactionCleaner(val openedTransaction: ValueDescriptor) : ContextCleane
     override fun cleanupProcessed(context: Context): Context {
         if (context !is TransactionContext) throw AssertionError()
 
-        val openedTransaction = context.openedTransactions - openedTransaction
-        return TransactionContext(openedTransaction)
+        val openedTransactions = context.openedTransactions.toMutableMap()
+        openedTransactions.remove(openedTransaction)
+        return TransactionContext(openedTransactions)
     }
 }
