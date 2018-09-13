@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.exceptions
 
+import org.jetbrains.kotlin.cfg.ContextContracts
 import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextVerifier
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
@@ -16,15 +17,18 @@ import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 class ExceptionVerifier(private val exceptionType: KotlinType, private val sourceElement: KtElement) : ContextVerifier {
     override val family = ExceptionFamily
 
-    override fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink) {
+    override fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink, declaredContracts: ContextContracts) {
         val exceptionContexts = contexts.map { it as? ExceptionContext ?: throw AssertionError() }
 
-        val isOk = exceptionContexts.any { context ->
-            context.cachedExceptions.asSequence().any {
-                exceptionType.isSubtypeOf(it)
-            }
-        }
+        val declaredExceptions = declaredContracts.verifiers
+            .map { it as ExceptionVerifierDeclaration }
+            .map { it.exceptionType }
+            .toSet()
 
+        val handledExceptions = exceptionContexts.flatMapTo(mutableSetOf()) { it.cachedExceptions }
+
+        val handledAndDeclaredExceptions = handledExceptions + declaredExceptions
+        val isOk = handledAndDeclaredExceptions.any { exceptionType.isSubtypeOf(it) }
         if (!isOk) {
             diagnosticSink.report(Errors.CONTEXTUAL_EFFECT_WARNING.on(sourceElement, "Unchecked exception: $exceptionType"))
         }

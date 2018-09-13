@@ -5,9 +5,10 @@
 
 package org.jetbrains.kotlin.contracts.facts
 
+import org.jetbrains.kotlin.cfg.ContextContracts
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 
 interface ContextVerifier {
     val family: ContextFamily
-    fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink)
+    fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink, declaredContracts: ContextContracts)
 }

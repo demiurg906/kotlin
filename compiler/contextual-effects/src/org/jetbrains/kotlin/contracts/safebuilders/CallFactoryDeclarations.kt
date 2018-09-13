@@ -17,6 +17,8 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 
 class CallProviderDeclaration(override val references: List<ContractDescriptionValue>) : ProviderDeclaration {
+    override val family = CallFamily
+
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextProvider? {
         val (functionDescriptor, receiverValue) = extractFunctionAndReceiver(references) ?: return null
         return CallContextProvider(FunctionReference(functionDescriptor, receiverValue), sourceElement)
@@ -29,6 +31,8 @@ class CallVerifierDeclaration(
     private val kind: InvocationKind,
     override val references: List<ContractDescriptionValue>
 ) : VerifierDeclaration {
+    override val family = CallFamily
+
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextVerifier? {
         val (functionDescriptor, receiverValue) = extractFunctionAndReceiver(references) ?: return null
         return CallVerifier(FunctionReference(functionDescriptor, receiverValue), kind, sourceElement)
@@ -41,6 +45,8 @@ class CallCleanerDeclaration(
     private val kind: InvocationKind,
     override val references: List<ContractDescriptionValue>
 ) : CleanerDeclaration {
+    override val family = CallFamily
+
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextCleaner? {
         val (functionDescriptor, receiverValue) = extractFunctionAndReceiver(references) ?: return null
         return CallCleaner(FunctionReference(functionDescriptor, receiverValue))

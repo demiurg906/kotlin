@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.transactions
 
+import org.jetbrains.kotlin.cfg.ContextContracts
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.contracts.description.isDefinitelyVisited
 import org.jetbrains.kotlin.contracts.facts.Context
@@ -18,7 +19,7 @@ import org.jetbrains.kotlin.psi.KtElement
 class OpenedTransactionVerifier(val requiredTransaction: ValueDescriptor, val sourceElement: KtElement) : ContextVerifier {
     override val family = TransactionFamily
 
-    override fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink) {
+    override fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink, declaredContracts: ContextContracts) {
         val openedTransactions = extractOpenedTransactions(contexts)
         val kind = openedTransactions[requiredTransaction] ?: InvocationKind.ZERO
         if (!kind.isDefinitelyVisited()) {
@@ -32,7 +33,7 @@ class OpenedTransactionVerifier(val requiredTransaction: ValueDescriptor, val so
 class ClosedTransactionVerifier(val requiredTransaction: ValueDescriptor, val sourceElement: KtElement) : ContextVerifier {
     override val family = TransactionFamily
 
-    override fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink) {
+    override fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink, declaredContracts: ContextContracts) {
         val openedTransactions = extractOpenedTransactions(contexts)
         val kind = openedTransactions[requiredTransaction] ?: InvocationKind.ZERO
         if (kind != InvocationKind.ZERO) {

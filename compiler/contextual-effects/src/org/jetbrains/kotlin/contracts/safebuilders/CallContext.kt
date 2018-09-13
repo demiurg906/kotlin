@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.safebuilders
 
+import org.jetbrains.kotlin.cfg.ContextContracts
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextProvider
@@ -25,7 +26,7 @@ data class CallInfo(val sourceElement: KtElement, val kind: InvocationKind) {
 data class CallContext(val calls: Map<FunctionReference, CallInfo> = mapOf()) : Context {
     override val family = CallFamily
 
-    override fun reportRemaining(sink: DiagnosticSink) {
+    override fun reportRemaining(sink: DiagnosticSink, declaredContracts: ContextContracts) {
         for ((functionReference, info) in calls) {
             val (sourceElement, kind) = info
             val message = "${functionReference.functionDescriptor.name} had invoked $kind"

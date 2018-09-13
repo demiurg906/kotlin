@@ -10,6 +10,7 @@
 
 package org.jetbrains.kotlin.cfg.effects
 
+import org.jetbrains.kotlin.cfg.ContextContracts
 import org.jetbrains.kotlin.cfg.ImmutableHashMap
 import org.jetbrains.kotlin.cfg.pseudocode.Pseudocode
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.BlockScope
@@ -26,11 +27,13 @@ import org.jetbrains.kotlin.resolve.BindingTrace
 
 class PseudocodeEffectsData(
     val pseudocode: Pseudocode,
-    val bindingTrace: BindingTrace
+    val bindingTrace: BindingTrace,
+    val declaredContracts: Map<ContextFamily, ContextContracts>
 ) {
     companion object {
         private const val NO_LEVEL = -1
     }
+
     val bindingContext: BindingContext = bindingTrace.bindingContext
 
     private val myDiagnostics = mutableListOf<Pair<KtElement, String>>()
@@ -38,6 +41,7 @@ class PseudocodeEffectsData(
         get() = myDiagnostics
 
     val resultingContexts: Map<ContextFamily, List<Context>>? = computeEffectsControlFlowInfo(pseudocode)
+
 
     private fun computeEffectsControlFlowInfo(pseudocode: Pseudocode): Map<ContextFamily, List<Context>>? {
         // collect info via CFA
@@ -83,7 +87,7 @@ class PseudocodeEffectsData(
         val currentDepth = instruction.blockScope.depth
         if (previousDepth > currentDepth) {
             val block = instruction.blockScope.block as? KtExpression ?: return
-            val verifiers= block.declaredFactsInfo(bindingContext).verifiers
+            val verifiers = block.declaredFactsInfo(bindingContext).verifiers
             verifyContext(verifiers, info)
         }
     }
@@ -98,7 +102,7 @@ class PseudocodeEffectsData(
             }
             val contexts = contextsGroupedByLevel.toList().sortedBy { (depth, _) -> depth }.map { it.second }
 
-            verifier.verify(contexts, bindingTrace)
+            verifier.verify(contexts, bindingTrace, declaredContracts[family] ?: ContextContracts())
         }
     }
 

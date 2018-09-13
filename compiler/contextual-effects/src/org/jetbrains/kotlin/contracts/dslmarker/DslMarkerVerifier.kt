@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.dslmarker
 
+import org.jetbrains.kotlin.cfg.ContextContracts
 import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextVerifier
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
@@ -16,7 +17,7 @@ class DslMarkerVerifier(val receiver: ReceiverValue, val sourceElement: KtElemen
     ContextVerifier {
     override val family = DslMarkerFamily
 
-    override fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink) {
+    override fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink, declaredContracts: ContextContracts) {
         val lastContext = contexts.last() as? DslMarkerContext ?: throw AssertionError()
 
         if (receiver !in lastContext.receivers) {

@@ -14,6 +14,8 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.BindingContext
 
 class TransactionProviderDeclaration(override val references: List<ContractDescriptionValue>) : ProviderDeclaration {
+    override val family = TransactionFamily
+
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextProvider? {
         val descriptor = extractThisVariableDescriptor(references) ?: return null
         return TransactionProvider(descriptor)
@@ -23,6 +25,8 @@ class TransactionProviderDeclaration(override val references: List<ContractDescr
 }
 
 class ClosedTransactionVerifierDeclaration(override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
+    override val family = TransactionFamily
+
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextVerifier? {
         val descriptor = extractThisVariableDescriptor(references) ?: return null
         return ClosedTransactionVerifier(descriptor, sourceElement)
@@ -32,6 +36,8 @@ class ClosedTransactionVerifierDeclaration(override val references: List<Contrac
 }
 
 class OpenedTransactionVerifierDeclaration(override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
+    override val family = TransactionFamily
+
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextVerifier? {
         val descriptor = extractThisVariableDescriptor(references) ?: return null
         return OpenedTransactionVerifier(descriptor, sourceElement)
@@ -41,6 +47,8 @@ class OpenedTransactionVerifierDeclaration(override val references: List<Contrac
 }
 
 class TransactionCleanerDeclaration(override val references: List<ContractDescriptionValue>) : CleanerDeclaration {
+    override val family = TransactionFamily
+
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextCleaner? {
         val descriptor = extractThisVariableDescriptor(references) ?: return null
         return TransactionCleaner(descriptor)

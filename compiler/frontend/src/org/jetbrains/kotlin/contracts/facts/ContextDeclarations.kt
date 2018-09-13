@@ -13,18 +13,21 @@ import org.jetbrains.kotlin.resolve.BindingContext
 interface ContextEntityDeclaration
 
 interface ProviderDeclaration : ProviderDeclarationHackedInterface, ContextEntityDeclaration {
+    val family: ContextFamily
     val references: List<ContractDescriptionValue>
 
     fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextProvider?
 }
 
 interface VerifierDeclaration : VerifierDeclarationHackedInterface, ContextEntityDeclaration {
+    val family: ContextFamily
     val references: List<ContractDescriptionValue>
 
     fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextVerifier?
 }
 
 interface CleanerDeclaration : CleanerDeclarationHackedInterface, ContextEntityDeclaration {
+    val family: ContextFamily
     val references: List<ContractDescriptionValue>
 
     fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextCleaner?

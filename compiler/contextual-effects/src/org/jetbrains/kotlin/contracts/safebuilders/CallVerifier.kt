@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.contracts.safebuilders
 
+import org.jetbrains.kotlin.cfg.ContextContracts
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextVerifier
@@ -20,7 +21,7 @@ class CallVerifier(
     override val family = CallFamily
 
     // TODO: UNKNOWN and ZERO reports to lambda, others to calls
-    override fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink) {
+    override fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink, declaredContracts: ContextContracts) {
         val context = contexts.first() as? CallContext ?: throw AssertionError()
 
         val actualKind = context.calls[functionReference]?.kind ?: InvocationKind.ZERO
