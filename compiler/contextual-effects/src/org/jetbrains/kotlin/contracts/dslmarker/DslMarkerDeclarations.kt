@@ -20,6 +20,8 @@ class DslMarkerProviderDeclaration(override val references: List<ContractDescrip
         val receiver = extractReceiverValue(references) ?: return null
         return DslMarkerProvider(receiver)
     }
+
+    override fun toString(): String = "DSLMarker"
 }
 
 class DslMarkerVerifierDeclaration(override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
@@ -27,6 +29,8 @@ class DslMarkerVerifierDeclaration(override val references: List<ContractDescrip
         val receiver = extractReceiverValue(references) ?: return null
         return DslMarkerVerifier(receiver, sourceElement)
     }
+
+    override fun toString(): String = "DSLMarker"
 }
 
 private fun extractReceiverValue(references: List<ESValue?>) = references.first()?.extractReceiverValue()
