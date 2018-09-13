@@ -9,5 +9,5 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 
 interface ContextVerifier {
     val family: ContextFamily
-    fun verify(contexts: Collection<Context>, diagnosticSink: DiagnosticSink)
+    fun verify(noLevelContext: Context, blockContexts: List<Context>, diagnosticSink: DiagnosticSink)
 }

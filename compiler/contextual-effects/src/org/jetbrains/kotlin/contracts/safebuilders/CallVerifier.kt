@@ -20,8 +20,8 @@ class CallVerifier(
     override val family = CallFamily
 
     // TODO: UNKNOWN and ZERO reports to lambda, others to calls
-    override fun verify(contexts: Collection<Context>, diagnosticSink: DiagnosticSink) {
-        val context = contexts.firstOrElse(CallFamily::emptyContext) as? CallContext ?: throw AssertionError()
+    override fun verify(noLevelContext: Context, blockContexts: List<Context>, diagnosticSink: DiagnosticSink) {
+        val context = noLevelContext as? CallContext ?: throw AssertionError()
 
         val actualKind = context.calls[functionReference]?.kind ?: InvocationKind.ZERO
         if (!isSatisfied(expectedKind, actualKind)) {

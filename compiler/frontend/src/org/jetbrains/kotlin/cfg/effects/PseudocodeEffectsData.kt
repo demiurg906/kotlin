@@ -28,6 +28,9 @@ class PseudocodeEffectsData(
     val pseudocode: Pseudocode,
     val bindingTrace: BindingTrace
 ) {
+    companion object {
+        private const val NO_LEVEL = -1
+    }
     val bindingContext: BindingContext = bindingTrace.bindingContext
 
     private val myDiagnostics = mutableListOf<Pair<KtElement, String>>()
@@ -89,8 +92,11 @@ class PseudocodeEffectsData(
         for (verifier in verifiers) {
             val family = verifier.family
             val contextsGroupedByLevel = info[family].getOrElse(mapOf())
-            val contexts = contextsGroupedByLevel.values
-            verifier.verify(contexts, bindingTrace)
+
+            val noLevelContext = contextsGroupedByLevel[NO_LEVEL] ?: family.emptyContext
+            val blockContexts = contextsGroupedByLevel.filterKeys { it > 0 }.toList().sortedBy { (depth, _) -> depth }.map { it.second }
+
+            verifier.verify(noLevelContext, blockContexts, bindingTrace)
         }
     }
 
@@ -201,7 +207,7 @@ class PseudocodeEffectsData(
         providers: Collection<ContextProvider>,
         depth: Int?
     ) {
-        val level = depth ?: -1
+        val level = depth ?: NO_LEVEL
         for (provider in providers) {
             val family = provider.family
             if (family !in contextsGroupedByFamily) {

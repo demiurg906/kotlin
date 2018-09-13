@@ -16,8 +16,8 @@ import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
 class ExceptionVerifier(private val exceptionType: KotlinType, private val sourceElement: KtElement) : ContextVerifier {
     override val family = ExceptionFamily
 
-    override fun verify(contexts: Collection<Context>, diagnosticSink: DiagnosticSink) {
-        val exceptionContexts = contexts.map { it as? ExceptionContext ?: throw AssertionError() }
+    override fun verify(noLevelContext: Context, blockContexts: List<Context>, diagnosticSink: DiagnosticSink) {
+        val exceptionContexts = blockContexts.map { it as? ExceptionContext ?: throw AssertionError() }
 
         val isOk = exceptionContexts.any { context ->
             context.cachedExceptions.asSequence().any {
