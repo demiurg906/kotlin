@@ -150,15 +150,6 @@ fun <T : Number?> T.case_9_2(): Boolean? {
     return if (this@case_9_2 != null) null else true
 }
 
-fun <T : Number?> T.case_10_1(): Boolean? {
-    contract { returns(null) implies (this@case_10_1 != null) }
-    return if (this@case_10_1 != null) null else true
-}
-fun <T : Number?> T.case_10_2(): Boolean? {
-    contract { returns(null) implies (this@case_10_2 != null) }
-    return if (this@case_10_2 != null) null else true
-}
-
 // FILE: usages.kt
 
 import contracts.*
@@ -246,21 +237,4 @@ fun case_8(value_1: String?, value_2: String?) {
 fun case_9(value_1: Number?) {
     if (value_1?.case_9_1() != null) println(<!DEBUG_INFO_SMARTCAST!>value_1<!>.toByte())
     if (value_1?.case_9_2() != null) println(<!DEBUG_INFO_SMARTCAST!>value_1<!>.toByte())
-}
-
-/*
- UNEXPECTED BEHAVIOUR
- ISSUES: KT-26382
- */
-fun case_10(value_1: Number?, value_2: Number?) {
-    if (value_1?.case_10_1() == null) {
-        println(<!DEBUG_INFO_SMARTCAST!>value_1<!>.toByte())
-    } else {
-        println(<!DEBUG_INFO_SMARTCAST!>value_1<!>.toByte())
-    }
-    if (value_2?.case_10_2() != null) {
-        println(<!DEBUG_INFO_SMARTCAST!>value_2<!>.toByte())
-    } else {
-        println(<!DEBUG_INFO_SMARTCAST!>value_2<!>.toByte())
-    }
 }

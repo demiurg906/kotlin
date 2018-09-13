@@ -18,13 +18,10 @@ package org.jetbrains.kotlin.resolve
 
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.config.KotlinCompilerVersion
-import org.jetbrains.kotlin.config.LanguageVersionSettings
-import org.jetbrains.kotlin.config.MavenComparableVersion
+import org.jetbrains.kotlin.config.*
+import org.jetbrains.kotlin.container.DefaultImplementation
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
-import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
-import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.DescriptorDerivedFromTypeAlias
 import org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor
 import org.jetbrains.kotlin.diagnostics.Diagnostic
@@ -52,12 +49,6 @@ import org.jetbrains.kotlin.utils.SmartList
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 private val JAVA_DEPRECATED = FqName("java.lang.Deprecated")
-
-interface Deprecation {
-    val deprecationLevel: DeprecationLevelValue
-    val message: String?
-    val target: DeclarationDescriptor
-}
 
 fun Deprecation.deprecatedByOverriddenMessage(): String? = (this as? DeprecatedByOverridden)?.additionalMessage()
 
@@ -113,6 +104,30 @@ private data class DeprecatedExperimentalCoroutine(
             "Experimental coroutines support will be dropped in 1.4"
         else
             "Experimental coroutine cannot be used with API version 1.3"
+}
+
+private data class DeprecatedOperatorMod(
+    val languageVersionSettings: LanguageVersionSettings,
+    val currentDeprecation: Deprecation
+) : Deprecation {
+    init {
+        assert(shouldWarnAboutDeprecatedModFromBuiltIns(languageVersionSettings)) {
+            "Deprecation created for mod that shouldn't have any deprecations; languageVersionSettings: $languageVersionSettings"
+        }
+    }
+
+    override val deprecationLevel: DeprecationLevelValue
+        get() = when (languageVersionSettings.apiVersion) {
+            ApiVersion.KOTLIN_1_1, ApiVersion.KOTLIN_1_2 -> WARNING
+            ApiVersion.KOTLIN_1_3 -> ERROR
+            else -> ERROR
+        }
+
+    override val message: String?
+        get() = currentDeprecation.message
+
+    override val target: DeclarationDescriptor
+        get() = currentDeprecation.target
 }
 
 private data class DeprecatedByVersionRequirement(
@@ -193,14 +208,21 @@ internal fun createDeprecationDiagnostic(
     }
 }
 
-// values from kotlin.DeprecationLevel
-enum class DeprecationLevelValue {
-    WARNING, ERROR, HIDDEN
+@DefaultImplementation(CoroutineCompatibilitySupport::class)
+class CoroutineCompatibilitySupport private constructor(val enabled: Boolean) {
+    constructor() : this(true)
+
+    companion object {
+        val ENABLED = CoroutineCompatibilitySupport(true)
+
+        val DISABLED = CoroutineCompatibilitySupport(false)
+    }
 }
 
 class DeprecationResolver(
     storageManager: StorageManager,
-    private val languageVersionSettings: LanguageVersionSettings
+    private val languageVersionSettings: LanguageVersionSettings,
+    private val coroutineCompatibilitySupport: CoroutineCompatibilitySupport
 ) {
     private val deprecations = storageManager.createMemoizedFunction { descriptor: DeclarationDescriptor ->
         val deprecations = descriptor.getOwnDeprecations()
@@ -295,10 +317,9 @@ class DeprecationResolver(
 
     private fun DeclarationDescriptor.getOwnDeprecations(): List<Deprecation> {
         // The problem is that declaration `mod` in built-ins has @Deprecated annotation but actually it was deprecated only in version 1.1
-        if (this is FunctionDescriptor && this.isOperatorMod() && KotlinBuiltIns.isUnderKotlinPackage(this)) {
-            if (!shouldWarnAboutDeprecatedModFromBuiltIns(languageVersionSettings)) {
-                return emptyList()
-            }
+        val isBuiltInOperatorMod = this is FunctionDescriptor && this.isOperatorMod() && KotlinBuiltIns.isUnderKotlinPackage(this)
+        if (isBuiltInOperatorMod && !shouldWarnAboutDeprecatedModFromBuiltIns(languageVersionSettings)) {
+            return emptyList()
         }
 
         val result = SmartList<Deprecation>()
@@ -308,8 +329,13 @@ class DeprecationResolver(
                 ?: target.annotations.findAnnotation(JAVA_DEPRECATED)
             if (annotation != null) {
                 val deprecatedByAnnotation = DeprecatedByAnnotation(annotation, target)
-                val deprecation = when (target) {
-                    is TypeAliasConstructorDescriptor -> DeprecatedTypealiasByAnnotation(target.typeAliasDescriptor, deprecatedByAnnotation)
+                val deprecation = when {
+                    target is TypeAliasConstructorDescriptor ->
+                        DeprecatedTypealiasByAnnotation(target.typeAliasDescriptor, deprecatedByAnnotation)
+
+                    isBuiltInOperatorMod ->
+                        DeprecatedOperatorMod(languageVersionSettings, deprecatedByAnnotation)
+
                     else -> deprecatedByAnnotation
                 }
                 result.add(deprecation)
@@ -319,24 +345,10 @@ class DeprecationResolver(
                 result.add(deprecation)
             }
             getDeprecationByCoroutinesVersion(target)?.let(result::add)
-        }
-
-        fun addUseSiteTargetedDeprecationIfPresent(annotatedDescriptor: DeclarationDescriptor, useSiteTarget: AnnotationUseSiteTarget?) {
-            if (useSiteTarget != null) {
-                val annotation = Annotations.findUseSiteTargetedAnnotation(
-                    annotatedDescriptor.annotations,
-                    useSiteTarget,
-                    KotlinBuiltIns.FQ_NAMES.deprecated
-                )
-                    ?: Annotations.findUseSiteTargetedAnnotation(annotatedDescriptor.annotations, useSiteTarget, JAVA_DEPRECATED)
-                if (annotation != null) {
-                    result.add(DeprecatedByAnnotation(annotation, this))
-                }
-            }
+            getDeprecationFromUserData(target)?.let(result::add)
         }
 
         addDeprecationIfPresent(this)
-        addUseSiteTargetedDeprecationIfPresent(this, AnnotationUseSiteTarget.getAssociatedUseSiteTarget(this))
 
         when (this) {
             is TypeAliasDescriptor -> {
@@ -347,11 +359,6 @@ class DeprecationResolver(
             }
             is PropertyAccessorDescriptor -> {
                 addDeprecationIfPresent(correspondingProperty)
-
-                addUseSiteTargetedDeprecationIfPresent(
-                    correspondingProperty,
-                    if (this is PropertyGetterDescriptor) AnnotationUseSiteTarget.PROPERTY_GETTER else AnnotationUseSiteTarget.PROPERTY_SETTER
-                )
             }
         }
 
@@ -360,12 +367,18 @@ class DeprecationResolver(
 
     private fun getDeprecationByCoroutinesVersion(target: DeclarationDescriptor): DeprecatedExperimentalCoroutine? {
         if (target !is DeserializedMemberDescriptor) return null
-        return when (target.coroutinesExperimentalCompatibilityMode) {
-            COMPATIBLE -> null
-            NEEDS_WRAPPER -> DeprecatedExperimentalCoroutine(target, WARNING)
-            INCOMPATIBLE -> DeprecatedExperimentalCoroutine(target, ERROR)
+
+        target.coroutinesExperimentalCompatibilityMode.let { mode ->
+            return when {
+                mode == COMPATIBLE -> null
+                mode == NEEDS_WRAPPER && coroutineCompatibilitySupport.enabled -> DeprecatedExperimentalCoroutine(target, WARNING)
+                else -> DeprecatedExperimentalCoroutine(target, ERROR)
+            }
         }
     }
+
+    private fun getDeprecationFromUserData(target: DeclarationDescriptor): Deprecation? =
+        target.safeAs<CallableDescriptor>()?.getUserData(DEPRECATED_FUNCTION_KEY)
 
     private fun getDeprecationByVersionRequirement(target: DeclarationDescriptor): List<DeprecatedByVersionRequirement> {
         fun createVersion(version: String): MavenComparableVersion? = try {

@@ -2426,6 +2426,16 @@ public class IntentionTestGenerated extends AbstractIntentionTest {
                 runTest("idea/testData/intentions/branched/ifThenToElvis/otherBlockHasMoreThanOneStatement.kt");
             }
 
+            @TestMetadata("replaceWithLetInMember.kt")
+            public void testReplaceWithLetInMember() throws Exception {
+                runTest("idea/testData/intentions/branched/ifThenToElvis/replaceWithLetInMember.kt");
+            }
+
+            @TestMetadata("replaceWithLetInMemberWithIs.kt")
+            public void testReplaceWithLetInMemberWithIs() throws Exception {
+                runTest("idea/testData/intentions/branched/ifThenToElvis/replaceWithLetInMemberWithIs.kt");
+            }
+
             @TestMetadata("rhsEqualsNull.kt")
             public void testRhsEqualsNull() throws Exception {
                 runTest("idea/testData/intentions/branched/ifThenToElvis/rhsEqualsNull.kt");
@@ -3506,6 +3516,11 @@ public class IntentionTestGenerated extends AbstractIntentionTest {
 
             public void testAllFilesPresentInPrivate() throws Exception {
                 KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("idea/testData/intentions/changeVisibility/private"), Pattern.compile("^([\\w\\-_]+)\\.(kt|kts)$"), TargetBackend.ANY, true);
+            }
+
+            @TestMetadata("annotated.kt")
+            public void testAnnotated() throws Exception {
+                runTest("idea/testData/intentions/changeVisibility/private/annotated.kt");
             }
 
             @TestMetadata("hasModifier1.kt")
@@ -11820,6 +11835,11 @@ public class IntentionTestGenerated extends AbstractIntentionTest {
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("idea/testData/intentions/movePropertyToConstructor"), Pattern.compile("^([\\w\\-_]+)\\.(kt|kts)$"), TargetBackend.ANY, true);
         }
 
+        @TestMetadata("annotationTarget.kt")
+        public void testAnnotationTarget() throws Exception {
+            runTest("idea/testData/intentions/movePropertyToConstructor/annotationTarget.kt");
+        }
+
         @TestMetadata("annotationWithUseSite.kt")
         public void testAnnotationWithUseSite() throws Exception {
             runTest("idea/testData/intentions/movePropertyToConstructor/annotationWithUseSite.kt");
@@ -11843,6 +11863,11 @@ public class IntentionTestGenerated extends AbstractIntentionTest {
         @TestMetadata("getter.kt")
         public void testGetter() throws Exception {
             runTest("idea/testData/intentions/movePropertyToConstructor/getter.kt");
+        }
+
+        @TestMetadata("javaAnnotation.kt")
+        public void testJavaAnnotation() throws Exception {
+            runTest("idea/testData/intentions/movePropertyToConstructor/javaAnnotation.kt");
         }
 
         @TestMetadata("lambda.kt")

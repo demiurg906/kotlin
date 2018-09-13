@@ -50,7 +50,7 @@ abstract class AbstractCoroutineCodegen(
     element: KtElement,
     closureContext: ClosureContext,
     classBuilder: ClassBuilder,
-    private val userDataForDoResume: Map<out FunctionDescriptor.UserDataKey<*>, *>? = null
+    private val userDataForDoResume: Map<out CallableDescriptor.UserDataKey<*>, *>? = null
 ) : ClosureCodegen(
     outerExpressionCodegen.state,
     element, null, closureContext, null,
@@ -64,7 +64,7 @@ abstract class AbstractCoroutineCodegen(
         if (languageVersionSettings.isReleaseCoroutines())
             createImplMethod(
                 INVOKE_SUSPEND_METHOD_NAME,
-                "result" to classDescriptor.module.getSuccessOrFailure(classDescriptor.builtIns.anyType)
+                "result" to classDescriptor.module.getResult(classDescriptor.builtIns.anyType)
             )
         else
             createImplMethod(
@@ -102,7 +102,7 @@ abstract class AbstractCoroutineCodegen(
         )
 
     override fun generateConstructor(): Method {
-        val args = calculateConstructorParameters(typeMapper, closure, asmType)
+        val args = calculateConstructorParameters(typeMapper, languageVersionSettings, closure, asmType)
         val argTypes = args.map { it.fieldType }.plus(languageVersionSettings.continuationAsmType()).toTypedArray()
 
         val constructor = Method("<init>", Type.VOID_TYPE, argTypes)
@@ -345,7 +345,7 @@ class CoroutineCodegenForLambda private constructor(
             dup()
 
             // pass captured closure to constructor
-            val constructorParameters = calculateConstructorParameters(typeMapper, closure, owner)
+            val constructorParameters = calculateConstructorParameters(typeMapper, languageVersionSettings, closure, owner)
             for (parameter in constructorParameters) {
                 StackValue.field(parameter, thisInstance).put(parameter.fieldType, this)
             }
@@ -570,7 +570,8 @@ class CoroutineCodegenForNamedFunction private constructor(
                         codegen.v
                     )
 
-                    val captureThisType = closure.captureThis?.let(typeMapper::mapType)
+                    val captureThis = closure.capturedOuterClassDescriptor
+                    val captureThisType = captureThis?.let(typeMapper::mapType)
                     if (captureThisType != null) {
                         StackValue.field(
                             captureThisType, Type.getObjectType(v.thisName), AsmUtil.CAPTURED_THIS_FIELD,
@@ -666,7 +667,7 @@ class CoroutineCodegenForNamedFunction private constructor(
                 ].sure { "There must be a jvm view defined for $originalSuspendDescriptor" }
 
             if (suspendFunctionView.dispatchReceiverParameter != null) {
-                closure.setCaptureThis()
+                closure.setNeedsCaptureOuterClass()
             }
 
             return CoroutineCodegenForNamedFunction(

@@ -19,11 +19,11 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.jvm.tasks.Jar
 import org.gradle.util.ConfigureUtil
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.plugin.*
-import org.jetbrains.kotlin.gradle.plugin.source.KotlinSourceSet
 import org.jetbrains.kotlin.konan.target.HostManager
 
 internal val Project.multiplatformExtension get(): KotlinMultiplatformExtension? =
@@ -71,6 +71,7 @@ class KotlinMultiplatformPlugin(
 
         setUpConfigurationAttributes(project)
         configurePublishingWithMavenPublish(project)
+        configureSourceJars(project)
 
         // set up metadata publishing
         targetsFromPreset.fromPreset(
@@ -86,27 +87,76 @@ class KotlinMultiplatformPlugin(
             add(KotlinAndroidTargetPreset(project, kotlinPluginVersion))
             add(KotlinJvmWithJavaTargetPreset(project, kotlinPluginVersion))
             HostManager().targets.forEach { _, target ->
-                add(KotlinNativeTargetPreset(target.presetName, project, target, buildOutputCleanupRegistry))
+                add(KotlinNativeTargetPreset(target.presetName, project, target, buildOutputCleanupRegistry, kotlinPluginVersion))
             }
         }
     }
 
-    private fun configurePublishingWithMavenPublish(project: Project) = project.pluginManager.withPlugin("maven-publish") {
+    private fun configurePublishingWithMavenPublish(project: Project) = project.pluginManager.withPlugin("maven-publish") { _ ->
         val targets = project.multiplatformExtension!!.targets
         val kotlinSoftwareComponent = KotlinSoftwareComponent(project, "kotlin", targets)
 
-        project.afterEvaluate { project -> // Use afterEvaluate because publications configuration is no more lazy since Gradle 4.9
-            project.extensions.configure(PublishingExtension::class.java) { publishing ->
-                publishing.publications.create("kotlin", MavenPublication::class.java) { publication ->
-                    publication.from(kotlinSoftwareComponent)
-                    (publication as MavenPublicationInternal).publishWithOriginalFileName()
-                    publication.artifactId = project.name
-                    publication.groupId = project.group.toString()
+        project.extensions.configure(PublishingExtension::class.java) { publishing ->
+            // The root publication.
+            publishing.publications.create("kotlinMultiplatform", MavenPublication::class.java).apply {
+                from(kotlinSoftwareComponent)
+                (this as MavenPublicationInternal).publishWithOriginalFileName()
+                artifactId = project.name
+                groupId = project.group.toString()
+                version = project.version.toString()
+            }
+
+            // Create separate publications for all publishable targets
+            targets.matching { it.publishable }.all { target ->
+                val variant = target.component as KotlinVariant
+                val name = target.name
+
+                val variantPublication = publishing.publications.create(name, MavenPublication::class.java).apply {
+                    // do this in whenEvaluated since older Gradle versions seem to check the files in the variant eagerly:
+                    project.whenEvaluated {
+                        from(variant)
+                        (project.tasks.findByName(target.sourcesJarTaskName) as Jar?)?.let { sourcesJar ->
+                            artifact(sourcesJar)
+                        }
+                    }
+                    (this as MavenPublicationInternal).publishWithOriginalFileName()
+                    artifactId = "${project.name}-${variant.target.name.toLowerCase()}"
+                    groupId = project.group.toString()
+                    version = project.version.toString()
                 }
+
+                variant.publicationDelegate = variantPublication
             }
         }
 
         project.components.add(kotlinSoftwareComponent)
+        targets.all {
+            project.components.add(it.component)
+        }
+    }
+
+    private val KotlinTarget.sourcesJarTaskName get() = disambiguateName("sourcesJar")
+
+    private fun configureSourceJars(project: Project) = with(project.kotlinExtension as KotlinMultiplatformExtension) {
+        targets.all { target ->
+            val mainCompilation = target.compilations.findByName(KotlinCompilation.MAIN_COMPILATION_NAME)
+                // If a target has no `main` compilation (e.g. Android), don't create the source JAR
+                ?: return@all
+
+            val sourcesJar = project.tasks.create(target.sourcesJarTaskName, Jar::class.java) { sourcesJar ->
+                sourcesJar.appendix = target.targetName.toLowerCase()
+                sourcesJar.classifier = "sources"
+            }
+
+            project.afterEvaluate { _ ->
+                val compiledSourceSets = mainCompilation.allKotlinSourceSets
+                compiledSourceSets.forEach { sourceSet ->
+                    sourcesJar.from(sourceSet.kotlin) { copySpec ->
+                        copySpec.into(sourceSet.name)
+                    }
+                }
+            }
+        }
     }
 
     private fun configureSourceSets(project: Project) = with (project.kotlinExtension as KotlinMultiplatformExtension) {
@@ -115,11 +165,11 @@ class KotlinMultiplatformPlugin(
 
         targets.all { target ->
             target.compilations.findByName(KotlinCompilation.MAIN_COMPILATION_NAME)?.let { mainCompilation ->
-                sourceSets.maybeCreate(mainCompilation.defaultSourceSetName).dependsOn(production)
+                sourceSets.findByName(mainCompilation.defaultSourceSetName)?.dependsOn(production)
             }
 
             target.compilations.findByName(KotlinCompilation.TEST_COMPILATION_NAME)?.let { testCompilation ->
-                sourceSets.maybeCreate(testCompilation.defaultSourceSetName).dependsOn(test)
+                sourceSets.findByName(testCompilation.defaultSourceSetName)?.dependsOn(test)
             }
         }
     }

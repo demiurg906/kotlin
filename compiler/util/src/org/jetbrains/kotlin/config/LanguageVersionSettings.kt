@@ -81,15 +81,18 @@ enum class LanguageFeature(
     ProhibitAssigningSingleElementsToVarargsInNamedForm(KOTLIN_1_3, kind = BUG_FIX),
     FunctionTypesWithBigArity(KOTLIN_1_3, sinceApiVersion = ApiVersion.KOTLIN_1_3),
     RestrictRetentionForExpressionAnnotations(KOTLIN_1_3, kind = BUG_FIX),
-    NoConstantValueAttributeForNonConstVals(KOTLIN_1_3, kind = BUG_FIX),
     NormalizeConstructorCalls(KOTLIN_1_3),
     StrictJavaNullabilityAssertions(KOTLIN_1_3, kind = BUG_FIX),
     SoundSmartcastForEnumEntries(KOTLIN_1_3, kind = BUG_FIX),
     SoundSmartcastFromLoopConditionForLoopAssignedVariables(KOTLIN_1_3, kind = BUG_FIX),
     DslMarkerOnFunctionTypeReceiver(KOTLIN_1_4, kind = BUG_FIX),
     ProhibitErroneousExpressionsInAnnotationsWithUseSiteTargets(KOTLIN_1_3, kind = BUG_FIX),
+    NewCapturedReceiverFieldNamingConvention(KOTLIN_1_3, kind = BUG_FIX),
+    ExtendedMainConvention(KOTLIN_1_3),
 
     RestrictReturnStatementTarget(KOTLIN_1_4, kind = BUG_FIX),
+    NoConstantValueAttributeForNonConstVals(KOTLIN_1_4, kind = BUG_FIX),
+
     ProperIeee754Comparisons(sinceVersion = null, defaultState = State.DISABLED, kind = BUG_FIX),
 
     // Experimental features
@@ -139,7 +142,7 @@ enum class LanguageFeature(
      *
      *
      * # [enabledInProgressiveMode]
-     * If 'true', then this feature will be automatically enabled under '-Xprogressive' mode.
+     * If 'true', then this feature will be automatically enabled under '-progressive' mode.
      *
      * Restrictions for using this flag for particular feature follow from restrictions of the progressive mode:
      * - enabling it *must not* break compatibility with non-progressive compiler, i.e. code written under progressive

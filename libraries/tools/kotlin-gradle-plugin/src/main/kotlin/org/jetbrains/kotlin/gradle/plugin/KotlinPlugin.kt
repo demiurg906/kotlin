@@ -31,7 +31,6 @@ import org.jetbrains.kotlin.gradle.internal.KaptVariantData
 import org.jetbrains.kotlin.gradle.internal.checkAndroidAnnotationProcessorDependencyUsage
 import org.jetbrains.kotlin.gradle.model.builder.KotlinModelBuilder
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
-import org.jetbrains.kotlin.gradle.plugin.source.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin
 import org.jetbrains.kotlin.gradle.tasks.*
 import org.jetbrains.kotlin.gradle.utils.*
@@ -95,6 +94,10 @@ internal abstract class KotlinSourceSetProcessor<T : AbstractKotlinCompile<*>>(
     open fun run() {
         addKotlinDirectoriesToJavaSourceSet()
         doTargetSpecificProcessing()
+
+        if (kotlinCompilation is KotlinWithJavaCompilation) {
+            createAdditionalClassesTaskForIdeRunner()
+        }
     }
 
     private fun addKotlinDirectoriesToJavaSourceSet() {
@@ -126,6 +129,16 @@ internal abstract class KotlinSourceSetProcessor<T : AbstractKotlinCompile<*>>(
 
         // Build a lazily-resolved file collection that filters out Java sources from sources of this sourceDirectorySet
         return getSourceDirectories(sourceDirectorySet).minus(getSourceDirectories(javaSourceSet.java))
+    }
+
+    private fun createAdditionalClassesTaskForIdeRunner() {
+        // Workaround: as per KT-26641, when there's a Kotlin compilation with a Java source set, we create another task
+        // that has a name composed as '<IDE module name>Classes`, where the IDE module name is the default source set name:
+        val expectedClassesTaskName = "${kotlinCompilation.defaultSourceSetName}Classes"
+        project.tasks.run {
+            if (findByName(expectedClassesTaskName) == null)
+                create(expectedClassesTaskName) { task -> task.dependsOn(getByName(kotlinCompilation.compileAllTaskName)) }
+        }
     }
 
     protected abstract fun doCreateTask(project: Project, taskName: String): T
@@ -160,7 +173,7 @@ internal class Kotlin2JvmSourceSetProcessor(
 
             appliedPlugins
                 .flatMap { it.getSubpluginKotlinTasks(project, kotlinTask) }
-                .forEach { plugin -> kotlinCompilation.kotlinSourceSets.forEach { sourceSet -> plugin.source(sourceSet.kotlin) } }
+                .forEach { plugin -> kotlinCompilation.allKotlinSourceSets.forEach { sourceSet -> plugin.source(sourceSet.kotlin) } }
 
             javaTask?.let { configureJavaTask(kotlinTask, it, logger) }
 
@@ -270,7 +283,7 @@ internal class Kotlin2JsSourceSetProcessor(
 
             appliedPlugins
                     .flatMap { it.getSubpluginKotlinTasks(project, kotlinTask) }
-                    .forEach { task -> kotlinCompilation.kotlinSourceSets.forEach { sourceSet -> task.source(sourceSet.kotlin) } }
+                    .forEach { task -> kotlinCompilation.allKotlinSourceSets.forEach { sourceSet -> task.source(sourceSet.kotlin) } }
         }
     }
 
@@ -308,7 +321,7 @@ internal class KotlinCommonSourceSetProcessor(
             )
             appliedPlugins
                 .flatMap { it.getSubpluginKotlinTasks(project, kotlinTask) }
-                .forEach { kotlinCompilation.kotlinSourceSets.forEach { sourceSet -> it.source(sourceSet.kotlin) } }
+                .forEach { kotlinCompilation.allKotlinSourceSets.forEach { sourceSet -> it.source(sourceSet.kotlin) } }
         }
     }
 

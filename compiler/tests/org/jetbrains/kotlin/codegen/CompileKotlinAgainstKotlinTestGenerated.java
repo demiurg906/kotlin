@@ -78,6 +78,11 @@ public class CompileKotlinAgainstKotlinTestGenerated extends AbstractCompileKotl
         runTest("compiler/testData/compileKotlinAgainstKotlin/constructorVararg.kt");
     }
 
+    @TestMetadata("constructorWithInlineClassParametersInBinaryDependencies.kt")
+    public void testConstructorWithInlineClassParametersInBinaryDependencies() throws Exception {
+        runTest("compiler/testData/compileKotlinAgainstKotlin/constructorWithInlineClassParametersInBinaryDependencies.kt");
+    }
+
     @TestMetadata("copySamOnInline.kt")
     public void testCopySamOnInline() throws Exception {
         runTest("compiler/testData/compileKotlinAgainstKotlin/copySamOnInline.kt");
@@ -121,6 +126,11 @@ public class CompileKotlinAgainstKotlinTestGenerated extends AbstractCompileKotl
     @TestMetadata("enum.kt")
     public void testEnum() throws Exception {
         runTest("compiler/testData/compileKotlinAgainstKotlin/enum.kt");
+    }
+
+    @TestMetadata("inlineClassFromBinaryDependencies.kt")
+    public void testInlineClassFromBinaryDependencies() throws Exception {
+        runTest("compiler/testData/compileKotlinAgainstKotlin/inlineClassFromBinaryDependencies.kt");
     }
 
     @TestMetadata("inlinedConstants.kt")

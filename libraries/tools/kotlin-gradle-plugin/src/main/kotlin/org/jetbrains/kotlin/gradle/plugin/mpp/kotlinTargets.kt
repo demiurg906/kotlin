@@ -11,15 +11,13 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.plugins.JavaPlugin
-import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
-import org.jetbrains.kotlin.gradle.plugin.KotlinCompilationToRunnableFiles
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
+import org.jetbrains.kotlin.gradle.plugin.*
+import org.jetbrains.kotlin.gradle.utils.isGradleVersionAtLeast
 import org.jetbrains.kotlin.gradle.utils.lowerCamelCaseName
 import org.jetbrains.kotlin.konan.target.KonanTarget
 
 abstract class AbstractKotlinTarget (
-    override val project: Project
+    final override val project: Project
 ) : KotlinTarget {
     private val attributeContainer = HierarchyAttributeContainer(parent = null)
 
@@ -38,6 +36,16 @@ abstract class AbstractKotlinTarget (
         get() = disambiguateName("jar")
 
     override fun toString(): String = "target $name ($platformType)"
+
+    override val publishable: Boolean
+        get() = true
+
+    override val component: KotlinTargetComponent by lazy {
+        if (isGradleVersionAtLeast(4, 7))
+            KotlinVariantWithCoordinates(this)
+        else
+            KotlinVariant(this)
+    }
 
     override fun createUsageContexts(): Set<UsageContext> =
         setOf(
@@ -134,11 +142,24 @@ class KotlinNativeTarget(
     override val artifactsTaskName: String
         get() = disambiguateName("link")
 
+    override val publishable: Boolean
+        get() = konanTarget.enabledOnCurrentHost
+
     companion object {
         val konanTargetAttribute = Attribute.of(
             "org.jetbrains.kotlin.native.target",
             String::class.java
         )
+
+        // TODO: Can we do it better?
+        // User-visible constants
+        val DEBUG = NativeBuildType.DEBUG
+        val RELEASE = NativeBuildType.RELEASE
+
+        val EXECUTABLE = NativeOutputKind.EXECUTABLE
+        val FRAMEWORK = NativeOutputKind.FRAMEWORK
+        val DYNAMIC = NativeOutputKind.DYNAMIC
+        val STATIC = NativeOutputKind.STATIC
     }
 }
 

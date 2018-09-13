@@ -19,6 +19,8 @@ sourceSets {
             srcDir 'src'
             srcDir commonSrcDir
             srcDir '../unsigned/src'
+            srcDir '../coroutines/common/src'
+            srcDir '../coroutines/src'
         }
     }
     test {
@@ -29,8 +31,7 @@ sourceSets {
     }
     coroutines {
         kotlin {
-            srcDir '../coroutines/common/src'
-            srcDir '../coroutines/src'
+            srcDir '../coroutines-experimental/src'
         }
     }
 }
@@ -57,7 +58,9 @@ compileKotlinCommon {
                 "-Xuse-experimental=kotlin.ExperimentalUnsignedTypes",
                 "-Xuse-experimental=kotlin.contracts.ExperimentalContracts",
                 "-XXLanguage:+InlineClasses",
-                "-Xallow-kotlin-package"
+                "-XXLanguage:+ReleaseCoroutines",
+                "-Xallow-kotlin-package",
+                "-Xallow-result-return-type"
         ]
     }
 }
@@ -69,7 +72,9 @@ compileCoroutinesKotlinCommon {
         freeCompilerArgs = [
                 "-module-name", project.name+"-coroutines",
                 "-Xuse-experimental=kotlin.contracts.ExperimentalContracts",
-                "-Xallow-kotlin-package"
+                "-XXLanguage:-ReleaseCoroutines",
+                "-Xallow-kotlin-package",
+                "-Xallow-result-return-type"
         ]
     }
 }

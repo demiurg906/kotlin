@@ -15,7 +15,6 @@ import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.BindingContext.CONSTRAINT_SYSTEM_COMPLETER
-import org.jetbrains.kotlin.resolve.annotations.hasImplicitIntegerCoercionAnnotation
 import org.jetbrains.kotlin.resolve.calls.callResolverUtil.ResolveArgumentsMode.RESOLVE_FUNCTION_ARGUMENTS
 import org.jetbrains.kotlin.resolve.calls.callResolverUtil.getEffectiveExpectedType
 import org.jetbrains.kotlin.resolve.calls.callResolverUtil.isInvokeCallOnVariable
@@ -324,9 +323,6 @@ class CallCompleter(
 
         val constant = context.trace[BindingContext.COMPILE_TIME_VALUE, deparenthesized]
         val convertedConst = constant is IntegerValueTypeConstant && constant.convertedFromSigned
-        if (convertedConst) {
-            context.trace.report(Errors.SIGNED_CONSTANT_CONVERTED_TO_UNSIGNED.on(deparenthesized))
-        }
 
         if (results != null && results.isSingleResult) {
             val resolvedCall = results.resultingCall
@@ -345,7 +341,7 @@ class CallCompleter(
             updatedType = argumentTypeResolver.updateResultArgumentTypeIfNotDenotable(context, expression) ?: updatedType
         }
 
-        if (parameter?.hasImplicitIntegerCoercionAnnotation() == true) {
+        if (parameter != null && ImplicitIntegerCoercion.isEnabledForParameter(parameter)) {
             val argumentCompileTimeValue = context.trace[BindingContext.COMPILE_TIME_VALUE, deparenthesized]
             if (argumentCompileTimeValue != null && argumentCompileTimeValue.parameters.isConvertableConstVal) {
                 val generalNumberType = createTypeForConvertableConstant(argumentCompileTimeValue)
@@ -355,6 +351,8 @@ class CallCompleter(
                     )
                 }
             }
+        } else if (convertedConst) {
+            context.trace.report(Errors.SIGNED_CONSTANT_CONVERTED_TO_UNSIGNED.on(deparenthesized))
         }
 
         updatedType = updateRecordedTypeForArgument(updatedType, recordedType, expression, context.statementFilter, context.trace)

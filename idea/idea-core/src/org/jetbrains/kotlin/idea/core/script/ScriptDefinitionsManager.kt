@@ -41,7 +41,6 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.script.*
 import org.jetbrains.kotlin.script.util.scriptCompilationClasspathFromContextOrStlib
 import org.jetbrains.kotlin.scripting.compiler.plugin.KotlinScriptDefinitionAdapterFromNewAPI
-import org.jetbrains.kotlin.scripting.compiler.plugin.KotlinScriptDefinitionAdapterFromNewAPIBase
 import org.jetbrains.kotlin.utils.PathUtil
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.kotlin.utils.addToStdlib.flattenTo
@@ -56,9 +55,9 @@ import kotlin.script.experimental.dependencies.ScriptDependencies
 import kotlin.script.experimental.dependencies.asSuccess
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.host.configurationDependencies
-import kotlin.script.experimental.host.createScriptCompilationConfigurationFromAnnotatedBaseClass
+import kotlin.script.experimental.host.createCompilationConfigurationFromTemplate
 import kotlin.script.experimental.jvm.JvmDependency
-import kotlin.script.experimental.jvm.defaultJvmScriptingEnvironment
+import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
 import kotlin.script.experimental.location.ScriptExpectedLocation
 import kotlin.script.templates.standard.ScriptTemplateWithArgs
 
@@ -136,18 +135,17 @@ class ScriptDefinitionsManager(private val project: Project) : LazyScriptDefinit
         assert(lock.isWriteLocked) { "updateDefinitions should only be called under the write lock" }
         definitions = definitionsByContributor.values.flattenTo(mutableListOf()).asSequence()
 
-        // Register new file extensions
         val fileTypeManager = FileTypeManager.getInstance()
-        val extensions = definitions?.mapNotNull { definition ->
-            (definition as? KotlinScriptDefinitionAdapterFromNewAPIBase)
-                ?.scriptFileExtensionWithDot?.removePrefix(".")
-                ?.takeIf { fileTypeManager.getFileTypeByExtension(it) != KotlinFileType.INSTANCE }
-        }?.toList()
 
-        if (extensions?.isNotEmpty() == true) {
+        val newExtensions = getKnownFilenameExtensions().filter {
+            fileTypeManager.getFileTypeByExtension(it) != KotlinFileType.INSTANCE
+        }.toList()
+
+        if (newExtensions.any()) {
+            // Register new file extensions
             ApplicationManager.getApplication().invokeLater {
                 runWriteAction {
-                    extensions.forEach {
+                    newExtensions.forEach {
                         fileTypeManager.associateExtension(KotlinFileType.INSTANCE, it)
                     }
                 }
@@ -210,11 +208,11 @@ fun loadDefinitionsFromTemplates(
                     )
                 }
                 template.annotations.firstIsInstanceOrNull<kotlin.script.experimental.annotations.KotlinScript>() != null -> {
-                    val hostConfiguration = ScriptingHostConfiguration(defaultJvmScriptingEnvironment) {
+                    val hostConfiguration = ScriptingHostConfiguration(defaultJvmScriptingHostConfiguration) {
                         configurationDependencies(JvmDependency(classpath))
                     }
                     KotlinScriptDefinitionAdapterFromNewAPI(
-                        createScriptCompilationConfigurationFromAnnotatedBaseClass(
+                        createCompilationConfigurationFromTemplate(
                             KotlinType(
                                 template
                             ), hostConfiguration, KotlinScriptDefinition::class

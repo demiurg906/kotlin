@@ -63,10 +63,7 @@ import org.jetbrains.kotlin.util.OperatorNameConventions;
 import org.jetbrains.org.objectweb.asm.Type;
 import org.jetbrains.org.objectweb.asm.commons.Method;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.jetbrains.kotlin.codegen.AsmUtil.isStaticMethod;
@@ -327,9 +324,6 @@ public class KotlinTypeMapper {
         if (isInterface(classDescriptor)) {
             nestedClass = JvmAbi.DEFAULT_IMPLS_SUFFIX;
         }
-        else if (classDescriptor.isInline()) {
-            nestedClass = JvmAbi.ERASED_INLINE_CLASS_SUFFIX;
-        }
         else {
             nestedClass = null;
         }
@@ -479,10 +473,6 @@ public class KotlinTypeMapper {
         return mapTypeAsDeclaration(descriptor.getReturnType());
     }
 
-    public Type mapErasedInlineClass(@NotNull ClassDescriptor descriptor) {
-        return Type.getObjectType(mapClass(descriptor).getInternalName() + JvmAbi.ERASED_INLINE_CLASS_SUFFIX);
-    }
-
     @NotNull
     public JvmMethodGenericSignature mapAnnotationParameterSignature(@NotNull PropertyDescriptor descriptor) {
         JvmSignatureWriter sw = new BothSignatureWriter(BothSignatureWriter.Mode.METHOD);
@@ -531,13 +521,6 @@ public class KotlinTypeMapper {
             throw new IllegalStateException("There should be underlying type for inline class type: " + kotlinType);
         }
         return mapInlineClassType(underlyingType, TypeMappingMode.DEFAULT);
-    }
-
-    @NotNull
-    public static Type mapToErasedInlineClassType(@NotNull KotlinType kotlinType) {
-        return Type.getObjectType(
-                mapInlineClassTypeAsDeclaration(kotlinType).getInternalName() + JvmAbi.ERASED_INLINE_CLASS_SUFFIX
-        );
     }
 
     @NotNull
@@ -910,7 +893,7 @@ public class KotlinTypeMapper {
                 ClassDescriptor receiver = (currentIsInterface && !originalIsInterface) || currentOwner instanceof FunctionClassDescriptor
                                            ? declarationOwner
                                            : currentOwner;
-                owner = toInlinedErasedClass ? mapErasedInlineClass(receiver) : mapClass(receiver);
+                owner = mapClass(receiver);
                 thisClass = owner;
                 dispatchReceiverKotlinType = receiver.getDefaultType();
             }
@@ -1024,7 +1007,7 @@ public class KotlinTypeMapper {
                                   ? JvmAbi.getterName(propertyName)
                                   : JvmAbi.setterName(propertyName);
 
-            return mangleMemberNameIfRequired(isAccessor ? "access$" + accessorName : accessorName, descriptor);
+            return mangleMemberNameIfRequired(isAccessor ? "access$" + accessorName : accessorName, descriptor, kind);
         }
         else if (isFunctionLiteral(descriptor)) {
             PsiElement element = DescriptorToSourceUtils.getSourceFromDescriptor(descriptor);
@@ -1043,11 +1026,8 @@ public class KotlinTypeMapper {
         else if (isLocalFunction(descriptor) || isFunctionExpression(descriptor)) {
             return OperatorNameConventions.INVOKE.asString();
         }
-        else if (OwnerKind.ERASED_INLINE_CLASS == kind && descriptor instanceof ConstructorDescriptor) {
-            return JvmAbi.ERASED_INLINE_CONSTRUCTOR_NAME;
-        }
         else {
-            return mangleMemberNameIfRequired(descriptor.getName().asString(), descriptor);
+            return mangleMemberNameIfRequired(descriptor.getName().asString(), descriptor, kind);
         }
     }
 
@@ -1076,15 +1056,46 @@ public class KotlinTypeMapper {
     }
 
     @NotNull
-    private String mangleMemberNameIfRequired(@NotNull String name, @NotNull CallableMemberDescriptor descriptor) {
-        if (descriptor.getContainingDeclaration() instanceof ScriptDescriptor) {
+    private String mangleMemberNameIfRequired(
+            @NotNull String name,
+            @NotNull CallableMemberDescriptor descriptor,
+            @Nullable OwnerKind kind
+    ) {
+        DeclarationDescriptor containingDeclaration = descriptor.getContainingDeclaration();
+        if (containingDeclaration instanceof ScriptDescriptor && descriptor instanceof PropertyDescriptor) {
             //script properties should be public
             return name;
         }
 
-        String manglingSuffix = InlineClassManglingUtilsKt.getInlineClassValueParametersManglingSuffix(descriptor);
-        if (manglingSuffix != null) {
-            name += "-" + manglingSuffix;
+        // Special methods for inline classes.
+        if (InlineClassDescriptorResolver.isSynthesizedBoxMethod(descriptor)) {
+            return BOX_JVM_METHOD_NAME;
+        }
+        if (InlineClassDescriptorResolver.isSynthesizedUnboxMethod(descriptor)) {
+            return UNBOX_JVM_METHOD_NAME;
+        }
+        if (InlineClassDescriptorResolver.isSpecializedEqualsMethod(descriptor)) {
+            return name;
+        }
+
+        // Constructor:
+        //   either a constructor method for inline class (should be mangled),
+        //   or should stay as it is ('<init>').
+        if (descriptor instanceof ConstructorDescriptor) {
+            if (kind == OwnerKind.ERASED_INLINE_CLASS) {
+                name = JvmAbi.ERASED_INLINE_CONSTRUCTOR_NAME;
+            }
+            else {
+                return name;
+            }
+        }
+
+        String suffix = InlineClassManglingUtilsKt.getInlineClassSignatureManglingSuffix(descriptor);
+        if (suffix != null) {
+            name += suffix;
+        }
+        else if (kind == OwnerKind.ERASED_INLINE_CLASS) {
+            name += JvmAbi.IMPL_SUFFIX_FOR_INLINE_CLASS_MEMBERS;
         }
 
         if (DescriptorUtils.isTopLevelDeclaration(descriptor)) {
@@ -1103,6 +1114,12 @@ public class KotlinTypeMapper {
 
         return name;
     }
+
+    public static final String BOX_JVM_METHOD_NAME =
+            InlineClassDescriptorResolver.BOX_METHOD_NAME + JvmAbi.IMPL_SUFFIX_FOR_INLINE_CLASS_MEMBERS;
+
+    public static final String UNBOX_JVM_METHOD_NAME =
+            InlineClassDescriptorResolver.UNBOX_METHOD_NAME + JvmAbi.IMPL_SUFFIX_FOR_INLINE_CLASS_MEMBERS;
 
     @NotNull
     private String getModuleName(@NotNull CallableMemberDescriptor descriptor) {
@@ -1159,6 +1176,11 @@ public class KotlinTypeMapper {
 
     @NotNull
     public JvmMethodGenericSignature mapSignatureForBoxMethodOfInlineClass(@NotNull FunctionDescriptor f) {
+        return mapSignature(f, OwnerKind.IMPLEMENTATION, true);
+    }
+
+    @NotNull
+    public JvmMethodGenericSignature mapSignatureForSpecializedEqualsOfInlineClass(@NotNull FunctionDescriptor f) {
         return mapSignature(f, OwnerKind.IMPLEMENTATION, true);
     }
 
@@ -1395,7 +1417,7 @@ public class KotlinTypeMapper {
     private static boolean isJvmPrimitive(@NotNull KotlinType kotlinType) {
         if (KotlinBuiltIns.isPrimitiveType(kotlinType)) return true;
 
-        if (InlineClassesUtilsKt.isInlineClassType(kotlinType)) {
+        if (InlineClassesUtilsKt.isInlineClassType(kotlinType) && !KotlinTypeKt.isError(kotlinType)) {
             return AsmUtil.isPrimitive(mapInlineClassType(kotlinType));
         }
 
@@ -1551,7 +1573,7 @@ public class KotlinTypeMapper {
             writeParameter(sw, JvmMethodParameterKind.OUTER, captureThis.getDefaultType(), descriptor);
         }
 
-        KotlinType captureReceiverType = closure != null ? closure.getCaptureReceiverType() : null;
+        KotlinType captureReceiverType = closure != null ? closure.getCapturedReceiverFromOuterContext() : null;
         if (captureReceiverType != null) {
             writeParameter(sw, JvmMethodParameterKind.RECEIVER, captureReceiverType, descriptor);
         }
@@ -1656,10 +1678,13 @@ public class KotlinTypeMapper {
     @Nullable
     private ResolvedCall<ConstructorDescriptor> findFirstDelegatingSuperCall(@NotNull ConstructorDescriptor descriptor) {
         ClassifierDescriptorWithTypeParameters constructorOwner = descriptor.getContainingDeclaration();
+        Set<ConstructorDescriptor> visited = new HashSet<>();
+        visited.add(descriptor);
         while (true) {
             ResolvedCall<ConstructorDescriptor> next = getDelegationConstructorCall(bindingContext, descriptor);
             if (next == null) return null;
             descriptor = next.getResultingDescriptor().getOriginal();
+            if (!visited.add(descriptor)) return null;
             if (descriptor.getContainingDeclaration() != constructorOwner) return next;
         }
     }

@@ -402,26 +402,24 @@ public abstract class StackValue {
 
     private static void boxInlineClass(@NotNull KotlinType kotlinType, @NotNull InstructionAdapter v) {
         Type boxedType = KotlinTypeMapper.mapInlineClassTypeAsDeclaration(kotlinType);
-        Type owner = KotlinTypeMapper.mapToErasedInlineClassType(kotlinType);
         Type underlyingType = KotlinTypeMapper.mapUnderlyingTypeOfInlineClassType(kotlinType);
 
         if (TypeUtils.isNullableType(kotlinType) && !isPrimitive(underlyingType)) {
-            boxOrUnboxWithNullCheck(v, vv -> invokeBoxMethod(vv, boxedType, owner, underlyingType));
+            boxOrUnboxWithNullCheck(v, vv -> invokeBoxMethod(vv, boxedType, underlyingType));
         }
         else {
-            invokeBoxMethod(v, boxedType, owner, underlyingType);
+            invokeBoxMethod(v, boxedType, underlyingType);
         }
     }
 
     private static void invokeBoxMethod(
             @NotNull InstructionAdapter v,
-            Type boxedType,
-            Type owner,
-            Type underlyingType
+            @NotNull Type boxedType,
+            @NotNull Type underlyingType
     ) {
         v.invokestatic(
-                owner.getInternalName(),
-                InlineClassDescriptorResolver.BOX_METHOD_NAME.asString(),
+                boxedType.getInternalName(),
+                KotlinTypeMapper.BOX_JVM_METHOD_NAME,
                 Type.getMethodDescriptor(boxedType, underlyingType),
                 false
         );
@@ -442,10 +440,14 @@ public abstract class StackValue {
         }
     }
 
-    private static void invokeUnboxMethod(@NotNull InstructionAdapter v, Type owner, Type resultType) {
+    private static void invokeUnboxMethod(
+            @NotNull InstructionAdapter v,
+            @NotNull Type owner,
+            @NotNull Type resultType
+    ) {
         v.invokevirtual(
                 owner.getInternalName(),
-                InlineClassDescriptorResolver.UNBOX_METHOD_NAME.asString(),
+                KotlinTypeMapper.UNBOX_JVM_METHOD_NAME,
                 "()" + resultType.getDescriptor(),
                 false
         );
@@ -1621,7 +1623,10 @@ public abstract class StackValue {
                     putReceiver(v, false);
                 }
                 callGenerator.processAndPutHiddenParameters(true);
-                callGenerator.putValueIfNeeded(new JvmKotlinType(rightSide.type, rightSide.kotlinType), rightSide);
+                callGenerator.putValueIfNeeded(new JvmKotlinType(
+                                                       CollectionsKt.last(setter.getValueParameters()).getAsmType(),
+                                                       CollectionsKt.last(setterDescriptor.getValueParameters()).getType()),
+                                               rightSide);
                 callGenerator.putHiddenParamsIntoLocals();
                 callGenerator.genCall(setter, resolvedCall, false, codegen);
             }

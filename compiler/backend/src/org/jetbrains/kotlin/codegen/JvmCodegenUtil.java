@@ -86,10 +86,10 @@ public class JvmCodegenUtil {
     }
 
     public static boolean isConst(@NotNull CalculatedClosure closure) {
-        return closure.getCaptureThis() == null &&
-                    closure.getCaptureReceiverType() == null &&
-                    closure.getCaptureVariables().isEmpty() &&
-                    !closure.isSuspend();
+        return closure.getCapturedOuterClassDescriptor() == null &&
+               closure.getCapturedReceiverFromOuterContext() == null &&
+               closure.getCaptureVariables().isEmpty() &&
+               !closure.isSuspend();
     }
 
     private static boolean isCallInsideSameClassAsFieldRepresentingProperty(
@@ -259,7 +259,7 @@ public class JvmCodegenUtil {
     ) {
         //for compilation against sources
         if (closure != null) {
-            return closure.getCaptureThis();
+            return closure.getCapturedOuterClassDescriptor();
         }
 
         //for compilation against binaries
@@ -346,14 +346,6 @@ public class JvmCodegenUtil {
         return isCompanionObject(companionObject) &&
                isJvmInterface(companionObject.getContainingDeclaration()) &&
                !JvmAbi.isMappedIntrinsicCompanionObject((ClassDescriptor) companionObject);
-    }
-
-    public static boolean hasBackingField(
-            @NotNull PropertyDescriptor descriptor, @NotNull OwnerKind kind, @NotNull BindingContext bindingContext
-    ) {
-        return !isJvmInterface(descriptor.getContainingDeclaration()) &&
-               kind != OwnerKind.DEFAULT_IMPLS &&
-               !Boolean.FALSE.equals(bindingContext.get(BindingContext.BACKING_FIELD_REQUIRED, descriptor));
     }
 
     public static boolean isDeclarationOfBigArityFunctionInvoke(@Nullable DeclarationDescriptor descriptor) {

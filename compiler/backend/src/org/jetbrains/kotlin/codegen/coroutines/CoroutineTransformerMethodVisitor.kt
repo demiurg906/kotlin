@@ -34,13 +34,16 @@ import org.jetbrains.org.objectweb.asm.tree.analysis.Frame
 import org.jetbrains.org.objectweb.asm.tree.analysis.SourceInterpreter
 import org.jetbrains.org.objectweb.asm.tree.analysis.SourceValue
 
-private const val COROUTINES_METADATA_SOURCE_FILES_JVM_NAME = "f"
+private const val COROUTINES_DEBUG_METADATA_VERSION = 1
+
+private const val COROUTINES_METADATA_SOURCE_FILE_JVM_NAME = "f"
 private const val COROUTINES_METADATA_LINE_NUMBERS_JVM_NAME = "l"
 private const val COROUTINES_METADATA_LOCAL_NAMES_JVM_NAME = "n"
 private const val COROUTINES_METADATA_SPILLED_JVM_NAME = "s"
 private const val COROUTINES_METADATA_INDEX_TO_LABEL_JVM_NAME = "i"
 private const val COROUTINES_METADATA_METHOD_NAME_JVM_NAME = "m"
 private const val COROUTINES_METADATA_CLASS_NAME_JVM_NAME = "c"
+private const val COROUTINES_METADATA_VERSION_JVM_NAME = "v"
 
 class CoroutineTransformerMethodVisitor(
     delegate: MethodVisitor,
@@ -80,6 +83,9 @@ class CoroutineTransformerMethodVisitor(
 
         FixStackMethodTransformer().transform(containingClassInternalName, methodNode)
         RedundantLocalsEliminationMethodTransformer(languageVersionSettings).transform(containingClassInternalName, methodNode)
+        if (languageVersionSettings.isReleaseCoroutines()) {
+            ChangeBoxingMethodTransformer.transform(containingClassInternalName, methodNode)
+        }
         updateMaxStack(methodNode)
 
         val suspensionPoints = collectSuspensionPoints(methodNode)
@@ -194,10 +200,7 @@ class CoroutineTransformerMethodVisitor(
             label.safeAs<AbstractInsnNode>()?.findNextOrNull { it is LineNumberNode }.safeAs<LineNumberNode>()?.line ?: -1
         }
         val metadata = classBuilderForCoroutineState.newAnnotation(DEBUG_METADATA_ANNOTATION_ASM_TYPE.descriptor, true)
-        // TODO: support inlined functions (similar to SMAP)
-        metadata.visitArray(COROUTINES_METADATA_SOURCE_FILES_JVM_NAME).also { v ->
-            lines.forEach { v.visit(null, sourceFile) }
-        }.visitEnd()
+        metadata.visit(COROUTINES_METADATA_SOURCE_FILE_JVM_NAME, sourceFile)
         metadata.visit(COROUTINES_METADATA_LINE_NUMBERS_JVM_NAME, lines.toIntArray())
 
         val debugIndexToLabel = spilledToLocalMapping.withIndex().flatMap { (labelIndex, list) ->
@@ -213,6 +216,10 @@ class CoroutineTransformerMethodVisitor(
         }.visitEnd()
         metadata.visit(COROUTINES_METADATA_METHOD_NAME_JVM_NAME, methodNode.name)
         metadata.visit(COROUTINES_METADATA_CLASS_NAME_JVM_NAME, containingClassInternalName)
+        @Suppress("ConstantConditionIf")
+        if (COROUTINES_DEBUG_METADATA_VERSION != 1) {
+            metadata.visit(COROUTINES_METADATA_VERSION_JVM_NAME, COROUTINES_DEBUG_METADATA_VERSION)
+        }
         metadata.visitEnd()
     }
 
@@ -755,11 +762,11 @@ private fun InstructionAdapter.generateResumeWithExceptionCheck(isReleaseCorouti
     val noExceptionLabel = Label()
 
     if (isReleaseCoroutines) {
-        instanceOf(AsmTypes.SUCCESS_OR_FAILURE_FAILURE)
+        instanceOf(AsmTypes.RESULT_FAILURE)
         ifeq(noExceptionLabel)
         // TODO: do we need this checkcast?
-        checkcast(AsmTypes.SUCCESS_OR_FAILURE_FAILURE)
-        getfield(AsmTypes.SUCCESS_OR_FAILURE_FAILURE.internalName, "exception", AsmTypes.JAVA_THROWABLE_TYPE.descriptor)
+        checkcast(AsmTypes.RESULT_FAILURE)
+        getfield(AsmTypes.RESULT_FAILURE.internalName, "exception", AsmTypes.JAVA_THROWABLE_TYPE.descriptor)
     } else {
         ifnull(noExceptionLabel)
     }

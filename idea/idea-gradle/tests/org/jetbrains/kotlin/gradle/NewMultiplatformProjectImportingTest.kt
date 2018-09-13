@@ -121,6 +121,10 @@ class NewMultiplatformProjectImportingTest : GradleImportingTestCase() {
             allModules {
                 languageVersion("1.2")
                 apiVersion("1.2")
+                when (module.name) {
+                    "project", "app", "lib" -> additionalArguments(null)
+                    else -> additionalArguments("-version")
+                }
             }
 
             module("project")
@@ -130,7 +134,6 @@ class NewMultiplatformProjectImportingTest : GradleImportingTestCase() {
                 platform(CommonIdePlatformKind.Platform)
                 libraryDependency("Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:$kotlinVersion", DependencyScope.COMPILE)
                 moduleDependency("app_commonMain", DependencyScope.COMPILE)
-                moduleDependency("lib_metadataMain", DependencyScope.COMPILE)
                 sourceFolder("app/src/metadataMain/kotlin", KotlinSourceRootType.Source)
                 sourceFolder("app/src/metadataMain/resources", KotlinResourceRootType.Resource)
                 outputPath("app/build/classes/kotlin/metadata/main", true)
@@ -141,7 +144,6 @@ class NewMultiplatformProjectImportingTest : GradleImportingTestCase() {
                 moduleDependency("app_commonMain", DependencyScope.COMPILE)
                 moduleDependency("app_commonTest", DependencyScope.COMPILE)
                 moduleDependency("app_metadataMain", DependencyScope.COMPILE)
-                moduleDependency("lib_metadataMain", DependencyScope.COMPILE)
                 sourceFolder("app/src/metadataTest/kotlin", KotlinSourceRootType.TestSource)
                 sourceFolder("app/src/metadataTest/resources", KotlinResourceRootType.TestResource)
                 outputPath("app/build/classes/kotlin/metadata/test", false)

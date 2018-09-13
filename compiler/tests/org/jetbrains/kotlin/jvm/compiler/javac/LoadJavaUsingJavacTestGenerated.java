@@ -1789,6 +1789,11 @@ public class LoadJavaUsingJavacTestGenerated extends AbstractLoadJavaUsingJavacT
                     runTest("compiler/testData/loadJava/compiledKotlin/annotations/classMembers/Getter.kt");
                 }
 
+                @TestMetadata("HiddenConstructorWithInlineClassParameters.kt")
+                public void testHiddenConstructorWithInlineClassParameters() throws Exception {
+                    runTest("compiler/testData/loadJava/compiledKotlin/annotations/classMembers/HiddenConstructorWithInlineClassParameters.kt");
+                }
+
                 @TestMetadata("PropertyField.kt")
                 public void testPropertyField() throws Exception {
                     runTest("compiler/testData/loadJava/compiledKotlin/annotations/classMembers/PropertyField.kt");
@@ -2145,6 +2150,11 @@ public class LoadJavaUsingJavacTestGenerated extends AbstractLoadJavaUsingJavacT
                 @TestMetadata("FieldTarget.kt")
                 public void testFieldTarget() throws Exception {
                     runTest("compiler/testData/loadJava/compiledKotlin/annotations/withUseSiteTarget/FieldTarget.kt");
+                }
+
+                @TestMetadata("PropertyAndAccessor.kt")
+                public void testPropertyAndAccessor() throws Exception {
+                    runTest("compiler/testData/loadJava/compiledKotlin/annotations/withUseSiteTarget/PropertyAndAccessor.kt");
                 }
 
                 @TestMetadata("ReceiverTarget.kt")

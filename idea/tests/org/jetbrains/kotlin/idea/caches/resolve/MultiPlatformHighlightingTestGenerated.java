@@ -109,6 +109,11 @@ public class MultiPlatformHighlightingTestGenerated extends AbstractMultiPlatfor
         runTest("idea/testData/multiModuleHighlighting/multiplatform/jvmKotlinReferencesCommonKotlinThroughJavaDifferentJvmImpls/");
     }
 
+    @TestMetadata("jvmNameInCommon")
+    public void testJvmNameInCommon() throws Exception {
+        runTest("idea/testData/multiModuleHighlighting/multiplatform/jvmNameInCommon/");
+    }
+
     @TestMetadata("multifileFacade")
     public void testMultifileFacade() throws Exception {
         runTest("idea/testData/multiModuleHighlighting/multiplatform/multifileFacade/");
@@ -122,6 +127,11 @@ public class MultiPlatformHighlightingTestGenerated extends AbstractMultiPlatfor
     @TestMetadata("platformTypeAliasInterchangebleWithAliasedClass")
     public void testPlatformTypeAliasInterchangebleWithAliasedClass() throws Exception {
         runTest("idea/testData/multiModuleHighlighting/multiplatform/platformTypeAliasInterchangebleWithAliasedClass/");
+    }
+
+    @TestMetadata("sealedTypeAlias")
+    public void testSealedTypeAlias() throws Exception {
+        runTest("idea/testData/multiModuleHighlighting/multiplatform/sealedTypeAlias/");
     }
 
     @TestMetadata("suppressHeaderWithoutImpl")

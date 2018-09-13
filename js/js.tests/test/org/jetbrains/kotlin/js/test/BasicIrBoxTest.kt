@@ -16,6 +16,15 @@ import org.jetbrains.kotlin.test.TargetBackend
 import java.io.File
 
 private val runtimeSources = listOfKtFilesFrom(
+    // TODO: share more coroutine code between JS BEs
+    // TODO: don't generate code for external declarations, until that:
+    //  it's important now than *H.kt files at the start since we generate code for them
+    //  and actual versions just will override them later.
+    "libraries/stdlib/coroutines-experimental/src/kotlin/coroutines/experimental/CoroutinesExperimentalH.kt",
+    "libraries/stdlib/coroutines-experimental/src/kotlin/coroutines/experimental/CoroutinesIntrinsicsExperimentalH.kt",
+    "libraries/stdlib/coroutines-experimental/src/kotlin/coroutines/experimental/SequenceBuilder.kt",
+    "libraries/stdlib/coroutines-experimental/src/kotlin/coroutines/experimental/Coroutines.kt",
+
     "core/builtins/src/kotlin",
     "libraries/stdlib/common/src",
     "libraries/stdlib/src/kotlin/",
@@ -68,64 +77,7 @@ private val runtimeSources = listOfKtFilesFrom(
 
     // Full version is defined in stdlib
     // This file is useful for smaller subset of runtime sources
-    "libraries/stdlib/js/irRuntime/rangeExtensions.kt",
-
-    // TODO: Reuse coroutine code from common (and current JS BE?)
-    "libraries/stdlib/js/src/kotlin/coroutines.kt",
-    "libraries/stdlib/js/src/kotlin/coroutinesIntrinsics.kt",
-    "libraries/stdlib/src/kotlin/coroutines"
-) + listOfKtFilesFrom(
-    "libraries/stdlib/src/kotlin/coroutines/experimental/SequenceBuilder.kt",
-    "libraries/stdlib/src/kotlin/coroutines/experimental/Coroutines.kt"
-)
-
-// Smaller set of sources missing a big part of stdlib
-// Intended to be used with coroutine tests where runtime is not cached
-private val smallerRuntimeSources = listOfKtFilesFrom(
-    "libraries/stdlib/js/src/kotlin/core.kt",
-    "libraries/stdlib/js/src/kotlin/js.core.kt",
-    "libraries/stdlib/js/src/kotlin/jsTypeOf.kt",
-    "libraries/stdlib/js/src/kotlin/dynamic.kt",
-    "libraries/stdlib/js/src/kotlin/annotations.kt",
-    "libraries/stdlib/js/src/kotlin/reflect",
-    "libraries/stdlib/js/src/kotlin/annotationsJVM.kt",
-
-    "libraries/stdlib/js/runtime/primitiveCompanionObjects.kt",
-
-    "libraries/stdlib/src/kotlin/internal",
-    "libraries/stdlib/src/kotlin/contracts",
-    "libraries/stdlib/src/kotlin/annotations/Experimental.kt",
-    "libraries/stdlib/src/kotlin/util/Standard.kt",
-    "libraries/stdlib/src/kotlin/coroutines/experimental/Coroutines.kt",
-    "core/builtins/native/kotlin/Annotation.kt",
-    "core/builtins/native/kotlin/Number.kt",
-    "core/builtins/native/kotlin/Comparable.kt",
-    "core/builtins/src/kotlin/Annotations.kt",
-    "core/builtins/src/kotlin/internal/InternalAnnotations.kt",
-    "core/builtins/src/kotlin/internal/progressionUtil.kt",
-    "core/builtins/src/kotlin/Iterators.kt",
-    "core/builtins/src/kotlin/ProgressionIterators.kt",
-    "core/builtins/src/kotlin/Progressions.kt",
-    "core/builtins/src/kotlin/Range.kt",
-    "core/builtins/src/kotlin/Ranges.kt",
-    "core/builtins/src/kotlin/Unit.kt",
-    "core/builtins/src/kotlin/reflect",
-    "core/builtins/src/kotlin/Function.kt",
-
-
-    "core/builtins/native/kotlin/Collections.kt",
-    "core/builtins/native/kotlin/Iterator.kt",
-
-    "libraries/stdlib/common/src/kotlin/JsAnnotationsH.kt",
-
-    "libraries/stdlib/common/src/kotlin/CoroutinesExperimentalH.kt",
-    "libraries/stdlib/common/src/kotlin/CoroutinesIntrinsicsExperimentalH.kt",
-
-    "libraries/stdlib/js/irRuntime",
-    BasicBoxTest.COMMON_FILES_DIR_PATH
-) - listOfKtFilesFrom(
-    "libraries/stdlib/js/irRuntime/kotlinHacks.kt",
-    "libraries/stdlib/js/irRuntime/PlatformRandom.kt"
+    "libraries/stdlib/js/irRuntime/rangeExtensions.kt"
 )
 
 private var runtimeResult: Result? = null

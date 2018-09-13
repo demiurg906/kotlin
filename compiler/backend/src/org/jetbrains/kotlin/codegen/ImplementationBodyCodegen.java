@@ -131,7 +131,8 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
 
     @Override
     protected void generateDeclaration() {
-        getSuperClass();
+        superClassInfo = SuperClassInfo.getSuperClassInfo(descriptor, typeMapper);
+        superClassAsmType = superClassInfo.getType();
 
         JvmClassSignature signature = signature();
 
@@ -255,18 +256,11 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
         if (!(myClass instanceof KtClass)) return;
         if (!descriptor.isInline()) return;
 
-        Type erasedInlineClassType = state.getTypeMapper().mapErasedInlineClass(descriptor);
-        ClassBuilder builder = state.getFactory().newVisitor(
-                JvmDeclarationOriginKt.ErasedInlineClassOrigin(myClass.getPsiOrParent(), descriptor),
-                erasedInlineClassType,
-                myClass.getContainingKtFile()
-        );
-
         CodegenContext parentContext = context.getParentContext();
         assert parentContext != null : "Parent context of inline class declaration should not be null";
 
         ClassContext erasedInlineClassContext = parentContext.intoWrapperForErasedInlineClass(descriptor, state);
-        new ErasedInlineClassBodyCodegen((KtClass) myClass, erasedInlineClassContext, builder, state, this).generate();
+        new ErasedInlineClassBodyCodegen((KtClass) myClass, erasedInlineClassContext, v, state, this).generate();
     }
 
     @Override
@@ -404,11 +398,6 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
                                      new ArrayList<>(superInterfaces), sw.makeJavaGenericSignature());
     }
 
-    private void getSuperClass() {
-        superClassInfo = SuperClassInfo.getSuperClassInfo(descriptor, typeMapper);
-        superClassAsmType = superClassInfo.getType();
-    }
-
     @Override
     protected void generateSyntheticPartsBeforeBody() {
         generatePropertyMetadataArrayFieldIfNeeded(classAsmType);
@@ -442,7 +431,7 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
 
 
         if (context.closure != null)
-            genClosureFields(context.closure, v, typeMapper);
+            genClosureFields(context.closure, v, typeMapper, state.getLanguageVersionSettings());
 
         for (ExpressionCodegenExtension extension : ExpressionCodegenExtension.Companion.getInstances(state.getProject())) {
             if (state.getClassBuilderMode() != ClassBuilderMode.LIGHT_CLASSES
@@ -458,8 +447,10 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
         try {
             lookupConstructorExpressionsInClosureIfPresent();
             constructorCodegen.generatePrimaryConstructor(delegationFieldsInfo, superClassAsmType);
-            for (ClassConstructorDescriptor secondaryConstructor : DescriptorUtilsKt.getSecondaryConstructors(descriptor)) {
-                constructorCodegen.generateSecondaryConstructor(secondaryConstructor, superClassAsmType);
+            if (!descriptor.isInline()) {
+                for (ClassConstructorDescriptor secondaryConstructor : DescriptorUtilsKt.getSecondaryConstructors(descriptor)) {
+                    constructorCodegen.generateSecondaryConstructor(secondaryConstructor, superClassAsmType);
+                }
             }
         }
         catch (CompilationException | ProcessCanceledException e) {
@@ -677,18 +668,19 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
                 }
 
                 private void pushCapturedFieldsOnStack(InstructionAdapter iv, MutableClosure closure) {
-                    ClassDescriptor captureThis = closure.getCaptureThis();
+                    ClassDescriptor captureThis = closure.getCapturedOuterClassDescriptor();
                     if (captureThis != null) {
                         iv.load(0, classAsmType);
                         Type type = typeMapper.mapType(captureThis);
                         iv.getfield(classAsmType.getInternalName(), CAPTURED_THIS_FIELD, type.getDescriptor());
                     }
 
-                    KotlinType captureReceiver = closure.getCaptureReceiverType();
+                    KotlinType captureReceiver = closure.getCapturedReceiverFromOuterContext();
                     if (captureReceiver != null) {
                         iv.load(0, classAsmType);
                         Type type = typeMapper.mapType(captureReceiver);
-                        iv.getfield(classAsmType.getInternalName(), CAPTURED_RECEIVER_FIELD, type.getDescriptor());
+                        String fieldName = closure.getCapturedReceiverFieldName(bindingContext, state.getLanguageVersionSettings());
+                        iv.getfield(classAsmType.getInternalName(), fieldName, type.getDescriptor());
                     }
 
                     for (Map.Entry<DeclarationDescriptor, EnclosedValueDescriptor> entry : closure.getCaptureVariables().entrySet()) {

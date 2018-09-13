@@ -3,7 +3,6 @@
  * that can be found in the license/LICENSE.txt file.
  */
 
-@file:Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @file:kotlin.jvm.JvmMultifileClass
 @file:kotlin.jvm.JvmName("SequenceBuilderKt")
 
@@ -173,7 +172,7 @@ private class SequenceBuilderIterator<T> : SequenceBuilder<T>(), Iterator<T>, Co
     }
 
     // Completion continuation implementation
-    override fun resumeWith(result: SuccessOrFailure<Unit>) {
+    override fun resumeWith(result: Result<Unit>) {
         result.getOrThrow() // just rethrow exception if it is there
         state = State_Done
     }

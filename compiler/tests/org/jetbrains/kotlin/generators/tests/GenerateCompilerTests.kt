@@ -156,6 +156,10 @@ fun main(args: Array<String>) {
             model("codegen/kapt", targetBackend = TargetBackend.JVM)
         }
 
+        testClass<AbstractAsmLikeInstructionListingTest> {
+            model("codegen/asmLike", targetBackend = TargetBackend.JVM)
+        }
+
         testClass<AbstractBlackBoxInlineCodegenTest> {
             model("codegen/boxInline")
         }
@@ -173,7 +177,7 @@ fun main(args: Array<String>) {
         }
 
         testClass<AbstractCustomScriptCodegenTest> {
-            model("codegen/customScript", extension = "kts")
+            model("codegen/customScript", pattern = "^(.*)$")
         }
 
         testClass<AbstractBytecodeTextTest> {
@@ -201,7 +205,7 @@ fun main(args: Array<String>) {
         }
 
         testClass<AbstractCheckLocalVariablesTableTest> {
-            model("checkLocalVariablesTable")
+            model("checkLocalVariablesTable", targetBackend = TargetBackend.JVM)
         }
 
         testClass<AbstractWriteFlagsTest> {

@@ -24,9 +24,13 @@ import com.intellij.util.text.VersionComparatorUtil
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaContentRoot
 import org.gradle.tooling.model.idea.IdeaModule
-import org.jetbrains.kotlin.cli.common.arguments.*
+import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.ManualLanguageFeatureSetting
+import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.gradle.*
+import org.jetbrains.kotlin.idea.platform.IdePlatformKindTooling
 import org.jetbrains.plugins.gradle.model.*
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension
@@ -168,6 +172,7 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtension() {
             val sourceSetToCompilationData = LinkedHashMap<KotlinSourceSet, MutableSet<GradleSourceSetData>>()
             for (target in mppModel.targets) {
                 if (target.platform == KotlinPlatform.ANDROID) continue
+                if (target.name == KotlinTarget.METADATA_TARGET_NAME) continue
                 val targetData = KotlinTargetData(target.name).also {
                     it.archiveFile = target.jar?.archiveFile
                 }
@@ -328,7 +333,7 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtension() {
                         sourceSetMap,
                         artifactsMap,
                         dataNode,
-                        preprocessDependencies(compilation, ideProject),
+                        preprocessDependencies(compilation.dependencies, ideProject),
                         ideProject
                     )
                     for (sourceSet in compilation.sourceSets) {
@@ -340,50 +345,65 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtension() {
             }
             val sourceSetGraph = GraphBuilder.directed().build<KotlinModule>()
             processSourceSets(gradleModule, mppModel, ideModule, resolverCtx) { dataNode, sourceSet ->
+                sourceSetGraph.addNode(sourceSet)
                 val productionSourceSet = dataNode.data.productionModuleId
                     ?.let { ideModule.findChildModuleByInternalName(it) }
                     ?.kotlinSourceSet
                     ?.kotlinModule
+                    ?.toSourceSet(mppModel)
                 if (productionSourceSet != null) {
-                    sourceSetGraph.putEdge(sourceSet, productionSourceSet!!)
+                    sourceSetGraph.putEdge(sourceSet, productionSourceSet)
                 }
                 for (targetSourceSetName in sourceSet.dependsOnSourceSets) {
                     val targetSourceSet = mppModel.sourceSets[targetSourceSetName] ?: continue
                     sourceSetGraph.putEdge(sourceSet, targetSourceSet)
                 }
+            }
+            val closedSourceSetGraph = Graphs.transitiveClosure(sourceSetGraph)
+            for (sourceSet in closedSourceSetGraph.nodes()) {
+                val fromDataNode = getSiblingKotlinModuleData(sourceSet, gradleModule, ideModule, resolverCtx) ?: continue
+                val dependeeSourceSets = closedSourceSetGraph.successors(sourceSet)
+                for (dependeeSourceSet in dependeeSourceSets) {
+                    val toDataNode = getSiblingKotlinModuleData(dependeeSourceSet, gradleModule, ideModule, resolverCtx) ?: continue
+                    addDependency(fromDataNode, toDataNode)
+                }
+                val sourceSetInfo = fromDataNode.kotlinSourceSet
+                if (sourceSetInfo != null && sourceSetInfo.kotlinModule is KotlinCompilation) {
+                    val selfName = sourceSetInfo.kotlinModule.fullName()
+                    sourceSetInfo.sourceSetIdsByName = dependeeSourceSets
+                        .asSequence()
+                        .filter { it.fullName() != selfName }
+                        .map { it.name to getKotlinModuleId(gradleModule, it, resolverCtx) }
+                        .toMap()
+                }
                 if (processedModuleIds.add(getKotlinModuleId(gradleModule, sourceSet, resolverCtx))) {
+                    val mergedDependencies = LinkedHashSet<KotlinDependency>().apply {
+                        addAll(sourceSet.dependencies)
+                        dependeeSourceSets.flatMapTo(this) { it.dependencies }
+                    }
                     buildDependencies(
                         resolverCtx,
                         sourceSetMap,
                         artifactsMap,
-                        dataNode,
-                        preprocessDependencies(sourceSet, ideProject),
+                        fromDataNode,
+                        preprocessDependencies(mergedDependencies, ideProject),
                         ideProject
                     )
-                    if (productionSourceSet != null) {
-                        buildDependencies(
-                            resolverCtx,
-                            sourceSetMap,
-                            artifactsMap,
-                            dataNode,
-                            preprocessDependencies(productionSourceSet, ideProject),
-                            ideProject
-                        )
-                    }
                 }
-            }
-            for (edge in Graphs.transitiveClosure(sourceSetGraph).edges()) {
-                val fromDataNode = getSiblingKotlinModuleData(edge.source(), gradleModule, ideModule, resolverCtx) ?: continue
-                val toDataNode = getSiblingKotlinModuleData(edge.target(), gradleModule, ideModule, resolverCtx) ?: continue
-                addDependency(fromDataNode, toDataNode)
             }
         }
 
+        private fun KotlinModule.toSourceSet(mppModel: KotlinMPPGradleModel) = when (this) {
+            is KotlinSourceSet -> this
+            is KotlinCompilation -> mppModel.sourceSets[fullName()]
+            else -> null
+        }
+
         private fun preprocessDependencies(
-            kotlinModule: KotlinModule,
+            dependencies: Set<KotlinDependency>,
             ideProject: DataNode<ProjectData>
         ): List<ExternalDependency> {
-            return kotlinModule.dependencies
+            return dependencies
                 .groupBy { it.id }
                 .mapValues { it.value.firstOrNull { it.scope == "COMPILE" } ?: it.value.lastOrNull() }
                 .values
@@ -429,7 +449,7 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtension() {
             gradleModule: IdeaModule,
             ideModule: DataNode<ModuleData>,
             resolverCtx: ProjectResolverContext
-        ): DataNode<*>? {
+        ): DataNode<out ModuleData>? {
             val usedModuleId = getKotlinModuleId(gradleModule, kotlinModule, resolverCtx)
             return ideModule.findChildModuleById(usedModuleId)
         }
@@ -609,22 +629,13 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtension() {
                 }
                 it.dependencyClasspath = compilation.dependencyClasspath
                 it.defaultCompilerArguments = createCompilerArguments(compilation.arguments.defaultArguments, compilation.platform)
-                it.sourceSetIdsByName = compilation.sourceSets
-                    .asSequence()
-                    .filter { it.fullName() != compilation.fullName() }
-                    .map { it.name to getKotlinModuleId(gradleModule, it, resolverCtx) }
-                    .toMap()
             }
         }
 
         private fun createCompilerArguments(args: List<String>, platform: KotlinPlatform): CommonCompilerArguments {
-            return when (platform) {
-                KotlinPlatform.COMMON -> K2MetadataCompilerArguments()
-                KotlinPlatform.JVM, KotlinPlatform.ANDROID -> K2JVMCompilerArguments()
-                KotlinPlatform.JS -> K2JSCompilerArguments()
-            }.also {
-                parseCommandLineArguments(args, it)
-            }
+            val compilerArguments = IdePlatformKindTooling.getTooling(platform).kind.argumentsClass.newInstance()
+            parseCommandLineArguments(args, compilerArguments)
+            return compilerArguments
         }
 
         private fun KotlinModule.fullName(simpleName: String = name) = when (this) {
