@@ -10,7 +10,7 @@ import java.lang.RuntimeException
 inline fun myCatchIOException(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        provides(block, CatchesException<IOException>())
+        callsIn(block, CatchesException<IOException>())
     }
     block()
 }

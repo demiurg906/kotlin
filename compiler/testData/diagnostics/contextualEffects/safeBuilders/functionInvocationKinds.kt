@@ -21,7 +21,7 @@ class ABuilder {
 fun buildExactlyOnce(init: ABuilder.() -> Unit): A {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        requires(init, CallKind(ABuilder::setX, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
+        expectsTo(init, CallKind(ABuilder::setX, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
     }
     val builder = ABuilder()
     builder.init()
@@ -31,7 +31,7 @@ fun buildExactlyOnce(init: ABuilder.() -> Unit): A {
 fun buildAtMostOnce(init: ABuilder.() -> Unit): A {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        requires(init, CallKind(ABuilder::setX, DslCallKind.AT_MOST_ONCE, ReceiverOf(init)))
+        expectsTo(init, CallKind(ABuilder::setX, DslCallKind.AT_MOST_ONCE, ReceiverOf(init)))
     }
     val builder = ABuilder()
     builder.init()
@@ -41,7 +41,7 @@ fun buildAtMostOnce(init: ABuilder.() -> Unit): A {
 fun buildAtLeastOnce(init: ABuilder.() -> Unit): A {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        requires(init, CallKind(ABuilder::setX, DslCallKind.AT_LEAST_ONCE, ReceiverOf(init)))
+        expectsTo(init, CallKind(ABuilder::setX, DslCallKind.AT_LEAST_ONCE, ReceiverOf(init)))
     }
     val builder = ABuilder()
     builder.init()

@@ -37,9 +37,9 @@ class XYZBuilder {
 fun buildXYZ(init: XYZBuilder.() -> Unit): XYZ {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        requires(init, CallKind(XYZBuilder::setValX, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
-        requires(init, CallKind(XYZBuilder::setDefaultValY, DslCallKind.AT_MOST_ONCE, ReceiverOf(init)))
-        requires(init, CallKind(XYZBuilder::setVarZ, DslCallKind.AT_LEAST_ONCE, ReceiverOf(init)))
+        expectsTo(init, CallKind(XYZBuilder::setValX, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
+        expectsTo(init, CallKind(XYZBuilder::setDefaultValY, DslCallKind.AT_MOST_ONCE, ReceiverOf(init)))
+        expectsTo(init, CallKind(XYZBuilder::setVarZ, DslCallKind.AT_LEAST_ONCE, ReceiverOf(init)))
     }
     val builder = XYZBuilder()
     builder.init()
@@ -71,8 +71,8 @@ class XYBuilder {
 fun buildXY(init: XYBuilder.() -> Unit): XY {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        requires(init, CallKind(XYBuilder::setValX, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
-        requires(init, CallKind(XYBuilder::setDefaultValY, DslCallKind.AT_MOST_ONCE, ReceiverOf(init)))
+        expectsTo(init, CallKind(XYBuilder::setValX, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
+        expectsTo(init, CallKind(XYBuilder::setDefaultValY, DslCallKind.AT_MOST_ONCE, ReceiverOf(init)))
     }
     val builder = XYBuilder()
     builder.init()

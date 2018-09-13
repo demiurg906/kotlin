@@ -31,7 +31,7 @@ fun throwsIOException() {
 inline fun myCatchIOException(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        provides(block, CatchesException<IOException>())
+        callsIn(block, CatchesException<IOException>())
     }
     block()
 }
@@ -39,7 +39,7 @@ inline fun myCatchIOException(block: () -> Unit) {
 inline fun myCatchRuntimeException(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        provides(block, CatchesException<RuntimeException>())
+        callsIn(block, CatchesException<RuntimeException>())
     }
     block()
 }

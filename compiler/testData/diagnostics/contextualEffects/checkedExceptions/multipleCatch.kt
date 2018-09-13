@@ -31,8 +31,8 @@ fun throwsIOException() {
 inline fun myCatch(block: () -> Unit) {
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-        provides(block, CatchesException<FileNotFoundException>())
-        provides(block, CatchesException<RuntimeException>())
+        callsIn(block, CatchesException<FileNotFoundException>())
+        callsIn(block, CatchesException<RuntimeException>())
     }
     block()
 }

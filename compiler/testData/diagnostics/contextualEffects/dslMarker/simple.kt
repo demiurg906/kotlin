@@ -32,7 +32,7 @@ class FooBuilder {
     fun buildBar(init: BarBuilder.() -> Unit): Bar {
         contract {
             callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-            provides(init, DslMarkers(ReceiverOf(init)))
+            callsIn(init, DslMarkers(ReceiverOf(init)))
             requires(DslMarkers(this@FooBuilder))
         }
         val builder = BarBuilder()
@@ -46,7 +46,7 @@ class FooBuilder {
 fun buildFoo(init: FooBuilder.() -> Unit): Foo {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        provides(init, DslMarkers(ReceiverOf(init)))
+        callsIn(init, DslMarkers(ReceiverOf(init)))
     }
     val builder = FooBuilder()
     builder.init()
