@@ -2,6 +2,7 @@ package
 
 public fun buildFoo(/*0*/ init: FooBuilder.() -> kotlin.Unit): Foo
     CallsInPlace(init, EXACTLY_ONCE)
+    initkotlin.Unit provides DSLMarker
 
 public fun test_1(): kotlin.Unit
 public fun test_2(): kotlin.Unit
@@ -21,6 +22,8 @@ public final class BarBuilder {
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public final fun setY(/*0*/ value: kotlin.Int = ...): kotlin.Unit
+        setYkotlin.Unit verifies DSLMarker
+
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 }
 
@@ -37,9 +40,14 @@ public final class FooBuilder {
     private final var x_: kotlin.Int?
     public final fun buildBar(/*0*/ init: BarBuilder.() -> kotlin.Unit): Bar
         CallsInPlace(init, EXACTLY_ONCE)
+        initkotlin.Unit provides DSLMarker
+        buildBarkotlin.Unit verifies DSLMarker
 
+    public final fun create(): Foo
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public final fun setX(/*0*/ value: kotlin.Int = ...): kotlin.Unit
+        setXkotlin.Unit verifies DSLMarker
+
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 }
