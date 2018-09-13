@@ -18,8 +18,8 @@ import org.jetbrains.kotlin.psi.KtElement
 class OpenedTransactionVerifier(val requiredTransaction: ValueDescriptor, val sourceElement: KtElement) : ContextVerifier {
     override val family = TransactionFamily
 
-    override fun verify(noLevelContext: Context, blockContexts: List<Context>, diagnosticSink: DiagnosticSink) {
-        val openedTransactions = extractOpenedTransactions(noLevelContext)
+    override fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink) {
+        val openedTransactions = extractOpenedTransactions(contexts)
         val kind = openedTransactions[requiredTransaction] ?: InvocationKind.ZERO
         if (!kind.isDefinitelyVisited()) {
             val message = "${requiredTransaction.name} is not opened"
@@ -32,8 +32,8 @@ class OpenedTransactionVerifier(val requiredTransaction: ValueDescriptor, val so
 class ClosedTransactionVerifier(val requiredTransaction: ValueDescriptor, val sourceElement: KtElement) : ContextVerifier {
     override val family = TransactionFamily
 
-    override fun verify(noLevelContext: Context, blockContexts: List<Context>, diagnosticSink: DiagnosticSink) {
-        val openedTransactions = extractOpenedTransactions(noLevelContext)
+    override fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink) {
+        val openedTransactions = extractOpenedTransactions(contexts)
         val kind = openedTransactions[requiredTransaction] ?: InvocationKind.ZERO
         if (kind != InvocationKind.ZERO) {
             val message = "Transaction ${requiredTransaction.name} already started"
@@ -42,6 +42,6 @@ class ClosedTransactionVerifier(val requiredTransaction: ValueDescriptor, val so
     }
 }
 
-private fun extractOpenedTransactions(context: Context): Map<ValueDescriptor, InvocationKind> {
-    return (context as? TransactionContext ?: throw AssertionError()).openedTransactions
+fun extractOpenedTransactions(contexts: List<Context>): Map<ValueDescriptor, InvocationKind> {
+    return (contexts.first() as? TransactionContext ?: throw AssertionError()).openedTransactions
 }

@@ -91,12 +91,14 @@ class PseudocodeEffectsData(
     private fun verifyContext(verifiers: Collection<ContextVerifier>, info: ContractsContextsInfo) {
         for (verifier in verifiers) {
             val family = verifier.family
-            val contextsGroupedByLevel = info[family].getOrElse(mapOf())
+            val contextsGroupedByLevel = info[family].map { it.toMutableMap() }.getOrElse(mutableMapOf())
 
-            val noLevelContext = contextsGroupedByLevel[NO_LEVEL] ?: family.emptyContext
-            val blockContexts = contextsGroupedByLevel.filterKeys { it > 0 }.toList().sortedBy { (depth, _) -> depth }.map { it.second }
+            if (NO_LEVEL !in contextsGroupedByLevel) {
+                contextsGroupedByLevel[NO_LEVEL] = family.emptyContext
+            }
+            val contexts = contextsGroupedByLevel.toList().sortedBy { (depth, _) -> depth }.map { it.second }
 
-            verifier.verify(noLevelContext, blockContexts, bindingTrace)
+            verifier.verify(contexts, bindingTrace)
         }
     }
 

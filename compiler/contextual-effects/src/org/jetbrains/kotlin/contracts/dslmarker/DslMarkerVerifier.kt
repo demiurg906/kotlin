@@ -16,15 +16,8 @@ class DslMarkerVerifier(val receiver: ReceiverValue, val sourceElement: KtElemen
     ContextVerifier {
     override val family = DslMarkerFamily
 
-    override fun verify(noLevelContext: Context, blockContexts: List<Context>, diagnosticSink: DiagnosticSink) {
-        val lastContext = blockContexts.lastOrNull()
-        if (lastContext == null) {
-            val message = "No opened context"
-            diagnosticSink.report(Errors.CONTEXTUAL_EFFECT_WARNING.on(sourceElement, message))
-            return
-        }
-
-        if (lastContext !is DslMarkerContext) throw AssertionError()
+    override fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink) {
+        val lastContext = contexts.last() as? DslMarkerContext ?: throw AssertionError()
 
         if (receiver !in lastContext.receivers) {
             val message = "Call function in wrong scope"
