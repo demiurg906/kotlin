@@ -76,6 +76,11 @@ public class ContextualEffectsDiagnosticTestGenerated extends AbstractContextual
             runTest("compiler/testData/diagnostics/contextualEffects/checkedExceptions/simple.kt");
         }
 
+        @TestMetadata("throwWithContract.kt")
+        public void testThrowWithContract() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/checkedExceptions/throwWithContract.kt");
+        }
+
         @TestMetadata("when.kt")
         public void testWhen() throws Exception {
             runTest("compiler/testData/diagnostics/contextualEffects/checkedExceptions/when.kt");
