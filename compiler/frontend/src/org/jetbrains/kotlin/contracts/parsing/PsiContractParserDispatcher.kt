@@ -21,16 +21,16 @@ import org.jetbrains.kotlin.contracts.description.BooleanExpression
 import org.jetbrains.kotlin.contracts.description.ContractDescription
 import org.jetbrains.kotlin.contracts.description.EffectDeclaration
 import org.jetbrains.kotlin.contracts.description.expressions.*
-import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_PROVIDES_FACT
-import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_REQUIRES_CONTEXT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_EXPECTS_TO_CONTEXT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_NOT_EXPECTS_TO_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_REQUIRES_NOT_CONTEXT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_BLOCK_IN_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CLOSES_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONDITIONAL_EFFECT
-import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDES_FACT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDES_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RECEIVER_OF
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_CONTEXT
-import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_NOT_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.STARTS_CONTEXT
@@ -62,13 +62,13 @@ internal class PsiContractParserDispatcher(
         CALLS_IN_PLACE_EFFECT to PsiCallsEffectParser(collector, callContext, this),
         CONDITIONAL_EFFECT to PsiConditionalEffectParser(collector, callContext, this),
 
-        PROVIDES_FACT to PsiFactParser(collector, callContext, this),
+        PROVIDES_CONTEXT to PsiFactParser(collector, callContext, this),
         STARTS_CONTEXT to PsiFactParser(collector, callContext, this),
         CLOSES_CONTEXT to PsiFactParser(collector, callContext, this),
         REQUIRES_CONTEXT to PsiFactParser(collector, callContext, this),
-        REQUIRES_NOT_CONTEXT to PsiFactParser(collector, callContext, this),
-        BLOCK_PROVIDES_FACT to PsiLambdaFactParser(collector, callContext, this),
-        BLOCK_REQUIRES_CONTEXT to PsiLambdaFactParser(collector, callContext, this),
+        BLOCK_NOT_EXPECTS_TO_CONTEXT to PsiFactParser(collector, callContext, this),
+        CALLS_BLOCK_IN_CONTEXT to PsiLambdaFactParser(collector, callContext, this),
+        BLOCK_EXPECTS_TO_CONTEXT to PsiLambdaFactParser(collector, callContext, this),
         BLOCK_REQUIRES_NOT_CONTEXT to PsiLambdaFactParser(collector, callContext, this)
     )
 

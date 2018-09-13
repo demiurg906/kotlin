@@ -55,12 +55,13 @@ internal object ContractsDslNames {
     val RETURNS_EFFECT = Name.identifier("Returns")
     val RETURNS_NOT_NULL_EFFECT = Name.identifier("ReturnsNotNull")
     val CALLS_IN_PLACE_EFFECT = Name.identifier("CallsInPlace")
-    val PROVIDES_FACT = Name.identifier("ProvidesFact")
-    val BLOCK_PROVIDES_FACT = Name.identifier("BlockProvidesFact")
+
+    val PROVIDES_CONTEXT = Name.identifier("ProvidesContext")
+    val CALLS_BLOCK_IN_CONTEXT = Name.identifier("CallsBlockInContext")
     val REQUIRES_CONTEXT = Name.identifier("RequiresContext")
-    val BLOCK_REQUIRES_CONTEXT = Name.identifier("BlockRequiresContext")
-    val REQUIRES_NOT_CONTEXT = Name.identifier("RequiresNotContext")
-    val BLOCK_REQUIRES_NOT_CONTEXT = Name.identifier("BlockRequiresNotContext")
+    val BLOCK_EXPECTS_TO_CONTEXT = Name.identifier("BlockExpectsToContext")
+    val BLOCK_NOT_EXPECTS_TO_CONTEXT = Name.identifier("RequiresNotContext")
+    val BLOCK_REQUIRES_NOT_CONTEXT = Name.identifier("BlockNotExpectsToContext")
     val STARTS_CONTEXT = Name.identifier("StartsContext")
     val CLOSES_CONTEXT = Name.identifier("ClosesContext")
 

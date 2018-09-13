@@ -9,14 +9,14 @@ import kotlin.reflect.KFunction
 
 // ------------------ Checked Exceptions ------------------
 
-class CatchesException<T : Throwable> : BlockProvidesContextDescription, RequiresContextDescription
+class CatchesException<T : Throwable> : CallsBlockInContextDescription, RequiresContextDescription
 
 
 // ------------------ Safe Builders ------------------
 
 class Calls(func: KFunction<*>, thisReference: Any) : ProvidesContextDescription
 
-class CallKind(func: KFunction<*>, callKind: DslCallKind, receiver: ReceiverOf) : BlockRequiresContextDescription
+class CallKind(func: KFunction<*>, callKind: DslCallKind, receiver: ReceiverOf) : BlockExpectsToContextDescription
 
 enum class DslCallKind {
     AT_MOST_ONCE,
@@ -30,7 +30,7 @@ class OpenedTransaction(thisReference: Any) : StartsContextDescription, ClosesCo
 
 // ------------------ DSLMarker ------------------
 
-class DslMarkers : RequiresContextDescription, BlockProvidesContextDescription {
+class DslMarkers : RequiresContextDescription, CallsBlockInContextDescription {
     constructor(thisReference: Any)
     constructor(receiver: ReceiverOf)
 }

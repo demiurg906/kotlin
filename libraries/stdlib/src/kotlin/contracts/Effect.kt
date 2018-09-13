@@ -50,7 +50,7 @@ interface ProvidesContextDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
-interface BlockProvidesContextDescription
+interface CallsBlockInContextDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
@@ -58,7 +58,7 @@ interface RequiresContextDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
-interface BlockRequiresContextDescription
+interface BlockExpectsToContextDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
@@ -66,7 +66,7 @@ interface NotRequiresContextDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
-interface BlockNotRequiresContextDescription
+interface BlockNotExpectsToContextDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
@@ -79,11 +79,11 @@ interface ClosesContextDescription
 
 @ContractsDsl
 @SinceKotlin("1.3")
-interface ProvidesFact : Effect
+interface ProvidesContext : Effect
 
 @ContractsDsl
 @SinceKotlin("1.3")
-interface BlockProvidesFact : Effect
+interface CallsBlockInContext : Effect
 
 @ContractsDsl
 @SinceKotlin("1.3")
@@ -91,7 +91,7 @@ interface RequiresContext : Effect
 
 @ContractsDsl
 @SinceKotlin("1.3")
-interface BlockRequiresContext : Effect
+interface BlockExpectsToContext : Effect
 
 @ContractsDsl
 @SinceKotlin("1.3")
@@ -99,7 +99,7 @@ interface RequiresNotContext : Effect
 
 @ContractsDsl
 @SinceKotlin("1.3")
-interface BlockRequiresNotContext : Effect
+interface BlockNotExpectsToContext : Effect
 
 @ContractsDsl
 @SinceKotlin("1.3")
