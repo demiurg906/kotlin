@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.contracts.facts.CleanerDeclaration
 import org.jetbrains.kotlin.contracts.facts.ProviderDeclaration
 import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 
-data class ContextContracts(
+data class ContextContracts internal constructor(
     val providers: Collection<ProviderDeclaration> = listOf(),
     val verifiers: Collection<VerifierDeclaration> = listOf(),
     val cleaners: Collection<CleanerDeclaration> = listOf()
