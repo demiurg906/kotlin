@@ -23,7 +23,7 @@ class PsiExceptionEffectDeclarationExtractor(context: BindingContext, dispatcher
 
     override fun extractDeclarations(declaration: KtExpression, dslFunctionName: Name): ContextDeclarations {
         return when (dslFunctionName) {
-            ContextDslNames.PROVIDES -> {
+            ContextDslNames.CALLS_IN -> {
                 val exceptionType = getExceptionType(declaration) ?: return ContextDeclarations()
                 val provider = ExceptionProviderDeclaration(exceptionType)
                 ContextDeclarations(provider = provider)

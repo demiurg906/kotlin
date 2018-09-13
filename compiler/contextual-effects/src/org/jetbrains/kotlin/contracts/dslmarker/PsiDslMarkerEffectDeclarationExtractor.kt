@@ -29,7 +29,7 @@ class PsiDslMarkerEffectDeclarationExtractor(
         if (constructorName != CONSTRUCTOR_NAME) return ContextDeclarations()
 
         return when (dslFunctionName) {
-            ContextDslNames.PROVIDES -> {
+            ContextDslNames.CALLS_IN -> {
                 val receiverReference = dispatcher.parseReceiver(resolvedCall.getFirstArgumentExpression()) ?: return ContextDeclarations()
                 ContextDeclarations(
                     provider = DslMarkerProviderDeclaration(

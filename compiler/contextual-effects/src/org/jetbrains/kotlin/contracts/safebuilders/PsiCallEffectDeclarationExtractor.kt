@@ -28,7 +28,7 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
                 val provider = extractProviderDeclaration(declaration, dslFunctionName)
                 ContextDeclarations(provider = provider)
             }
-            ContextDslNames.REQUIRES -> {
+            ContextDslNames.EXPECTS_TO -> {
                 val (kind, references) = extractKindAndReferences(declaration) ?: return ContextDeclarations()
                 val verifier = CallVerifierDeclaration(kind, references)
                 val cleaner = CallCleanerDeclaration(kind, references)

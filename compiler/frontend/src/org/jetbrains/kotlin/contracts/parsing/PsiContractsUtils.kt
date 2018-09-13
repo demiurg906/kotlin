@@ -16,13 +16,16 @@
 
 package org.jetbrains.kotlin.contracts.parsing
 
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CLOSES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONTRACT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONTRACTS_DSL_ANNOTATION_FQN
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.EFFECT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.EXPECTS_TO
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.IMPLIES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.INVOCATION_KIND_ENUM
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.NOT_EXPECTS_TO
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_NOT
@@ -41,7 +44,7 @@ import org.jetbrains.kotlin.types.typeUtil.isNullableAny
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 
-object ContractsDslNames {
+internal object ContractsDslNames {
     // Internal marker-annotation for distinguishing our API
     val CONTRACTS_DSL_ANNOTATION_FQN = FqName("kotlin.internal.ContractsDsl")
 
@@ -74,6 +77,9 @@ object ContractsDslNames {
     val REQUIRES_NOT = Name.identifier("requiresNot")
     val STARTS = Name.identifier("starts")
     val CLOSES = Name.identifier("closes")
+    val CALLS_IN = Name.identifier("callsIn")
+    val EXPECTS_TO = Name.identifier("expectsTo")
+    val NOT_EXPECTS_TO = Name.identifier("notExpectsTo")
 
     // enum class InvocationKind
     val INVOCATION_KIND_ENUM = Name.identifier("InvocationKind")
@@ -91,6 +97,9 @@ object ContextDslNames {
     val REQUIRES_NOT = ContractsDslNames.REQUIRES_NOT
     val STARTS = ContractsDslNames.STARTS
     val CLOSES = ContractsDslNames.CLOSES
+    val CALLS_IN = ContractsDslNames.CALLS_IN
+    val EXPECTS_TO = ContractsDslNames.EXPECTS_TO
+    val NOT_EXPECTS_TO = ContractsDslNames.NOT_EXPECTS_TO
 }
 
 fun DeclarationDescriptor.isFromContractDsl(): Boolean = this.annotations.hasAnnotation(CONTRACTS_DSL_ANNOTATION_FQN)
@@ -116,17 +125,23 @@ fun DeclarationDescriptor.isInvocationKindEnum(): Boolean = equalsDslDescriptor(
 // Context providers, verifiers and cleaners
 
 fun DeclarationDescriptor.isProviderOrVerifierOrCleanerDescriptor(): Boolean =
-    isProvidesFactDescriptor() || isStartsContextDescriptor() || isRequiresContextDescriptor() || isRequiresNotContextDescriptor() || isClosesContextDescriptor()
+    isProvidesFactDescriptor() ||
+            isStartsContextDescriptor() ||
+            isRequiresContextDescriptor() ||
+            isRequiresNotContextDescriptor() ||
+            isClosesContextDescriptor() ||
+            isCallsInDescriptor() ||
+            isExpectsToDescriptor() ||
+            isNotExpectsToDescriptor()
 
 private fun DeclarationDescriptor.isProvidesFactDescriptor(): Boolean = equalsDslDescriptor(PROVIDES)
-
 private fun DeclarationDescriptor.isStartsContextDescriptor(): Boolean = equalsDslDescriptor(STARTS)
-
 private fun DeclarationDescriptor.isRequiresContextDescriptor(): Boolean = equalsDslDescriptor(REQUIRES)
-
 private fun DeclarationDescriptor.isRequiresNotContextDescriptor(): Boolean = equalsDslDescriptor(REQUIRES_NOT)
-
 private fun DeclarationDescriptor.isClosesContextDescriptor(): Boolean = equalsDslDescriptor(CLOSES)
+private fun DeclarationDescriptor.isCallsInDescriptor(): Boolean = equalsDslDescriptor(CALLS_IN)
+private fun DeclarationDescriptor.isExpectsToDescriptor(): Boolean = equalsDslDescriptor(EXPECTS_TO)
+private fun DeclarationDescriptor.isNotExpectsToDescriptor(): Boolean = equalsDslDescriptor(NOT_EXPECTS_TO)
 
 fun DeclarationDescriptor.isEqualsDescriptor(): Boolean =
     this is FunctionDescriptor && this.name == Name.identifier("equals") && // fast checks

@@ -21,7 +21,7 @@ class PsiTransactionEffectDeclarationExtractor(
     }
 
     override fun extractDeclarations(declaration: KtExpression, dslFunctionName: Name): ContextDeclarations {
-        if (dslFunctionName !in setOf(ContractsDslNames.STARTS, ContractsDslNames.REQUIRES, ContractsDslNames.CLOSES))
+        if (dslFunctionName !in setOf(ContextDslNames.STARTS, ContextDslNames.REQUIRES, ContextDslNames.CLOSES))
             return ContextDeclarations()
 
         val thisReference = extractThisReference(declaration) ?: return ContextDeclarations()
