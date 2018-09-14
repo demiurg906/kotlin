@@ -16,7 +16,7 @@ class CatchesException<T : Throwable> : CallsBlockInContextDescription, Requires
 
 class Calls(func: KFunction<*>, thisReference: Any) : ProvidesContextDescription
 
-class CallKind(func: KFunction<*>, callKind: DslCallKind, receiver: ReceiverOf) : BlockExpectsToContextDescription
+class CallKind(func: KFunction<*>, kind: InvocationKind, receiver: ReceiverOf) : BlockExpectsToContextDescription
 
 enum class DslCallKind {
     AT_MOST_ONCE,
