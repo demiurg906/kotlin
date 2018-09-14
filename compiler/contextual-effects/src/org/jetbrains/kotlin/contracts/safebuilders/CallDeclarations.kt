@@ -55,7 +55,7 @@ class CallCleanerDeclaration(
     override fun toString(): String = "func needs to be called $kind"
 }
 
-fun extractFunctionAndReceiver(references: List<ESValue?>): Pair<FunctionDescriptor, ReceiverValue>? {
+private fun extractFunctionAndReceiver(references: List<ESValue?>): Pair<FunctionDescriptor, ReceiverValue>? {
     val functionDescriptor = (references[0] as? ESFunction)?.descriptor ?: return null
     val receiverValue = references[1]?.extractReceiverValue() ?: return null
     return functionDescriptor to receiverValue

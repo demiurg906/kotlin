@@ -43,6 +43,6 @@ class ClosedTransactionVerifier(val requiredTransaction: ValueDescriptor, val so
     }
 }
 
-fun extractOpenedTransactions(contexts: List<Context>): Map<ValueDescriptor, InvocationKind> {
+private fun extractOpenedTransactions(contexts: List<Context>): Map<ValueDescriptor, InvocationKind> {
     return (contexts.first() as? TransactionContext ?: throw AssertionError()).openedTransactions
 }

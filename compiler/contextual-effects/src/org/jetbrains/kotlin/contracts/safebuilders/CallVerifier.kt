@@ -41,6 +41,4 @@ class CallVerifier(
 
         return false
     }
-
-    private fun <E> Collection<E>.firstOrElse(defaultValue: () -> E): E = firstOrNull() ?: defaultValue()
 }
