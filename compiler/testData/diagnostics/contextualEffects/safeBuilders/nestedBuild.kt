@@ -37,9 +37,9 @@ class XYZBuilder {
 fun buildXYZ(init: XYZBuilder.() -> Unit): XYZ {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        expectsTo(init, CallKind(XYZBuilder::setValX, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
-        expectsTo(init, CallKind(XYZBuilder::setDefaultValY, DslCallKind.AT_MOST_ONCE, ReceiverOf(init)))
-        expectsTo(init, CallKind(XYZBuilder::setVarZ, DslCallKind.AT_LEAST_ONCE, ReceiverOf(init)))
+        expectsTo(init, CallKind(XYZBuilder::setValX, InvocationKind.EXACTLY_ONCE, ReceiverOf(init)))
+        expectsTo(init, CallKind(XYZBuilder::setDefaultValY, InvocationKind.AT_MOST_ONCE, ReceiverOf(init)))
+        expectsTo(init, CallKind(XYZBuilder::setVarZ, InvocationKind.AT_LEAST_ONCE, ReceiverOf(init)))
     }
     val builder = XYZBuilder()
     builder.init()
@@ -64,7 +64,7 @@ class XBuilder {
 fun buildX(init: XBuilder.() -> Unit): X {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        expectsTo(init, CallKind(XBuilder::setValX, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
+        expectsTo(init, CallKind(XBuilder::setValX, InvocationKind.EXACTLY_ONCE, ReceiverOf(init)))
     }
     val builder = XBuilder()
     builder.init()
@@ -88,7 +88,7 @@ class YBuilder {
 fun buildY(init: YBuilder.() -> Unit): Y {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        expectsTo(init, CallKind(YBuilder::setValY, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
+        expectsTo(init, CallKind(YBuilder::setValY, InvocationKind.EXACTLY_ONCE, ReceiverOf(init)))
     }
     val builder = YBuilder()
     builder.init()
@@ -112,7 +112,7 @@ class ZBuilder {
 fun buildZ(init: ZBuilder.() -> Unit): Z {
     contract {
         callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        expectsTo(init, CallKind(ZBuilder::setValZ, DslCallKind.EXACTLY_ONCE, ReceiverOf(init)))
+        expectsTo(init, CallKind(ZBuilder::setValZ, InvocationKind.EXACTLY_ONCE, ReceiverOf(init)))
     }
     val builder = ZBuilder()
     builder.init()
