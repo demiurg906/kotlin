@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.contracts.dslmarker
 
 import org.jetbrains.kotlin.contracts.facts.ContextFamily
 
-object DslMarkerFamily : ContextFamily {
+internal object DslMarkerFamily : ContextFamily {
     override val id = "DslMarker"
     override val combiner = DslMarkerCombiner
     override val emptyContext = DslMarkerContext()

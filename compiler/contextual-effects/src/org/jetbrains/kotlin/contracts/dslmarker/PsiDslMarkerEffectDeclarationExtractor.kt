@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.callUtil.getFirstArgumentExpression
 
-class PsiDslMarkerEffectDeclarationExtractor(
+internal class PsiDslMarkerEffectDeclarationExtractor(
     context: BindingContext,
     dispatcher: PsiContractVariableParserDispatcher
 ) : PsiEffectDeclarationExtractor(context, dispatcher) {

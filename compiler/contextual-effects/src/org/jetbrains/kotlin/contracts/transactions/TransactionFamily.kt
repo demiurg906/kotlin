@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.contracts.transactions
 
 import org.jetbrains.kotlin.contracts.facts.ContextFamily
 
-object TransactionFamily : ContextFamily {
+internal object TransactionFamily : ContextFamily {
     override val id = "Transactions"
     override val combiner = TransactionCombiner
     override val emptyContext = TransactionContext()

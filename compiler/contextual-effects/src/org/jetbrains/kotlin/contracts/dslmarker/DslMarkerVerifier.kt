@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 
-class DslMarkerVerifier(val receiver: ReceiverValue, val sourceElement: KtElement) : ContextVerifier {
+internal class DslMarkerVerifier(val receiver: ReceiverValue, val sourceElement: KtElement) : ContextVerifier {
     override val family = DslMarkerFamily
 
     override fun verify(contexts: List<Context>, diagnosticSink: DiagnosticSink, declaredContracts: ContextContracts) {

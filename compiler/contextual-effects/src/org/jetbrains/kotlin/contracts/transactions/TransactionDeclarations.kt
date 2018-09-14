@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.descriptors.ValueDescriptor
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.BindingContext
 
-class TransactionProviderDeclaration(override val references: List<ContractDescriptionValue>) : ProviderDeclaration {
+internal class TransactionProviderDeclaration(override val references: List<ContractDescriptionValue>) : ProviderDeclaration {
     override val family = TransactionFamily
 
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextProvider? {
@@ -24,7 +24,7 @@ class TransactionProviderDeclaration(override val references: List<ContractDescr
     override fun toString(): String = "opened transaction"
 }
 
-class ClosedTransactionVerifierDeclaration(override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
+internal class ClosedTransactionVerifierDeclaration(override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
     override val family = TransactionFamily
 
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextVerifier? {
@@ -35,7 +35,7 @@ class ClosedTransactionVerifierDeclaration(override val references: List<Contrac
     override fun toString(): String = "no opened transaction"
 }
 
-class OpenedTransactionVerifierDeclaration(override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
+internal class OpenedTransactionVerifierDeclaration(override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
     override val family = TransactionFamily
 
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextVerifier? {
@@ -46,7 +46,7 @@ class OpenedTransactionVerifierDeclaration(override val references: List<Contrac
     override fun toString(): String = "opened transaction"
 }
 
-class TransactionCleanerDeclaration(override val references: List<ContractDescriptionValue>) : CleanerDeclaration {
+internal class TransactionCleanerDeclaration(override val references: List<ContractDescriptionValue>) : CleanerDeclaration {
     override val family = TransactionFamily
 
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextCleaner? {

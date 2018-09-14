@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 
-class PsiTransactionEffectDeclarationExtractor(
+internal class PsiTransactionEffectDeclarationExtractor(
     context: BindingContext,
     dispatcher: PsiContractVariableParserDispatcher
 ) : PsiEffectDeclarationExtractor(context, dispatcher) {

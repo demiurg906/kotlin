@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 
-class CallProviderDeclaration(override val references: List<ContractDescriptionValue>) : ProviderDeclaration {
+internal class CallProviderDeclaration(override val references: List<ContractDescriptionValue>) : ProviderDeclaration {
     override val family = CallFamily
 
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextProvider? {
@@ -27,7 +27,7 @@ class CallProviderDeclaration(override val references: List<ContractDescriptionV
     override fun toString(): String = "func called EXACTLY_ONCE"
 }
 
-class CallVerifierDeclaration(
+internal class CallVerifierDeclaration(
     private val kind: InvocationKind,
     override val references: List<ContractDescriptionValue>
 ) : VerifierDeclaration {
@@ -41,7 +41,7 @@ class CallVerifierDeclaration(
     override fun toString(): String = "func needs to be called $kind"
 }
 
-class CallCleanerDeclaration(
+internal class CallCleanerDeclaration(
     private val kind: InvocationKind,
     override val references: List<ContractDescriptionValue>
 ) : CleanerDeclaration {

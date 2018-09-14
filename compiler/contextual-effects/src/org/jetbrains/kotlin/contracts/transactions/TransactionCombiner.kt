@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.contracts.facts.ContextCombiner
 import org.jetbrains.kotlin.contracts.facts.ContextProvider
 import org.jetbrains.kotlin.descriptors.ValueDescriptor
 
-object TransactionCombiner : ContextCombiner {
+internal object TransactionCombiner : ContextCombiner {
     override fun or(a: Context, b: Context): Context {
         if (a !is TransactionContext || b !is TransactionContext) throw AssertionError()
 

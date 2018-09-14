@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.contracts.exceptions
 
 import org.jetbrains.kotlin.contracts.facts.ContextFamily
 
-object ExceptionFamily : ContextFamily {
+internal object ExceptionFamily : ContextFamily {
     override val id: String = "Checked exceptions"
     override val combiner = ExceptionContextCombiner
     override val emptyContext = ExceptionContext()

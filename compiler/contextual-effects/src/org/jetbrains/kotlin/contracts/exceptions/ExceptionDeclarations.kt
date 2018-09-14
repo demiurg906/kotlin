@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.types.KotlinType
 
-class ExceptionProviderDeclaration(val exceptionType: KotlinType) : ProviderDeclaration {
+internal class ExceptionProviderDeclaration(val exceptionType: KotlinType) : ProviderDeclaration {
     override val family = ExceptionFamily
     override val references: List<ContractDescriptionValue> = emptyList()
 
@@ -25,7 +25,7 @@ class ExceptionProviderDeclaration(val exceptionType: KotlinType) : ProviderDecl
     }
 }
 
-class ExceptionVerifierDeclaration(val exceptionType: KotlinType) : VerifierDeclaration {
+internal class ExceptionVerifierDeclaration(val exceptionType: KotlinType) : VerifierDeclaration {
     override val family = ExceptionFamily
     override val references: List<ContractDescriptionValue> = emptyList()
 

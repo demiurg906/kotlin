@@ -15,15 +15,15 @@ import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 
-data class FunctionReference(val functionDescriptor: FunctionDescriptor, val receiverValue: ReceiverValue) {
+internal data class FunctionReference(val functionDescriptor: FunctionDescriptor, val receiverValue: ReceiverValue) {
     override fun toString(): String = functionDescriptor.name.toString()
 }
 
-data class CallInfo(val sourceElement: KtElement, val kind: InvocationKind) {
+internal data class CallInfo(val sourceElement: KtElement, val kind: InvocationKind) {
     override fun toString(): String = kind.toString()
 }
 
-data class CallContext(val calls: Map<FunctionReference, CallInfo> = mapOf()) : Context {
+internal data class CallContext(val calls: Map<FunctionReference, CallInfo> = mapOf()) : Context {
     override val family = CallFamily
 
     override fun reportRemaining(sink: DiagnosticSink, declaredContracts: ContextContracts) {
@@ -35,6 +35,6 @@ data class CallContext(val calls: Map<FunctionReference, CallInfo> = mapOf()) : 
     }
 }
 
-data class CallContextProvider(val functionReference: FunctionReference, val sourceElement: KtElement) : ContextProvider {
+internal data class CallContextProvider(val functionReference: FunctionReference, val sourceElement: KtElement) : ContextProvider {
     override val family = CallFamily
 }

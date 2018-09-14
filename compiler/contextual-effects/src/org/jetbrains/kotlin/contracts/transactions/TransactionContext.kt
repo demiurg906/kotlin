@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.descriptors.ValueDescriptor
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 
-data class TransactionContext(val openedTransactions: Map<ValueDescriptor, InvocationKind> = mapOf()) : Context {
+internal data class TransactionContext(val openedTransactions: Map<ValueDescriptor, InvocationKind> = mapOf()) : Context {
     override val family = TransactionFamily
 
     override fun reportRemaining(sink: DiagnosticSink, declaredContracts: ContextContracts) {

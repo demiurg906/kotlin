@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.contracts.model.ESValue
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.BindingContext
 
-class DslMarkerProviderDeclaration(override val references: List<ContractDescriptionValue>) : ProviderDeclaration {
+internal class DslMarkerProviderDeclaration(override val references: List<ContractDescriptionValue>) : ProviderDeclaration {
     override val family = DslMarkerFamily
 
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextProvider? {
@@ -26,7 +26,7 @@ class DslMarkerProviderDeclaration(override val references: List<ContractDescrip
     override fun toString(): String = "DSLMarker"
 }
 
-class DslMarkerVerifierDeclaration(override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
+internal class DslMarkerVerifierDeclaration(override val references: List<ContractDescriptionValue>) : VerifierDeclaration {
     override val family = DslMarkerFamily
 
     override fun bind(sourceElement: KtElement, references: List<ESValue?>, bindingContext: BindingContext): ContextVerifier? {

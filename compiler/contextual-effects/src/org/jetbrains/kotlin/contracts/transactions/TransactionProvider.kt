@@ -8,6 +8,6 @@ package org.jetbrains.kotlin.contracts.transactions
 import org.jetbrains.kotlin.contracts.facts.ContextProvider
 import org.jetbrains.kotlin.descriptors.ValueDescriptor
 
-class TransactionProvider(val openedTransaction: ValueDescriptor) : ContextProvider {
+internal class TransactionProvider(val openedTransaction: ValueDescriptor) : ContextProvider {
     override val family = TransactionFamily
 }

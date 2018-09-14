@@ -8,6 +8,6 @@ package org.jetbrains.kotlin.contracts.exceptions
 import org.jetbrains.kotlin.contracts.facts.ContextProvider
 import org.jetbrains.kotlin.types.KotlinType
 
-class ExceptionContextProvider(val cachedException: KotlinType) : ContextProvider {
+internal class ExceptionContextProvider(val cachedException: KotlinType) : ContextProvider {
     override val family = ExceptionFamily
 }

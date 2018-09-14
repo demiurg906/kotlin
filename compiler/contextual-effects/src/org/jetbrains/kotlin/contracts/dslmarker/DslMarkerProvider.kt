@@ -8,6 +8,6 @@ package org.jetbrains.kotlin.contracts.dslmarker
 import org.jetbrains.kotlin.contracts.facts.ContextProvider
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 
-class DslMarkerProvider(val receiver: ReceiverValue) : ContextProvider {
+internal class DslMarkerProvider(val receiver: ReceiverValue) : ContextProvider {
     override val family = DslMarkerFamily
 }

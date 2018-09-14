@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 import org.jetbrains.kotlin.types.KotlinType
 
-data class ExceptionContext(val cachedExceptions: Set<KotlinType> = setOf()) : Context {
+internal data class ExceptionContext(val cachedExceptions: Set<KotlinType> = setOf()) : Context {
     override val family = ExceptionFamily
 
     override fun reportRemaining(sink: DiagnosticSink, declaredContracts: ContextContracts) {}

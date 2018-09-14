@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextCleaner
 import org.jetbrains.kotlin.descriptors.ValueDescriptor
 
-class TransactionCleaner(val openedTransaction: ValueDescriptor) : ContextCleaner {
+internal class TransactionCleaner(val openedTransaction: ValueDescriptor) : ContextCleaner {
     override val family = TransactionFamily
 
     override fun cleanupProcessed(context: Context): Context {

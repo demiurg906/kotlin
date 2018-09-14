@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.contracts.facts.ContextCombiner
 import org.jetbrains.kotlin.contracts.facts.ContextProvider
 
-object DslMarkerCombiner : ContextCombiner {
+internal object DslMarkerCombiner : ContextCombiner {
     override fun or(a: Context, b: Context): Context {
         if (a !is DslMarkerContext || b !is DslMarkerContext) throw AssertionError()
         return DslMarkerContext(a.receivers + b.receivers)

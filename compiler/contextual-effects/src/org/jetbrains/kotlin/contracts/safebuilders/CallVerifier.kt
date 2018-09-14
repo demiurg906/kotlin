@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.psi.KtElement
 
-class CallVerifier(
+internal class CallVerifier(
     val functionReference: FunctionReference,
     val expectedKind: InvocationKind,
     val sourceElement: KtElement

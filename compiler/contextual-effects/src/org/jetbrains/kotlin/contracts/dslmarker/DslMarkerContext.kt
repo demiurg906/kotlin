@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.contracts.facts.Context
 import org.jetbrains.kotlin.diagnostics.DiagnosticSink
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 
-class DslMarkerContext(val receivers: Set<ReceiverValue> = setOf()) : Context {
+internal class DslMarkerContext(val receivers: Set<ReceiverValue> = setOf()) : Context {
     override val family = DslMarkerFamily
 
     override fun reportRemaining(sink: DiagnosticSink, declaredContracts: ContextContracts) {}
