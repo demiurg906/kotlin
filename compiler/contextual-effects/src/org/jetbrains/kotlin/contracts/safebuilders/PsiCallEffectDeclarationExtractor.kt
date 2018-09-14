@@ -13,7 +13,6 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 
 class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: PsiContractVariableParserDispatcher) :
     PsiEffectDeclarationExtractor(context, dispatcher) {
@@ -62,24 +61,11 @@ class PsiCallEffectDeclarationExtractor(context: BindingContext, dispatcher: Psi
         if (constructorName != CALL_KIND) return null
 
         val functionReference = dispatcher.parseFunction(resolvedCall.argumentAsExpressionOrNull(0)) ?: return null
-        val kindName = resolvedCall.argumentAsExpressionOrNull(1)
-            ?.getResolvedCall(context)
-            ?.resultingDescriptor
-            ?.name
-            ?.asString()
-            ?: return null
-        val kind = parseKind(kindName)
+        val kind = dispatcher.parseKind(resolvedCall.argumentAsExpressionOrNull(1)) ?: return null
         val receiverReference = dispatcher.parseReceiver(resolvedCall.argumentAsExpressionOrNull(2)) ?: return null
 
         val references = listOf(functionReference, receiverReference)
 
         return kind to references
-    }
-
-    private fun parseKind(kind: String) = when (kind) {
-        "AT_MOST_ONCE" -> InvocationKind.AT_MOST_ONCE
-        "EXACTLY_ONCE" -> InvocationKind.EXACTLY_ONCE
-        "AT_LEAST_ONCE" -> InvocationKind.AT_LEAST_ONCE
-        else -> throw AssertionError("Unknown kind $kind")
     }
 }
