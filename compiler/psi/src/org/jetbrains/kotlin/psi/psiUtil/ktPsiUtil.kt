@@ -35,7 +35,6 @@ import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.stubs.KotlinClassOrObjectStub
 import org.jetbrains.kotlin.types.expressions.OperatorConventions
-import java.lang.IllegalArgumentException
 import java.util.*
 
 // NOTE: in this file we collect only Kotlin-specific methods working with PSI and not modifying it
@@ -295,7 +294,8 @@ inline fun <reified T : KtElement, R> flatMapDescendantsOfTypeVisitor(
 
 fun KtElement.isContractPresentPsiCheck(): Boolean {
     val contractAllowedHere = this is KtNamedFunction &&
-            isTopLevel &&
+            // TODO: commented to allow contracts in member functions (e.g. for safe builders)
+            // isTopLevel &&
             hasBlockBody() &&
             !hasModifier(KtTokens.OPERATOR_KEYWORD)
     if (!contractAllowedHere) return false
