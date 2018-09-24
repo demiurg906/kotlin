@@ -16,12 +16,14 @@
 
 package org.jetbrains.kotlin.contracts
 
+import org.jetbrains.kotlin.contracts.model.ESExpressionVisitor
 import org.jetbrains.kotlin.contracts.model.ESValue
 import org.jetbrains.kotlin.contracts.model.structure.ESVariable
-import org.jetbrains.kotlin.contracts.model.ESExpressionVisitor
 import org.jetbrains.kotlin.descriptors.ValueDescriptor
 import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValue
+import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 
 class ESDataFlowValue(descriptor: ValueDescriptor, val dataFlowValue: DataFlowValue) : ESVariable(descriptor) {
     override fun equals(other: Any?): Boolean {
@@ -40,7 +42,16 @@ class ESDataFlowValue(descriptor: ValueDescriptor, val dataFlowValue: DataFlowVa
     }
 }
 
-class ESLambda(val lambda: KtLambdaExpression) : ESValue(null) {
+class ESLambda(val lambda: KtLambdaExpression, bindingContext: BindingContext) : ESValue(null) {
+    val receiverValue: ReceiverValue?
+
+    init {
+        val functionLiteral = lambda.functionLiteral
+        val literal = bindingContext[BindingContext.FUNCTION, functionLiteral]
+        val receiverParameter = literal?.extensionReceiverParameter
+        receiverValue = receiverParameter?.value
+    }
+
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T {
         throw IllegalStateException("Lambdas shouldn't be visited by ESExpressionVisitor")
     }
