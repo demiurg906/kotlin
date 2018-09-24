@@ -70,6 +70,32 @@ interface ContractBuilder {
      */
     @ContractsDsl
     fun <R> callsInPlace(lambda: Function<R>, kind: InvocationKind = InvocationKind.UNKNOWN): CallsInPlace
+
+    // -----------------------------------------------------
+
+    @ContractsDsl
+    fun provides(context: ProvidesContextDescription): ProvidesContext
+
+    @ContractsDsl
+    fun requires(context: RequiresContextDescription): RequiresContext
+
+    @ContractsDsl
+    fun requiresNot(context: NotRequiresContextDescription): RequiresNotContext
+
+    @ContractsDsl
+    fun starts(context: StartsContextDescription): StartsContext
+
+    @ContractsDsl
+    fun closes(context: ClosesContextDescription): ClosesContext
+
+    @ContractsDsl
+    fun <R> callsIn(block: Function<R>, context: CallsBlockInContextDescription): CallsBlockInContext
+
+    @ContractsDsl
+    fun <R> expectsTo(block: Function<R>, context: BlockExpectsToContextDescription): BlockExpectsToContext
+
+    @ContractsDsl
+    fun <R> notExpectsTo(block: Function<R>, context: BlockNotExpectsToContextDescription): BlockNotExpectsToContext
 }
 
 /**

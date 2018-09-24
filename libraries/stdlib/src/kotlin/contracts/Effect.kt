@@ -92,3 +92,70 @@ interface ReturnsNotNull : SimpleEffect
 @ExperimentalContracts
 @SinceKotlin("1.3")
 interface CallsInPlace : Effect
+
+// -----------------------------------------------------
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface ProvidesContextDescription
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface CallsBlockInContextDescription
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface RequiresContextDescription
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface BlockExpectsToContextDescription
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface NotRequiresContextDescription
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface BlockNotExpectsToContextDescription
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface StartsContextDescription
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface ClosesContextDescription
+
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface ProvidesContext : Effect
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface CallsBlockInContext : Effect
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface RequiresContext : Effect
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface BlockExpectsToContext : Effect
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface RequiresNotContext : Effect
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface BlockNotExpectsToContext : Effect
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface StartsContext : Effect
+
+@ContractsDsl
+@SinceKotlin("1.3")
+interface ClosesContext : Effect
