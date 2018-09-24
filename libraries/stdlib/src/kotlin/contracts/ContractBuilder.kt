@@ -9,141 +9,133 @@ import kotlin.internal.ContractsDsl
 import kotlin.internal.InlineOnly
 
 /**
- * This marker distinguishes the experimental contract declaration API and is used to opt-in for that feature
- * when declaring contracts of user functions.
- *
- * Any usage of a declaration annotated with `@ExperimentalContracts` must be accepted either by
- * annotating that usage with the [UseExperimental] annotation, e.g. `@UseExperimental(ExperimentalContracts::class)`,
- * or by using the compiler argument `-Xuse-experimental=kotlin.contracts.ExperimentalContracts`.
+ * Marker of the use experimental contracts API.
+ * Any declaration annotated with that marker must be used with the [UseExperimental] annotation
+ * or the compiler argument `-Xuse-experimental=kotlin.contracts.ExperimentalContracts`.
  */
 @Retention(AnnotationRetention.BINARY)
 @SinceKotlin("1.3")
 @Experimental
-public annotation class ExperimentalContracts
+annotation class ExperimentalContracts
 
 /**
- * Provides a scope, where the functions of the contract DSL, such as [returns], [callsInPlace], etc.,
- * can be used to describe the contract of a function.
- *
- * This type is used as a receiver type of the lambda function passed to the [contract] function.
+ * The builder is used to specify contract effects for some function.
  *
  * @see contract
  */
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public interface ContractBuilder {
+interface ContractBuilder {
     /**
-     * Describes a situation when a function returns normally, without any exceptions thrown.
+     * Expresses that a function returned successfully.
      *
-     * Use [SimpleEffect.implies] function to describe a conditional effect that happens in such case.
-     *
+     * @sample samples.contracts.returnsContract
      */
-    // @sample samples.contracts.returnsContract
-    @ContractsDsl public fun returns(): Returns
+    @ContractsDsl
+    fun returns(): Returns
 
     /**
-     * Describes a situation when a function returns normally with the specified return [value].
+     * Expresses that a function returned with some value.
+     * Value can only be `true`, `false` or `null`.
      *
-     * The possible values of [value] are limited to `true`, `false` or `null`.
-     *
-     * Use [SimpleEffect.implies] function to describe a conditional effect that happens in such case.
-     *
+     * @sample samples.contracts.returnsTrueContract
+     * @sample samples.contracts.returnsFalseContract
+     * @sample samples.contracts.returnsNullContract
      */
-    // @sample samples.contracts.returnsTrueContract
-    // @sample samples.contracts.returnsFalseContract
-    // @sample samples.contracts.returnsNullContract
-    @ContractsDsl public fun returns(value: Any?): Returns
+    @ContractsDsl
+    fun returns(value: Any?): Returns
 
     /**
-     * Describes a situation when a function returns normally with any value that is not `null`.
+     * Expresses that a function returned with any not null value.
      *
-     * Use [SimpleEffect.implies] function to describe a conditional effect that happens in such case.
-     *
+     * @sample samples.contracts.returnsNotNullContract
      */
-    // @sample samples.contracts.returnsNotNullContract
-    @ContractsDsl public fun returnsNotNull(): ReturnsNotNull
+    @ContractsDsl
+    fun returnsNotNull(): ReturnsNotNull
 
     /**
-     * Specifies that the function parameter [lambda] is invoked in place.
+     * Expresses that:
+     *  1) [lambda] will not be called after the call to owner-function is finished;
+     *  2) [lambda] will not be passed to another function without the similar contract.
      *
-     * This contract specifies that:
-     * 1. the function [lambda] can only be invoked during the call of the owner function,
-     *  and it won't be invoked after that owner function call is completed;
-     * 2. _(optionally)_ the function [lambda] is invoked the amount of times specified by the [kind] parameter,
-     *  see the [InvocationKind] enum for possible values.
+     * @param kind amount of times, that a [lambda] guaranteed will be invoked.
      *
-     * A function declaring the `callsInPlace` effect must be _inline_.
+     * Note that a function with the `callsInPlace` effect must be inline.
      *
+     * @sample samples.contracts.callsInPlaceAtMostOnceContract
+     * @sample samples.contracts.callsInPlaceAtLeastOnceContract
+     * @sample samples.contracts.callsInPlaceExactlyOnceContract
+     * @sample samples.contracts.callsInPlaceUnknownContract
      */
-    /* @sample samples.contracts.callsInPlaceAtMostOnceContract
-    * @sample samples.contracts.callsInPlaceAtLeastOnceContract
-    * @sample samples.contracts.callsInPlaceExactlyOnceContract
-    * @sample samples.contracts.callsInPlaceUnknownContract
-    */
-    @ContractsDsl public fun <R> callsInPlace(lambda: Function<R>, kind: InvocationKind = InvocationKind.UNKNOWN): CallsInPlace
+    @ContractsDsl
+    fun <R> callsInPlace(lambda: Function<R>, kind: InvocationKind = InvocationKind.UNKNOWN): CallsInPlace
 }
 
 /**
- * Specifies how many times a function invokes its function parameter in place.
- *
- * See [ContractBuilder.callsInPlace] for the details of the call-in-place function contract.
+ * This enum class is used to specify the amount of times, that `callable` which is used in the [ContractBuilder.callsInPlace] effect guaranteed will be invoked.
  */
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public enum class InvocationKind {
+enum class InvocationKind {
     /**
-     * A function parameter will be invoked one time or not invoked at all.
+     * Expresses that the `callable` will be invoked zero or one time.
+     *
+     * @sample samples.contracts.callsInPlaceAtMostOnceContract
      */
-    // @sample samples.contracts.callsInPlaceAtMostOnceContract
-    @ContractsDsl AT_MOST_ONCE,
+    @ContractsDsl
+    AT_MOST_ONCE,
 
     /**
-     * A function parameter will be invoked one or more times.
+     * Expresses that the `callable` will be invoked one or more times.
      *
+     * @sample samples.contracts.callsInPlaceAtLeastOnceContract
      */
-    // @sample samples.contracts.callsInPlaceAtLeastOnceContract
-    @ContractsDsl AT_LEAST_ONCE,
+    @ContractsDsl
+    AT_LEAST_ONCE,
 
     /**
-     * A function parameter will be invoked exactly one time.
+     * Expresses that the `callable` will be invoked exactly one time.
      *
+     * @sample samples.contracts.callsInPlaceExactlyOnceContract
      */
-    // @sample samples.contracts.callsInPlaceExactlyOnceContract
-    @ContractsDsl EXACTLY_ONCE,
+    @ContractsDsl
+    EXACTLY_ONCE,
 
     /**
-     * A function parameter is called in place, but it's unknown how many times it can be called.
+     * Expresses that the `callable` will be invoked unknown amount of times.
      *
+     * @sample samples.contracts.callsInPlaceUnknownContract
      */
-    // @sample samples.contracts.callsInPlaceUnknownContract
-    @ContractsDsl UNKNOWN
+    @ContractsDsl
+    UNKNOWN
 }
 
 /**
- * Specifies the contact of a function.
+ * The function to describe a contract.
+ * The contract description must be at the beginning of a function and has at least one effect.
+ * Also the contract description can be used only in the top-level functions.
  *
- * The contract description must be at the beginning of a function and have at least one effect.
+ * @param builder the lambda in the body of which the effects from the [ContractBuilder] are specified.
  *
- * Only the top-level functions can have a contract for now.
- *
- * @param builder the lambda where the contract of a function is described with the help of the [ContractBuilder] members.
- *
+ * @sample samples.contracts.returnsContract
+ * @sample samples.contracts.returnsTrueContract
+ * @sample samples.contracts.returnsFalseContract
+ * @sample samples.contracts.returnsNullContract
+ * @sample samples.contracts.returnsNotNullContract
+ * @sample samples.contracts.callsInPlaceAtMostOnceContract
+ * @sample samples.contracts.callsInPlaceAtLeastOnceContract
+ * @sample samples.contracts.callsInPlaceExactlyOnceContract
+ * @sample samples.contracts.callsInPlaceUnknownContract
  */
-/* @sample samples.contracts.returnsContract
-* @sample samples.contracts.returnsTrueContract
-* @sample samples.contracts.returnsFalseContract
-* @sample samples.contracts.returnsNullContract
-* @sample samples.contracts.returnsNotNullContract
-* @sample samples.contracts.callsInPlaceAtMostOnceContract
-* @sample samples.contracts.callsInPlaceAtLeastOnceContract
-* @sample samples.contracts.callsInPlaceExactlyOnceContract
-* @sample samples.contracts.callsInPlaceUnknownContract
-*/
 @ContractsDsl
 @ExperimentalContracts
 @InlineOnly
 @SinceKotlin("1.3")
 @Suppress("UNUSED_PARAMETER")
-public inline fun contract(builder: ContractBuilder.() -> Unit) { }
+inline fun contract(builder: ContractBuilder.() -> Unit) {}
+
+
+@ContractsDsl
+class ReceiverOf(func: Function<*>)

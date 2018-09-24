@@ -21,7 +21,7 @@ import kotlin.internal.ContractsDsl
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public interface Effect
+interface Effect
 
 /**
  * An effect of some condition being true after observing another effect of a function.
@@ -32,7 +32,7 @@ public interface Effect
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public interface ConditionalEffect : Effect
+interface ConditionalEffect : Effect
 
 /**
  * An effect that can be observed after a function invocation.
@@ -43,7 +43,7 @@ public interface ConditionalEffect : Effect
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public interface SimpleEffect : Effect {
+interface SimpleEffect : Effect {
     /**
      * Specifies that this effect, when observed, guarantees [booleanExpression] to be true.
      *
@@ -56,7 +56,7 @@ public interface SimpleEffect : Effect {
      */
     @ContractsDsl
     @ExperimentalContracts
-    public infix fun implies(booleanExpression: Boolean): ConditionalEffect
+    infix fun implies(booleanExpression: Boolean): ConditionalEffect
 }
 
 /**
@@ -67,7 +67,7 @@ public interface SimpleEffect : Effect {
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public interface Returns : SimpleEffect
+interface Returns : SimpleEffect
 
 /**
  * Describes a situation when a function returns normally with any non-null return value.
@@ -77,7 +77,7 @@ public interface Returns : SimpleEffect
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public interface ReturnsNotNull : SimpleEffect
+interface ReturnsNotNull : SimpleEffect
 
 /**
  * An effect of calling a functional parameter in place.
@@ -91,4 +91,4 @@ public interface ReturnsNotNull : SimpleEffect
 @ContractsDsl
 @ExperimentalContracts
 @SinceKotlin("1.3")
-public interface CallsInPlace : Effect
+interface CallsInPlace : Effect
