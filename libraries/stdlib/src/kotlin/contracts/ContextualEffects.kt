@@ -5,6 +5,20 @@
 
 package kotlin.contracts
 
+import kotlin.reflect.KFunction
+
 // ------------------ Checked Exceptions ------------------
 
 class CatchesException<T : Throwable> : CallsBlockInContextDescription, RequiresContextDescription
+
+// ------------------ Safe Builders ------------------
+
+class Calls(func: KFunction<*>, thisReference: Any) : ProvidesContextDescription
+
+class CallKind(func: KFunction<*>, kind: InvocationKind, receiver: ReceiverOf) : BlockExpectsToContextDescription
+
+enum class DslCallKind {
+    AT_MOST_ONCE,
+    EXACTLY_ONCE,
+    AT_LEAST_ONCE
+}
