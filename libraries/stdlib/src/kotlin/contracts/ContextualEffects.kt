@@ -26,3 +26,10 @@ enum class DslCallKind {
 // ------------------ Transactions ------------------
 
 class OpenedTransaction(thisReference: Any) : StartsContextDescription, ClosesContextDescription, RequiresContextDescription
+
+// ------------------ DSLMarker ------------------
+
+class DslMarkers : RequiresContextDescription, CallsBlockInContextDescription {
+    constructor(thisReference: Any)
+    constructor(receiver: ReceiverOf)
+}
