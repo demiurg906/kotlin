@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.checkers
 
 import org.jetbrains.kotlin.compiler.plugin.contracts.ContextEffectsComponent
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.contracts.dslmarker.DslMarkerEffectsComponent
 import org.jetbrains.kotlin.contracts.exceptions.ExceptionContextEffectsComponent
 import org.jetbrains.kotlin.contracts.safebuilders.CallContextEffectsComponent
 import org.jetbrains.kotlin.contracts.transactions.TransactionContextEffectsComponent
@@ -26,6 +27,11 @@ abstract class AbstractContextualEffectsDiagnosticTest : AbstractDiagnosticsTest
         configuration.add(
             ContextEffectsComponent.PLUGIN_CONTEXT_EFFECTS,
             TransactionContextEffectsComponent()
+        )
+
+        configuration.add(
+            ContextEffectsComponent.PLUGIN_CONTEXT_EFFECTS,
+            DslMarkerEffectsComponent()
         )
     }
 }

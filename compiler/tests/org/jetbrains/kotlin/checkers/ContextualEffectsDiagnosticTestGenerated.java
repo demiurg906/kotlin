@@ -87,6 +87,24 @@ public class ContextualEffectsDiagnosticTestGenerated extends AbstractContextual
         }
     }
 
+    @TestMetadata("compiler/testData/diagnostics/contextualEffects/dslMarker")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class DslMarker extends AbstractContextualEffectsDiagnosticTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInDslMarker() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/contextualEffects/dslMarker"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+        }
+
+        @TestMetadata("simple.kt")
+        public void testSimple() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/dslMarker/simple.kt");
+        }
+    }
+
     @TestMetadata("compiler/testData/diagnostics/contextualEffects/safeBuilders")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
@@ -154,9 +172,7 @@ public class ContextualEffectsDiagnosticTestGenerated extends AbstractContextual
         }
 
         public void testAllFilesPresentInTransactions() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(),
-                                                            new File("compiler/testData/diagnostics/contextualEffects/transactions"),
-                                                            Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/contextualEffects/transactions"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
         }
 
         @TestMetadata("if.kt")
