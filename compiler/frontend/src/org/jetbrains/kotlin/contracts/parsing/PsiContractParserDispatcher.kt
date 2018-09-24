@@ -22,14 +22,20 @@ import org.jetbrains.kotlin.contracts.description.ContractDescription
 import org.jetbrains.kotlin.contracts.description.EffectDeclaration
 import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.contracts.description.expressions.*
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_EXPECTS_TO_CONTEXT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_NOT_EXPECTS_TO_CONTEXT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.BLOCK_REQUIRES_NOT_CONTEXT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_BLOCK_IN_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE_EFFECT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CLOSES_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONDITIONAL_EFFECT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDES_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RECEIVER_OF
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_CONTEXT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL_EFFECT
-import org.jetbrains.kotlin.contracts.parsing.effects.PsiCallsEffectParser
-import org.jetbrains.kotlin.contracts.parsing.effects.PsiConditionalEffectParser
-import org.jetbrains.kotlin.contracts.parsing.effects.PsiReturnsEffectParser
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.STARTS_CONTEXT
+import org.jetbrains.kotlin.contracts.parsing.effects.*
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
@@ -51,14 +57,23 @@ interface PsiContractVariableParserDispatcher {
 internal class PsiContractParserDispatcher(
     private val collector: ContractParsingDiagnosticsCollector,
     private val callContext: ContractCallContext
-) {
+) : PsiContractVariableParserDispatcher {
     private val conditionParser = PsiConditionParser(collector, callContext, this)
     private val constantParser = PsiConstantParser(callContext)
     private val effectsParsers: Map<Name, PsiEffectParser> = mapOf(
         RETURNS_EFFECT to PsiReturnsEffectParser(collector, callContext, this),
         RETURNS_NOT_NULL_EFFECT to PsiReturnsEffectParser(collector, callContext, this),
         CALLS_IN_PLACE_EFFECT to PsiCallsEffectParser(collector, callContext, this),
-        CONDITIONAL_EFFECT to PsiConditionalEffectParser(collector, callContext, this)
+        CONDITIONAL_EFFECT to PsiConditionalEffectParser(collector, callContext, this),
+
+        PROVIDES_CONTEXT to PsiFactParser(collector, callContext, this),
+        STARTS_CONTEXT to PsiFactParser(collector, callContext, this),
+        CLOSES_CONTEXT to PsiFactParser(collector, callContext, this),
+        REQUIRES_CONTEXT to PsiFactParser(collector, callContext, this),
+        BLOCK_NOT_EXPECTS_TO_CONTEXT to PsiFactParser(collector, callContext, this),
+        CALLS_BLOCK_IN_CONTEXT to PsiLambdaFactParser(collector, callContext, this),
+        BLOCK_EXPECTS_TO_CONTEXT to PsiLambdaFactParser(collector, callContext, this),
+        BLOCK_REQUIRES_NOT_CONTEXT to PsiLambdaFactParser(collector, callContext, this)
     )
 
     fun parseContract(): ContractDescription? {
@@ -117,7 +132,7 @@ internal class PsiContractParserDispatcher(
         return expression.accept(constantParser, Unit)
     }
 
-    fun parseVariable(expression: KtExpression?): VariableReference? {
+    override fun parseVariable(expression: KtExpression?): VariableReference? {
         if (expression == null) return null
         val descriptor = expression.getResolvedCall(callContext.bindingContext)?.resultingDescriptor ?: return null
         if (descriptor !is ParameterDescriptor) {
@@ -136,7 +151,7 @@ internal class PsiContractParserDispatcher(
             VariableReference(descriptor)
     }
 
-    fun parseReceiver(expression: KtExpression?): ReceiverReference? {
+    override fun parseReceiver(expression: KtExpression?): ReceiverReference? {
         if (expression == null) return null
         val resolvedCall = expression.getResolvedCall(callContext.bindingContext) ?: return null
         val descriptor = resolvedCall.resultingDescriptor
@@ -150,7 +165,7 @@ internal class PsiContractParserDispatcher(
         return ReceiverReference(variable)
     }
 
-    fun parseFunction(expression: KtExpression?): FunctionReference? {
+    override fun parseFunction(expression: KtExpression?): FunctionReference? {
         if (expression == null) return null
         val reference = expression as? KtCallableReferenceExpression ?: return null
         val descriptor =
@@ -165,7 +180,7 @@ internal class PsiContractParserDispatcher(
         return parseConstant(expression)
     }
 
-    fun parseKind(expression: KtExpression?): InvocationKind? {
+    override fun parseKind(expression: KtExpression?): InvocationKind? {
         if (expression == null) return null
         val descriptor = expression.getResolvedCall(callContext.bindingContext)?.resultingDescriptor ?: return null
         if (!descriptor.parents.first().isInvocationKindEnum()) return null
