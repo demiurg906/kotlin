@@ -49,10 +49,8 @@ fun <D> Pseudocode.traverse(
         if (instruction is LocalFunctionDeclarationInstruction) {
             instruction.body.traverse(traversalOrder, edgesMap, analyzeInstruction)
         }
-        val edges = edgesMap[instruction]
-        if (edges != null) {
-            analyzeInstruction(instruction, edges.incoming, edges.outgoing)
-        }
+        val edges = edgesMap[instruction] ?: continue
+        analyzeInstruction(instruction, edges.incoming, edges.outgoing)
     }
 }
 
@@ -63,7 +61,8 @@ fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectData(
     initialInfo: I
 ): Map<Instruction, Edges<I>> {
     val edgesMap = LinkedHashMap<Instruction, Edges<I>>()
-    edgesMap.put(getStartInstruction(traversalOrder), Edges(initialInfo, initialInfo))
+    val startInstruction = getStartInstruction(traversalOrder)
+    edgesMap[startInstruction] = Edges(initialInfo, initialInfo)
 
     val changed = mutableMapOf<Instruction, Boolean>()
     do {
@@ -122,18 +121,11 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
             continue
         }
 
-        val incomingEdgesData = HashSet<I>()
+        val incomingEdgesData = previousInstructions.mapNotNull { previousInstruction ->
+            val previousData = edgesMap[previousInstruction] ?: return@mapNotNull null
+            updateEdge(previousInstruction, instruction, previousData.outgoing)
+        }.toSet()
 
-        for (previousInstruction in previousInstructions) {
-            val previousData = edgesMap[previousInstruction]
-            if (previousData != null) {
-                incomingEdgesData.add(
-                    updateEdge(
-                        previousInstruction, instruction, previousData.outgoing
-                    )
-                )
-            }
-        }
         val mergedData = mergeEdges(instruction, incomingEdgesData)
         updateEdgeDataForInstruction(instruction, previousDataValue, mergedData, edgesMap, changed)
     }
@@ -163,7 +155,7 @@ private fun <I : ControlFlowInfo<*, *, *>> updateEdgeDataForInstruction(
 ) {
     if (previousValue != newValue && newValue != null) {
         changed[instruction] = true
-        edgesMap.put(instruction, newValue)
+        edgesMap[instruction] = newValue
     } else {
         changed[instruction] = false
     }
