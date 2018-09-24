@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.cfg
 import com.intellij.psi.util.PsiTreeUtil.getParentOfType
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.cfg.TailRecursionKind.*
+import org.jetbrains.kotlin.cfg.effects.PseudocodeEffectsData
 import org.jetbrains.kotlin.cfg.pseudocode.Pseudocode
 import org.jetbrains.kotlin.cfg.pseudocode.PseudocodeUtil
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
@@ -23,6 +24,15 @@ import org.jetbrains.kotlin.cfg.variable.*
 import org.jetbrains.kotlin.cfg.variable.VariableUseState.*
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.contracts.FactsEffectSystem
+import org.jetbrains.kotlin.contracts.description.ContextCleanerEffectDeclaration
+import org.jetbrains.kotlin.contracts.description.ContextProviderEffectDeclaration
+import org.jetbrains.kotlin.contracts.description.ContextVerifierEffectDeclaration
+import org.jetbrains.kotlin.contracts.description.ContractProviderKey
+import org.jetbrains.kotlin.contracts.facts.CleanerDeclaration
+import org.jetbrains.kotlin.contracts.facts.ContextFamily
+import org.jetbrains.kotlin.contracts.facts.ProviderDeclaration
+import org.jetbrains.kotlin.contracts.facts.VerifierDeclaration
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
@@ -62,6 +72,9 @@ class ControlFlowInformationProvider private constructor(
     private val pseudocodeVariablesData by lazy {
         PseudocodeVariablesData(pseudocode, trace.bindingContext)
     }
+
+    private fun getPseudocodeEffectsData(declaredContracts: Map<ContextFamily, ContextContracts>) =
+        PseudocodeEffectsData(pseudocode, trace, declaredContracts)
 
     constructor(
         declaration: KtElement,
@@ -117,6 +130,57 @@ class ControlFlowInformationProvider private constructor(
         checkDefiniteReturn(expectedReturnType ?: NO_EXPECTED_TYPE, unreachableCode)
 
         markAndCheckTailCalls()
+
+        checkContextualEffects()
+    }
+
+    private fun checkContextualEffects() {
+        // subroutine can be secondary constructor
+        if (subroutine !is KtFunction) return
+
+        val declaredContracts = collectDeclaredContextualContracts(subroutine)
+        val pseudocodeEffectsData = getPseudocodeEffectsData(declaredContracts)
+
+        val contextsInfo = pseudocodeEffectsData.resultingContexts ?: return
+
+        for (family in FactsEffectSystem.getFamilies()) {
+            val contexts = contextsInfo[family] ?: continue
+            for (context in contexts) {
+                context.reportRemaining(trace, declaredContracts[family] ?: ContextContracts())
+            }
+        }
+    }
+
+    private fun collectDeclaredContextualContracts(subroutine: KtFunction): Map<ContextFamily, ContextContracts> {
+        val functionDescriptor = trace.bindingContext[BindingContext.FUNCTION, subroutine] ?: return mapOf()
+        val contractProvider = functionDescriptor.getUserData(ContractProviderKey) ?: return mapOf()
+
+        val contractDescription = contractProvider.getContractDescription()
+        if (contractDescription == null || contractDescription.effects.isEmpty()) return mapOf()
+
+        val providers = contractDescription.effects
+            .mapNotNull { it as? ContextProviderEffectDeclaration }
+            .map { it.factory as ProviderDeclaration }
+
+        val verifiers = contractDescription.effects
+            .mapNotNull { it as? ContextVerifierEffectDeclaration }
+            .map { it.factory as VerifierDeclaration }
+
+        val cleaners = contractDescription.effects
+            .mapNotNull { it as? ContextCleanerEffectDeclaration }
+            .map { it.factory as CleanerDeclaration }
+
+        val res = mutableMapOf<ContextFamily, ContextContracts>()
+
+        for (family in FactsEffectSystem.getFamilies()) {
+            res[family] = ContextContracts(
+                providers = providers.filter { it.family == family },
+                verifiers = verifiers.filter { it.family == family },
+                cleaners = cleaners.filter { it.family == family }
+            )
+        }
+
+        return res.withDefault { ContextContracts() }
     }
 
     private fun collectReturnExpressions(returnedExpressions: MutableCollection<KtElement>) {
