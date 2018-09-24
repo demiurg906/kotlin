@@ -37,7 +37,8 @@ class ContractInterpretationDispatcher {
     private val conditionalEffectInterpreter = ConditionalEffectInterpreter(this)
     private val effectsInterpreters: List<EffectDeclarationInterpreter> = listOf(
         ReturnsEffectInterpreter(this),
-        CallsEffectInterpreter(this)
+        CallsEffectInterpreter(this),
+        ProvidesRequiresInterpreter(this)
     )
 
     fun resolveFunctor(functionDescriptor: FunctionDescriptor, additionalReducer: AdditionalReducer): Functor? {

@@ -43,6 +43,21 @@ class Reducer(private val additionalReducer: AdditionalReducer?) : ESExpressionV
                 // Leave everything else as is
                 return effect
             }
+            is ContextProviderEffect -> {
+                val references = effect.references
+                val reducedReferences = references.map { it?.accept(this) as? ESValue }
+                return ContextProviderEffect(effect.providerDeclaration, reducedReferences, effect.owner)
+            }
+            is ContextVerifierEffect -> {
+                val references = effect.references
+                val reducedReferences = references.map { it?.accept(this) as? ESValue }
+                return ContextVerifierEffect(effect.verifierDeclaration, reducedReferences, effect.owner)
+            }
+            is ContextCleanerEffect -> {
+                val references = effect.references
+                val reducedReferences = references.map { it?.accept(this) as? ESValue }
+                return ContextCleanerEffect(effect.cleanerDeclaration, reducedReferences, effect.owner)
+            }
             else -> return effect
         }
     }

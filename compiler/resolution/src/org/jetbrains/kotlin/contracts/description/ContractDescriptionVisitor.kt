@@ -56,4 +56,23 @@ interface ContractDescriptionVisitor<out R, in D> {
     fun visitReceiverReference(receiverReference: ReceiverReference, data: D): R = visitValue(receiverReference, data)
 
     fun visitFunctionReference(functionReference: FunctionReference, data: D) = visitValue(functionReference, data)
+
+    // Contextual contracts
+    fun visitContextProviderEffectDeclaration(effectDeclaration: ContextProviderEffectDeclaration, data: D): R =
+        visitEffectDeclaration(effectDeclaration, data)
+
+    fun visitLambdaContextProviderEffectDeclaration(effectDeclaration: LambdaContextProviderEffectDeclaration, data: D): R =
+        visitEffectDeclaration(effectDeclaration, data)
+
+    fun visitContextVerifierEffectDeclaration(effectDeclaration: ContextVerifierEffectDeclaration, data: D): R =
+        visitEffectDeclaration(effectDeclaration, data)
+
+    fun visitLambdaContextVerifierEffectDeclaration(effectDeclaration: LambdaContextVerifierEffectDeclaration, data: D): R =
+        visitEffectDeclaration(effectDeclaration, data)
+
+    fun visitContextCleanerEffectDeclaration(effectDeclaration: ContextCleanerEffectDeclaration, data: D): R =
+        visitEffectDeclaration(effectDeclaration, data)
+
+    fun visitLambdaContextCleanerEffectDeclaration(effectDeclaration: LambdaContextCleanerEffectDeclaration, data: D): R =
+        visitEffectDeclaration(effectDeclaration, data)
 }
