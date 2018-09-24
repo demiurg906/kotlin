@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.contracts.description.BooleanExpression
 import org.jetbrains.kotlin.contracts.description.ContractDescription
 import org.jetbrains.kotlin.contracts.description.EffectDeclaration
+import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.contracts.description.expressions.BooleanVariableReference
 import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
 import org.jetbrains.kotlin.contracts.description.expressions.ContractDescriptionValue
@@ -40,6 +41,8 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.callUtil.getType
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.parents
 
 internal class PsiContractParserDispatcher(
     private val collector: ContractParsingDiagnosticsCollector,
@@ -134,5 +137,19 @@ internal class PsiContractParserDispatcher(
         if (variable != null) return variable
 
         return parseConstant(expression)
+    }
+
+    fun parseKind(expression: KtExpression?): InvocationKind? {
+        if (expression == null) return null
+        val descriptor = expression.getResolvedCall(callContext.bindingContext)?.resultingDescriptor ?: return null
+        if (!descriptor.parents.first().isInvocationKindEnum()) return null
+
+        return when (descriptor.fqNameSafe.shortName()) {
+            ContractsDslNames.AT_MOST_ONCE_KIND -> InvocationKind.AT_MOST_ONCE
+            ContractsDslNames.EXACTLY_ONCE_KIND -> InvocationKind.EXACTLY_ONCE
+            ContractsDslNames.AT_LEAST_ONCE_KIND -> InvocationKind.AT_LEAST_ONCE
+            ContractsDslNames.UNKNOWN_KIND -> InvocationKind.UNKNOWN
+            else -> null
+        }
     }
 }
