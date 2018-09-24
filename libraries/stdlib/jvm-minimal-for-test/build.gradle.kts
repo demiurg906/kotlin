@@ -34,7 +34,8 @@ val copySources by task<Sync> {
         .include("kotlin/util/Standard.kt",
                  "kotlin/internal/Annotations.kt",
                  "kotlin/contracts/ContractBuilder.kt",
-                 "kotlin/contracts/Effect.kt")
+                 "kotlin/contracts/Effect.kt",
+                 "kotlin/contracts/ContextualEffects.kt")
     into(File(buildDir, "src"))
 }
 
