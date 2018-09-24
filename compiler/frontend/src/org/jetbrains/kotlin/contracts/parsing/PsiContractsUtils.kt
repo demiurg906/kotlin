@@ -16,14 +16,22 @@
 
 package org.jetbrains.kotlin.contracts.parsing
 
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CLOSES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONTRACT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONTRACTS_DSL_ANNOTATION_FQN
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.EFFECT
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.EXPECTS_TO
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.IMPLIES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.INVOCATION_KIND_ENUM
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.NOT_EXPECTS_TO
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.PROVIDES
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.REQUIRES_NOT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL
+import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.STARTS
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.name.FqName
@@ -48,6 +56,15 @@ object ContractsDslNames {
     val RETURNS_NOT_NULL_EFFECT = Name.identifier("ReturnsNotNull")
     val CALLS_IN_PLACE_EFFECT = Name.identifier("CallsInPlace")
 
+    val PROVIDES_CONTEXT = Name.identifier("ProvidesContext")
+    val CALLS_BLOCK_IN_CONTEXT = Name.identifier("CallsBlockInContext")
+    val REQUIRES_CONTEXT = Name.identifier("RequiresContext")
+    val BLOCK_EXPECTS_TO_CONTEXT = Name.identifier("BlockExpectsToContext")
+    val BLOCK_NOT_EXPECTS_TO_CONTEXT = Name.identifier("RequiresNotContext")
+    val BLOCK_REQUIRES_NOT_CONTEXT = Name.identifier("BlockNotExpectsToContext")
+    val STARTS_CONTEXT = Name.identifier("StartsContext")
+    val CLOSES_CONTEXT = Name.identifier("ClosesContext")
+
     // Structure-defining calls
     val CONTRACT = Name.identifier("contract")
     val IMPLIES = Name.identifier("implies")
@@ -56,6 +73,14 @@ object ContractsDslNames {
     val RETURNS = Name.identifier("returns")
     val RETURNS_NOT_NULL = Name.identifier("returnsNotNull")
     val CALLS_IN_PLACE = Name.identifier("callsInPlace")
+    val PROVIDES = Name.identifier("provides")
+    val REQUIRES = Name.identifier("requires")
+    val REQUIRES_NOT = Name.identifier("requiresNot")
+    val STARTS = Name.identifier("starts")
+    val CLOSES = Name.identifier("closes")
+    val CALLS_IN = Name.identifier("callsIn")
+    val EXPECTS_TO = Name.identifier("expectsTo")
+    val NOT_EXPECTS_TO = Name.identifier("notExpectsTo")
 
     // enum class InvocationKind
     val INVOCATION_KIND_ENUM = Name.identifier("InvocationKind")
@@ -65,6 +90,17 @@ object ContractsDslNames {
     val AT_MOST_ONCE_KIND = Name.identifier("AT_MOST_ONCE")
 
     val RECEIVER_OF = Name.identifier("ReceiverOf")
+}
+
+object ContextDslNames {
+    val PROVIDES = ContractsDslNames.PROVIDES
+    val REQUIRES = ContractsDslNames.REQUIRES
+    val REQUIRES_NOT = ContractsDslNames.REQUIRES_NOT
+    val STARTS = ContractsDslNames.STARTS
+    val CLOSES = ContractsDslNames.CLOSES
+    val CALLS_IN = ContractsDslNames.CALLS_IN
+    val EXPECTS_TO = ContractsDslNames.EXPECTS_TO
+    val NOT_EXPECTS_TO = ContractsDslNames.NOT_EXPECTS_TO
 }
 
 fun DeclarationDescriptor.isFromContractDsl(): Boolean = this.annotations.hasAnnotation(CONTRACTS_DSL_ANNOTATION_FQN)
@@ -87,11 +123,34 @@ fun DeclarationDescriptor.isCallsInPlaceEffectDescriptor(): Boolean = equalsDslD
 
 fun DeclarationDescriptor.isInvocationKindEnum(): Boolean = equalsDslDescriptor(INVOCATION_KIND_ENUM)
 
+// Context providers, verifiers and cleaners
+
+fun DeclarationDescriptor.isProviderOrVerifierOrCleanerDescriptor(): Boolean =
+    isProvidesFactDescriptor() ||
+            isStartsContextDescriptor() ||
+            isRequiresContextDescriptor() ||
+            isRequiresNotContextDescriptor() ||
+            isClosesContextDescriptor() ||
+            isCallsInDescriptor() ||
+            isExpectsToDescriptor() ||
+            isNotExpectsToDescriptor()
+
+private fun DeclarationDescriptor.isProvidesFactDescriptor(): Boolean = equalsDslDescriptor(PROVIDES)
+private fun DeclarationDescriptor.isStartsContextDescriptor(): Boolean = equalsDslDescriptor(STARTS)
+private fun DeclarationDescriptor.isRequiresContextDescriptor(): Boolean = equalsDslDescriptor(REQUIRES)
+private fun DeclarationDescriptor.isRequiresNotContextDescriptor(): Boolean = equalsDslDescriptor(REQUIRES_NOT)
+private fun DeclarationDescriptor.isClosesContextDescriptor(): Boolean = equalsDslDescriptor(CLOSES)
+private fun DeclarationDescriptor.isCallsInDescriptor(): Boolean = equalsDslDescriptor(CALLS_IN)
+private fun DeclarationDescriptor.isExpectsToDescriptor(): Boolean = equalsDslDescriptor(EXPECTS_TO)
+private fun DeclarationDescriptor.isNotExpectsToDescriptor(): Boolean = equalsDslDescriptor(NOT_EXPECTS_TO)
+
 fun DeclarationDescriptor.isEqualsDescriptor(): Boolean =
     this is FunctionDescriptor && this.name == Name.identifier("equals") && // fast checks
             this.returnType?.isBoolean() == true && this.valueParameters.singleOrNull()?.type?.isNullableAny() == true // signature matches
 
-internal fun ResolvedCall<*>.firstArgumentAsExpressionOrNull(): KtExpression? =
-    this.valueArgumentsByIndex?.firstOrNull()?.safeAs<ExpressionValueArgument>()?.valueArgument?.getArgumentExpression()
+fun ResolvedCall<*>.firstArgumentAsExpressionOrNull(): KtExpression? = argumentAsExpressionOrNull(0)
+
+fun ResolvedCall<*>.argumentAsExpressionOrNull(index: Int): KtExpression? =
+    this.valueArgumentsByIndex?.getOrNull(index)?.safeAs<ExpressionValueArgument>()?.valueArgument?.getArgumentExpression()
 
 private fun DeclarationDescriptor.equalsDslDescriptor(dslName: Name): Boolean = this.name == dslName && this.isFromContractDsl()
