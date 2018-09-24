@@ -1,0 +1,25 @@
+package
+
+public fun test_1(): kotlin.Unit
+public fun test_2(): kotlin.Unit
+public fun test_3(): kotlin.Unit
+public fun test_4(): kotlin.Unit
+public fun test_5(): kotlin.Unit
+
+public final class Transaction {
+    public constructor Transaction()
+    public final fun commit(): kotlin.Unit
+        commitkotlin.Unit verifies opened transaction
+        commitkotlin.Unit cleans opened transaction
+
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public final fun setData(): kotlin.Unit
+        setDatakotlin.Unit verifies opened transaction
+
+    public final fun start(): kotlin.Unit
+        startkotlin.Unit provides opened transaction
+        startkotlin.Unit verifies no opened transaction
+
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
