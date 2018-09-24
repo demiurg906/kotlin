@@ -4,3 +4,7 @@
  */
 
 package kotlin.contracts
+
+// ------------------ Checked Exceptions ------------------
+
+class CatchesException<T : Throwable> : CallsBlockInContextDescription, RequiresContextDescription
