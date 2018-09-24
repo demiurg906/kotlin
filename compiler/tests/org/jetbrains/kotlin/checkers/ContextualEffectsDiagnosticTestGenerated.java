@@ -86,4 +86,62 @@ public class ContextualEffectsDiagnosticTestGenerated extends AbstractContextual
             runTest("compiler/testData/diagnostics/contextualEffects/checkedExceptions/when.kt");
         }
     }
+
+    @TestMetadata("compiler/testData/diagnostics/contextualEffects/safeBuilders")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class SafeBuilders extends AbstractContextualEffectsDiagnosticTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInSafeBuilders() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/contextualEffects/safeBuilders"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+        }
+
+        @TestMetadata("badCases.kt")
+        public void testBadCases() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/safeBuilders/badCases.kt");
+        }
+
+        @TestMetadata("complicatedBuilders.kt")
+        public void testComplicatedBuilders() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/safeBuilders/complicatedBuilders.kt");
+        }
+
+        @TestMetadata("functionInvocationKinds.kt")
+        public void testFunctionInvocationKinds() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/safeBuilders/functionInvocationKinds.kt");
+        }
+
+        @TestMetadata("if.kt")
+        public void testIf() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/safeBuilders/if.kt");
+        }
+
+        @TestMetadata("loops.kt")
+        public void testLoops() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/safeBuilders/loops.kt");
+        }
+
+        @TestMetadata("nestedBuild.kt")
+        public void testNestedBuild() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/safeBuilders/nestedBuild.kt");
+        }
+
+        @TestMetadata("qualifiedThis.kt")
+        public void testQualifiedThis() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/safeBuilders/qualifiedThis.kt");
+        }
+
+        @TestMetadata("simple.kt")
+        public void testSimple() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/safeBuilders/simple.kt");
+        }
+
+        @TestMetadata("when.kt")
+        public void testWhen() throws Exception {
+            runTest("compiler/testData/diagnostics/contextualEffects/safeBuilders/when.kt");
+        }
+    }
 }
