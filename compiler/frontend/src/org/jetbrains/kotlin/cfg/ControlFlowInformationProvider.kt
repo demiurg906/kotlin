@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
+ * Copyright 2010-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
  * that can be found in the license/LICENSE.txt file.
  */
 
@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.cfg
 import com.intellij.psi.util.PsiTreeUtil.getParentOfType
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.cfg.TailRecursionKind.*
-import org.jetbrains.kotlin.cfg.VariableUseState.*
 import org.jetbrains.kotlin.cfg.pseudocode.Pseudocode
 import org.jetbrains.kotlin.cfg.pseudocode.PseudocodeUtil
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
@@ -20,8 +19,8 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.MarkInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.VariableDeclarationInstruction
 import org.jetbrains.kotlin.cfg.pseudocode.sideEffectFree
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.*
-import org.jetbrains.kotlin.cfg.variable.BlockScopeVariableInfo
-import org.jetbrains.kotlin.cfg.variable.PseudocodeVariablesData
+import org.jetbrains.kotlin.cfg.variable.*
+import org.jetbrains.kotlin.cfg.variable.VariableUseState.*
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.*
@@ -277,8 +276,8 @@ class ControlFlowInformationProvider private constructor(
         val reportedDiagnosticMap = hashMapOf<Instruction, DiagnosticFactory<*>>()
 
         pseudocode.traverse(TraversalOrder.FORWARD, initializers) { instruction: Instruction,
-                                                                    enterData: ReadOnlyInitControlFlowInfo,
-                                                                    exitData: ReadOnlyInitControlFlowInfo ->
+                                                                    enterData: ReadOnlyInitVariableControlFlowInfo,
+                                                                    exitData: ReadOnlyInitVariableControlFlowInfo ->
 
             val ctxt = VariableInitContext(instruction, reportedDiagnosticMap, enterData, exitData, blockScopeVariableInfo)
             if (ctxt.variableDescriptor == null) return@traverse
@@ -554,7 +553,7 @@ class ControlFlowInformationProvider private constructor(
 
     private fun recordInitializedVariables(
         pseudocode: Pseudocode,
-        initializersMap: Map<Instruction, Edges<ReadOnlyInitControlFlowInfo>>
+        initializersMap: Map<Instruction, Edges<ReadOnlyInitVariableControlFlowInfo>>
     ) {
         val initializers = initializersMap[pseudocode.exitInstruction] ?: return
         val declaredVariables = pseudocodeVariablesData.getDeclaredVariables(pseudocode, false)
@@ -575,8 +574,8 @@ class ControlFlowInformationProvider private constructor(
         val unusedValueExpressions = hashMapOf<KtExpression, Pair<VariableDescriptor, VariableUseContext>>()
         val usedValueExpressions = hashSetOf<KtExpression>()
         pseudocode.traverse(TraversalOrder.BACKWARD, variableStatusData) { instruction: Instruction,
-                                                                           enterData: ReadOnlyUseControlFlowInfo,
-                                                                           _: ReadOnlyUseControlFlowInfo ->
+                                                                           enterData: ReadOnlyUseVariableControlFlowInfo,
+                                                                           _: ReadOnlyUseVariableControlFlowInfo ->
 
             val ctxt = VariableUseContext(instruction, reportedDiagnosticMap)
             val declaredVariables = pseudocodeVariablesData.getDeclaredVariables(instruction.owner, false)
@@ -1012,8 +1011,8 @@ class ControlFlowInformationProvider private constructor(
     private inner class VariableInitContext(
         instruction: Instruction,
         map: MutableMap<Instruction, DiagnosticFactory<*>>,
-        `in`: ReadOnlyInitControlFlowInfo,
-        out: ReadOnlyInitControlFlowInfo,
+        `in`: ReadOnlyInitVariableControlFlowInfo,
+        out: ReadOnlyInitVariableControlFlowInfo,
         blockScopeVariableInfo: BlockScopeVariableInfo
     ) : VariableContext(instruction, map) {
         internal val enterInitState = initialize(variableDescriptor, blockScopeVariableInfo, `in`)
@@ -1022,7 +1021,7 @@ class ControlFlowInformationProvider private constructor(
         private fun initialize(
             variableDescriptor: VariableDescriptor?,
             blockScopeVariableInfo: BlockScopeVariableInfo,
-            map: ReadOnlyInitControlFlowInfo
+            map: ReadOnlyInitVariableControlFlowInfo
         ): VariableControlFlowState? {
             val state = map.getOrNull(variableDescriptor ?: return null)
             if (state != null) return state
