@@ -58,6 +58,33 @@ class SubstitutingFunctor(
                     substitutedClauses += ESCalls(substitutionForCallable, effect.kind)
                 }
 
+                is ContextProviderEffect -> {
+                    val substitutionForCallable = if (effect.owner is ESFunction)
+                        effect.owner
+                    else
+                        effect.owner.accept(substitutor) as? ESValue ?: continue@effectsLoop
+                    val substitutedReferences = effect.references.map { it?.accept(substitutor) as? ESValue }
+                    substitutedClauses += ContextProviderEffect(effect.providerDeclaration, substitutedReferences, substitutionForCallable)
+                }
+
+                is ContextVerifierEffect -> {
+                    val substitutionForCallable = if (effect.owner is ESFunction)
+                        effect.owner
+                    else
+                        effect.owner.accept(substitutor) as? ESValue ?: continue@effectsLoop
+                    val substitutedReferences = effect.references.map { it?.accept(substitutor) as? ESValue }
+                    substitutedClauses += ContextVerifierEffect(effect.verifierDeclaration, substitutedReferences, substitutionForCallable)
+                }
+
+                is ContextCleanerEffect -> {
+                    val substitutionForCallable = if (effect.owner is ESFunction)
+                        effect.owner
+                    else
+                        effect.owner.accept(substitutor) as? ESValue ?: continue@effectsLoop
+                    val substitutedReferences = effect.references.map { it?.accept(substitutor) as? ESValue }
+                    substitutedClauses += ContextCleanerEffect(effect.cleanerDeclaration, substitutedReferences, substitutionForCallable)
+                }
+
                 else -> substitutedClauses += effect
             }
         }
