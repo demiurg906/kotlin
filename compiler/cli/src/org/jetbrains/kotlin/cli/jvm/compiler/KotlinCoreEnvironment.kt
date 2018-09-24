@@ -87,10 +87,12 @@ import org.jetbrains.kotlin.cli.jvm.modules.CoreJrtFileSystem
 import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
 import org.jetbrains.kotlin.codegen.extensions.ExpressionCodegenExtension
 import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
+import org.jetbrains.kotlin.compiler.plugin.contracts.ContextEffectsComponent
 import org.jetbrains.kotlin.config.APPEND_JAVA_SOURCE_ROOTS_HANDLER_KEY
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.languageVersionSettings
+import org.jetbrains.kotlin.contracts.ContextFamiliesService
 import org.jetbrains.kotlin.extensions.*
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.js.translate.extensions.JsSyntheticTranslateExtension
@@ -203,6 +205,10 @@ class KotlinCoreEnvironment private constructor(
                     throw IllegalStateException(message, e)
                 }
             }
+        }
+
+        for (contextEffectsComponent in configuration.getList(ContextEffectsComponent.PLUGIN_CONTEXT_EFFECTS)) {
+            contextEffectsComponent.registerProjectComponents(ContextFamiliesService)
         }
 
         project.registerService(DeclarationProviderFactoryService::class.java, CliDeclarationProviderFactoryService(sourceFiles))
