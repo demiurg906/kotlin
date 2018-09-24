@@ -26,6 +26,19 @@ import org.jetbrains.kotlin.cfg.pseudocode.instructions.special.SubroutineSinkIn
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.TraversalOrder.FORWARD
 import java.util.*
 
+enum class LocalFunctionAnalysisStrategy {
+    ANALYSE_EVERYTHING {
+        override fun allowFunction(declaration: LocalFunctionDeclarationInstruction) = true
+    },
+
+    ONLY_IN_PLACE_LAMBDAS {
+        override fun allowFunction(declaration: LocalFunctionDeclarationInstruction) =
+            declaration is InlinedLocalFunctionDeclarationInstruction
+    };
+
+    abstract fun allowFunction(declaration: LocalFunctionDeclarationInstruction): Boolean
+}
+
 fun Pseudocode.traverse(
     traversalOrder: TraversalOrder,
     analyzeInstruction: (Instruction) -> Unit
@@ -54,11 +67,24 @@ fun <D> Pseudocode.traverse(
     }
 }
 
+/**
+ * Collects data from pseudocode using ControlFlowAnalysis
+ *
+ * [mergeEdges] is callback that takes current instruction, all data from previous edges and depth of analysis
+ *  it has to merge previous data and return [Edges] info about current instruction
+ *
+ * [updateEdge] is callback that takes previous instruction, current instruction and control flow info
+ *  it used for cleanup control flow info if needed
+ *
+ * [localFunctionAnalysisStrategy] describes politic of analyzing [LocalFunctionDeclarationInstruction]
+ *  it decides, should CFA come into local function or not
+ */
 fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectData(
     traversalOrder: TraversalOrder,
     mergeEdges: (Instruction, Collection<I>) -> Edges<I>,
     updateEdge: (Instruction, Instruction, I) -> I,
-    initialInfo: I
+    initialInfo: I,
+    localFunctionAnalysisStrategy: LocalFunctionAnalysisStrategy
 ): Map<Instruction, Edges<I>> {
     val edgesMap = LinkedHashMap<Instruction, Edges<I>>()
     val startInstruction = getStartInstruction(traversalOrder)
@@ -68,7 +94,8 @@ fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectData(
     do {
         collectDataFromSubgraph(
             traversalOrder, edgesMap,
-            mergeEdges, updateEdge, Collections.emptyList<Instruction>(), changed, false
+            mergeEdges, updateEdge, Collections.emptyList(), changed, false,
+            localFunctionAnalysisStrategy
         )
     } while (changed.any { it.value })
 
@@ -82,7 +109,8 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
     updateEdge: (Instruction, Instruction, I) -> I,
     previousSubGraphInstructions: Collection<Instruction>,
     changed: MutableMap<Instruction, Boolean>,
-    isLocal: Boolean
+    isLocal: Boolean,
+    localFunctionAnalysisStrategy: LocalFunctionAnalysisStrategy
 ) {
     val instructions = getInstructions(traversalOrder)
     val startInstruction = getStartInstruction(traversalOrder)
@@ -95,10 +123,11 @@ private fun <I : ControlFlowInfo<*, *, *>> Pseudocode.collectDataFromSubgraph(
         val previousInstructions =
             getPreviousIncludingSubGraphInstructions(instruction, traversalOrder, startInstruction, previousSubGraphInstructions)
 
-        if (instruction is LocalFunctionDeclarationInstruction) {
+        if (instruction is LocalFunctionDeclarationInstruction && localFunctionAnalysisStrategy.allowFunction(instruction)) {
             val subroutinePseudocode = instruction.body
             subroutinePseudocode.collectDataFromSubgraph(
-                traversalOrder, edgesMap, mergeEdges, updateEdge, previousInstructions, changed, true
+                traversalOrder, edgesMap, mergeEdges, updateEdge, previousInstructions, changed, true,
+                localFunctionAnalysisStrategy
             )
             // Special case for inlined functions: take flow from EXIT instructions (it contains flow which exits declaration normally)
             val lastInstruction = if (instruction is InlinedLocalFunctionDeclarationInstruction && traversalOrder == FORWARD)

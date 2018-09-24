@@ -29,7 +29,8 @@ class PseudocodeVariableDataCollector(
             traversalOrder,
             instructionDataMergeStrategy,
             { from, to, info -> filterOutVariablesOutOfScope(from, to, info) },
-            initialInfo
+            initialInfo,
+            LocalFunctionAnalysisStrategy.ANALYSE_EVERYTHING
         )
     }
 
