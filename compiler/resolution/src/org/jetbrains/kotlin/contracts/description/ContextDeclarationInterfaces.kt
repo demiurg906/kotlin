@@ -1,0 +1,16 @@
+/*
+ * Copyright 2010-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
+ * that can be found in the license/LICENSE.txt file.
+ */
+
+package org.jetbrains.kotlin.contracts.description
+
+
+/**
+ * That interfaces are needed to hacked use frontend classes in resolution module
+ */
+interface ProviderDeclarationHackedInterface
+
+interface VerifierDeclarationHackedInterface
+
+interface CleanerDeclarationHackedInterface
