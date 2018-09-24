@@ -57,4 +57,13 @@ class Substitutor(private val substitutions: Map<ESVariable, Computation>) : ESE
     override fun visitVariable(esVariable: ESVariable): Computation? = substitutions[esVariable] ?: esVariable
 
     override fun visitConstant(esConstant: ESConstant): Computation? = esConstant
+
+    override fun visitReceiverReference(esReceiverReference: ESReceiverReference): Computation? {
+        val lambda = esReceiverReference.lambda.accept(this) as? ESValue ?: return null
+        return ESReceiverReference(lambda)
+    }
+
+    override fun visitFunction(esFunction: ESFunction): ESFunction = esFunction
+
+    override fun visitReceiver(esReceiver: ESReceiver): ESReceiver = esReceiver
 }

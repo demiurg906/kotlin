@@ -16,9 +16,6 @@
 
 package org.jetbrains.kotlin.contracts.parsing
 
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONTRACT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONTRACTS_DSL_ANNOTATION_FQN
@@ -27,6 +24,8 @@ import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.IMPLIES
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.INVOCATION_KIND_ENUM
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtExpression
@@ -64,6 +63,8 @@ object ContractsDslNames {
     val AT_LEAST_ONCE_KIND = Name.identifier("AT_LEAST_ONCE")
     val UNKNOWN_KIND = Name.identifier("UNKNOWN")
     val AT_MOST_ONCE_KIND = Name.identifier("AT_MOST_ONCE")
+
+    val RECEIVER_OF = Name.identifier("ReceiverOf")
 }
 
 fun DeclarationDescriptor.isFromContractDsl(): Boolean = this.annotations.hasAnnotation(CONTRACTS_DSL_ANNOTATION_FQN)

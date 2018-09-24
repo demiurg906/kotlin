@@ -24,13 +24,12 @@ import org.jetbrains.kotlin.types.typeUtil.isSubtypeOf
  * Reduces given list of effects by evaluating constant expressions,
  * throwing away senseless checks and infeasible clauses, etc.
  */
-class Reducer : ESExpressionVisitor<ESExpression?> {
+class Reducer(private val additionalReducer: AdditionalReducer?) : ESExpressionVisitor<ESExpression?> {
     fun reduceEffects(schema: List<ESEffect>): List<ESEffect> =
         schema.mapNotNull { reduceEffect(it) }
 
     private fun reduceEffect(effect: ESEffect): ESEffect? {
         when (effect) {
-            is SimpleEffect -> return effect
             is ConditionalEffect -> {
                 // Reduce condition
                 val reducedCondition = effect.condition.accept(this) ?: return null
@@ -44,6 +43,7 @@ class Reducer : ESExpressionVisitor<ESExpression?> {
                 // Leave everything else as is
                 return effect
             }
+            else -> return effect
         }
     }
 
@@ -108,4 +108,15 @@ class Reducer : ESExpressionVisitor<ESExpression?> {
     override fun visitVariable(esVariable: ESVariable): ESVariable = esVariable
 
     override fun visitConstant(esConstant: ESConstant): ESConstant = esConstant
+
+    override fun visitReceiverReference(esReceiverReference: ESReceiverReference): ESReceiver? =
+        additionalReducer?.reduceReceiverReference(esReceiverReference)
+
+    override fun visitFunction(esFunction: ESFunction): ESFunction = esFunction
+
+    override fun visitReceiver(esReceiver: ESReceiver): ESReceiver = esReceiver
+}
+
+interface AdditionalReducer {
+    fun reduceReceiverReference(esReceiverReference: ESReceiverReference): ESReceiver?
 }

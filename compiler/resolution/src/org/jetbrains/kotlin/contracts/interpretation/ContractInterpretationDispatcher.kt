@@ -18,13 +18,13 @@ package org.jetbrains.kotlin.contracts.interpretation
 
 import org.jetbrains.kotlin.contracts.description.*
 import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
+import org.jetbrains.kotlin.contracts.description.expressions.FunctionReference
+import org.jetbrains.kotlin.contracts.description.expressions.ReceiverReference
 import org.jetbrains.kotlin.contracts.description.expressions.VariableReference
+import org.jetbrains.kotlin.contracts.model.*
 import org.jetbrains.kotlin.contracts.model.functors.SubstitutingFunctor
 import org.jetbrains.kotlin.contracts.model.structure.ESConstant
 import org.jetbrains.kotlin.contracts.model.structure.ESVariable
-import org.jetbrains.kotlin.contracts.model.ESEffect
-import org.jetbrains.kotlin.contracts.model.ESExpression
-import org.jetbrains.kotlin.contracts.model.Functor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 
 /**
@@ -68,4 +68,11 @@ class ContractInterpretationDispatcher {
         booleanExpression.accept(conditionInterpreter, Unit)
 
     internal fun interpretVariable(variableReference: VariableReference): ESVariable? = ESVariable(variableReference.descriptor)
+
+    internal fun interpretFunction(functionReference: FunctionReference): ESFunction? = ESFunction(functionReference.descriptor)
+
+    internal fun interpretReceiverReference(receiverReference: ReceiverReference): ESReceiverReference? {
+        val variableReference = interpretVariable(receiverReference.variableReference) ?: return null
+        return ESReceiverReference(variableReference)
+    }
 }

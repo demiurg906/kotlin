@@ -52,4 +52,8 @@ interface ContractDescriptionVisitor<out R, in D> {
     fun visitVariableReference(variableReference: VariableReference, data: D): R = visitValue(variableReference, data)
     fun visitBooleanVariableReference(booleanVariableReference: BooleanVariableReference, data: D): R =
         visitVariableReference(booleanVariableReference, data)
+
+    fun visitReceiverReference(receiverReference: ReceiverReference, data: D): R = visitValue(receiverReference, data)
+
+    fun visitFunctionReference(functionReference: FunctionReference, data: D) = visitValue(functionReference, data)
 }
