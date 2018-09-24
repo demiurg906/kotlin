@@ -1,0 +1,15 @@
+package
+
+public fun test_1(): kotlin.Unit
+public fun test_2(): kotlin.Unit
+    test_2kotlin.Unit verifies Catches FileNotFoundException
+
+public fun test_3(): kotlin.Unit
+    test_3kotlin.Unit verifies Catches IOException
+
+public fun test_4(): kotlin.Unit
+    test_4kotlin.Unit verifies Catches NullPointerException
+
+public fun throwsFileNotFoundException(): kotlin.Unit
+    throwsFileNotFoundExceptionkotlin.Unit verifies Catches FileNotFoundException
+
