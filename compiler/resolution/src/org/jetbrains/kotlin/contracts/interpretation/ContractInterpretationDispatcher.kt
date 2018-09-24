@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.contracts.model.*
 import org.jetbrains.kotlin.contracts.model.functors.SubstitutingFunctor
 import org.jetbrains.kotlin.contracts.model.structure.ESConstant
 import org.jetbrains.kotlin.contracts.model.structure.ESVariable
+import org.jetbrains.kotlin.contracts.model.visitors.AdditionalReducer
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 
 /**
@@ -39,12 +40,15 @@ class ContractInterpretationDispatcher {
         CallsEffectInterpreter(this)
     )
 
-    fun resolveFunctor(functionDescriptor: FunctionDescriptor): Functor? {
+    fun resolveFunctor(functionDescriptor: FunctionDescriptor, additionalReducer: AdditionalReducer): Functor? {
         val contractDescriptor = functionDescriptor.getUserData(ContractProviderKey)?.getContractDescription() ?: return null
-        return convertContractDescriptorToFunctor(contractDescriptor)
+        return convertContractDescriptorToFunctor(contractDescriptor, additionalReducer)
     }
 
-    private fun convertContractDescriptorToFunctor(contractDescription: ContractDescription): Functor? {
+    private fun convertContractDescriptorToFunctor(
+        contractDescription: ContractDescription,
+        additionalReducer: AdditionalReducer
+    ): Functor? {
         val resultingClauses = contractDescription.effects.map { effect ->
             if (effect is ConditionalEffectDeclaration) {
                 conditionalEffectInterpreter.interpret(effect) ?: return null
@@ -53,7 +57,7 @@ class ContractInterpretationDispatcher {
             }
         }
 
-        return SubstitutingFunctor(resultingClauses, contractDescription.ownerFunction)
+        return SubstitutingFunctor(resultingClauses, contractDescription.ownerFunction, additionalReducer)
     }
 
     internal fun interpretEffect(effectDeclaration: EffectDeclaration): ESEffect? {

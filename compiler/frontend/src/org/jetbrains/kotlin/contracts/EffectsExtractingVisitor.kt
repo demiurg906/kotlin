@@ -18,10 +18,7 @@ package org.jetbrains.kotlin.contracts
 
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.contracts.interpretation.ContractInterpretationDispatcher
-import org.jetbrains.kotlin.contracts.model.Computation
-import org.jetbrains.kotlin.contracts.model.ConditionalEffect
-import org.jetbrains.kotlin.contracts.model.ESEffect
-import org.jetbrains.kotlin.contracts.model.Functor
+import org.jetbrains.kotlin.contracts.model.*
 import org.jetbrains.kotlin.contracts.model.functors.*
 import org.jetbrains.kotlin.contracts.model.structure.*
 import org.jetbrains.kotlin.contracts.parsing.isEqualsDescriptor
@@ -40,6 +37,7 @@ import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
 import org.jetbrains.kotlin.resolve.constants.CompileTimeConstant
 import org.jetbrains.kotlin.resolve.constants.UnsignedErrorValueTypeConstant
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
+import org.jetbrains.kotlin.resolve.scopes.receivers.ExtensionReceiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addIfNotNull
@@ -155,6 +153,7 @@ class EffectsExtractingVisitor(
 
     private fun ReceiverValue.toComputation(): Computation = when (this) {
         is ExpressionReceiver -> extractOrGetCached(expression)
+        is ExtensionReceiver -> ESReceiver(this)
         else -> UNKNOWN_COMPUTATION
     }
 
@@ -170,7 +169,7 @@ class EffectsExtractingVisitor(
     private fun FunctionDescriptor.getFunctor(): Functor? {
         trace[BindingContext.FUNCTOR, this]?.let { return it }
 
-        val functor = ContractInterpretationDispatcher().resolveFunctor(this) ?: return null
+        val functor = ContractInterpretationDispatcher().resolveFunctor(this, AdditionalReducerImpl()) ?: return null
         trace.record(BindingContext.FUNCTOR, this, functor)
         return functor
     }
