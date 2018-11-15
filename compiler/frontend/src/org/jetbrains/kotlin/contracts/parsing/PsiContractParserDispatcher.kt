@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.contracts.description.InvocationKind
 import org.jetbrains.kotlin.contracts.description.expressions.*
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CALLS_IN_PLACE_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.CONDITIONAL_EFFECT
-import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RECEIVER_OF
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.ContractsDslNames.RETURNS_NOT_NULL_EFFECT
 import org.jetbrains.kotlin.contracts.parsing.effects.PsiCallsEffectParser
@@ -32,6 +31,7 @@ import org.jetbrains.kotlin.contracts.parsing.effects.PsiConditionalEffectParser
 import org.jetbrains.kotlin.contracts.parsing.effects.PsiReturnsEffectParser
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
+import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.extensions.ContractsExtension
 import org.jetbrains.kotlin.name.Name
@@ -162,9 +162,21 @@ class PsiContractParserDispatcher(
 
     override fun parseFunction(expression: KtExpression?): FunctionReference? {
         if (expression == null) return null
-        val reference = expression as? KtCallableReferenceExpression ?: return null
-        val descriptor =
-            callContext.bindingContext[BindingContext.REFERENCE_TARGET, reference.callableReference] as? FunctionDescriptor ?: return null
+
+        val descriptor = when (expression) {
+            is KtCallableReferenceExpression -> callContext.bindingContext[BindingContext.REFERENCE_TARGET, expression.callableReference] as? FunctionDescriptor ?: return null
+            is KtQualifiedExpression -> {
+                val receiverReference = expression.receiverExpression as? KtCallableReferenceExpression ?: return null
+                val propertyDescriptor = callContext.bindingContext[BindingContext.REFERENCE_TARGET, receiverReference.callableReference] as? PropertyDescriptor ?: return null
+                val selector = expression.selectorExpression?.text ?: return null
+                when (selector) {
+                    "setter" -> propertyDescriptor.setter ?: return null
+                    "getter" -> propertyDescriptor.getter ?: return null
+                    else -> return null
+                }
+            }
+            else -> return null
+        }
         return FunctionReference(descriptor)
     }
 

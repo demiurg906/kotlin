@@ -10,6 +10,8 @@ import org.jetbrains.kotlin.cfg.pseudocode.Pseudocode
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.BlockScope
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.Instruction
 import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.CallInstruction
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.ReadValueInstruction
+import org.jetbrains.kotlin.cfg.pseudocode.instructions.eval.WriteValueInstruction
 import org.jetbrains.kotlin.cfg.pseudocodeTraverser.*
 import org.jetbrains.kotlin.contracts.contextual.declaredFactsInfo
 import org.jetbrains.kotlin.contracts.contextual.model.*
@@ -151,7 +153,13 @@ class PseudocodeEffectsData(
         incoming: Collection<ContractsContextsInfo>
     ): Edges<ContractsContextsInfo> {
         val mergedData = merge(incoming)
-        val updatedData = if (instruction is CallInstruction) visitCallInstruction(instruction, mergedData) else mergedData
+//        val updatedData = if (instruction is CallInstruction) visitCallInstruction(instruction, mergedData) else mergedData
+        val updatedData = when (instruction) {
+            is CallInstruction -> visitCallInstruction(instruction, mergedData)
+            is WriteValueInstruction -> visitWriteInstruction(instruction, mergedData)
+            is ReadValueInstruction -> visitReadInstruction(instruction, mergedData)
+            else -> mergedData
+        }
         return Edges(mergedData, updatedData)
     }
 
@@ -198,6 +206,21 @@ class PseudocodeEffectsData(
         applyCleaners(cleaners, contextsGroupedByFamily)
 
         return ContractsContextsInfo(contextsGroupedByFamily)
+    }
+
+    private fun visitWriteInstruction(
+        instruction: WriteValueInstruction,
+        info: ContractsContextsInfo
+    ): ContractsContextsInfo {
+        // ((instruction.target as AccessTarget.Call).resolvedCall.resultingDescriptor as PropertyDescriptor).setter
+        return info
+    }
+
+    private fun visitReadInstruction(
+        instruction: ReadValueInstruction,
+        info: ContractsContextsInfo
+    ): ContractsContextsInfo {
+        return info
     }
 
     // TODO: contexts to Map<>

@@ -152,6 +152,11 @@ public class ContextualEffectsDiagnosticTestGenerated extends AbstractContextual
             runTest("plugins/contracts/contracts-subplugins/testData/safeBuilders/qualifiedThis.kt");
         }
 
+        @TestMetadata("setters.kt")
+        public void testSetters() throws Exception {
+            runTest("plugins/contracts/contracts-subplugins/testData/safeBuilders/setters.kt");
+        }
+
         @TestMetadata("simple.kt")
         public void testSimple() throws Exception {
             runTest("plugins/contracts/contracts-subplugins/testData/safeBuilders/simple.kt");
