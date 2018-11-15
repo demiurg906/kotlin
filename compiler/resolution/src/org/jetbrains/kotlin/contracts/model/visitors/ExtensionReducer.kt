@@ -6,9 +6,10 @@
 package org.jetbrains.kotlin.contracts.model.visitors
 
 import org.jetbrains.kotlin.contracts.model.ExtensionEffect
+import org.jetbrains.kotlin.contracts.model.TypeArguments
 
 typealias ExtensionReducerConstructor = (Reducer) -> ExtensionReducer
 
 interface ExtensionReducer {
-    fun reduce(effect: ExtensionEffect): ExtensionEffect
+    fun reduce(effect: ExtensionEffect, typeArguments: TypeArguments): ExtensionEffect
 }

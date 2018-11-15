@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.contracts.parsing
 
-import org.jetbrains.kotlin.contracts.description.*
+import org.jetbrains.kotlin.contracts.description.BooleanExpression
 import org.jetbrains.kotlin.contracts.description.expressions.*
 import org.jetbrains.kotlin.descriptors.ValueDescriptor
 import org.jetbrains.kotlin.descriptors.impl.AbstractTypeParameterDescriptor
@@ -46,7 +46,7 @@ internal class PsiConditionParser(
             return null
         }
 
-        if (descriptor is AbstractTypeParameterDescriptor) {
+        if (descriptor is AbstractTypeParameterDescriptor && !descriptor.isReified) {
             collector.badDescription("references to type parameters are forbidden in contracts", typeReference)
             return null
         }

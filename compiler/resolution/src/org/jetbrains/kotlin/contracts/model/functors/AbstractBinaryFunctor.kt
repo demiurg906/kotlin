@@ -16,14 +16,15 @@
 
 package org.jetbrains.kotlin.contracts.model.functors
 
-import org.jetbrains.kotlin.contracts.model.structure.ESReturns
-import org.jetbrains.kotlin.contracts.model.structure.ESConstant
+import org.jetbrains.kotlin.contracts.model.Computation
 import org.jetbrains.kotlin.contracts.model.ConditionalEffect
 import org.jetbrains.kotlin.contracts.model.ESEffect
-import org.jetbrains.kotlin.contracts.model.Computation
+import org.jetbrains.kotlin.contracts.model.TypeArguments
+import org.jetbrains.kotlin.contracts.model.structure.ESConstant
+import org.jetbrains.kotlin.contracts.model.structure.ESReturns
 
 abstract class AbstractBinaryFunctor : AbstractReducingFunctor() {
-    override fun doInvocation(arguments: List<Computation>): List<ESEffect> {
+    override fun doInvocation(arguments: List<Computation>, typeArguments: TypeArguments): List<ESEffect> {
         assert(arguments.size == 2, { "Wrong size of arguments list for Binary functor: expected 2, got ${arguments.size}" })
         return invokeWithArguments(arguments[0], arguments[1])
     }

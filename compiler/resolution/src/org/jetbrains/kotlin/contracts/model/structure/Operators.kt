@@ -16,36 +16,37 @@
 
 package org.jetbrains.kotlin.contracts.model.structure
 
-import org.jetbrains.kotlin.contracts.model.ESExpression
-import org.jetbrains.kotlin.contracts.model.ESExpressionVisitor
-import org.jetbrains.kotlin.contracts.model.ESOperator
-import org.jetbrains.kotlin.contracts.model.ESValue
+import org.jetbrains.kotlin.contracts.model.*
 import org.jetbrains.kotlin.contracts.model.functors.*
 
 class ESAnd(val left: ESExpression, val right: ESExpression) : ESOperator {
     override val functor: AndFunctor = AndFunctor()
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T = visitor.visitAnd(this)
+    override fun <D, T> accept(visitor: ESExpressionVisitorWithData<D, T>, data: D): T = visitor.visitAnd(this, data)
 }
 
 class ESOr(val left: ESExpression, val right: ESExpression) : ESOperator {
     override val functor: OrFunctor = OrFunctor()
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T = visitor.visitOr(this)
+    override fun <D, T> accept(visitor: ESExpressionVisitorWithData<D, T>, data: D): T = visitor.visitOr(this, data)
 }
 
 class ESNot(val arg: ESExpression) : ESOperator {
     override val functor = NotFunctor()
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T = visitor.visitNot(this)
-
+    override fun <D, T> accept(visitor: ESExpressionVisitorWithData<D, T>, data: D): T = visitor.visitNot(this, data)
 }
 
 class ESIs(val left: ESValue, override val functor: IsFunctor) : ESOperator {
     val type = functor.type
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T = visitor.visitIs(this)
+    override fun <D, T> accept(visitor: ESExpressionVisitorWithData<D, T>, data: D): T = visitor.visitIs(this, data)
 }
 
 class ESEqual(val left: ESValue, val right: ESValue, isNegated: Boolean) : ESOperator {
     override val functor: EqualsFunctor = EqualsFunctor(isNegated)
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T = visitor.visitEqual(this)
+    override fun <D, T> accept(visitor: ESExpressionVisitorWithData<D, T>, data: D): T = visitor.visitEqual(this, data)
 }
 
 fun ESExpression.and(other: ESExpression?): ESExpression = if (other == null) this else ESAnd(this, other)

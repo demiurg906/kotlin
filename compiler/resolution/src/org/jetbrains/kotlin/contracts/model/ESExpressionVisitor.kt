@@ -33,3 +33,18 @@ interface ESExpressionVisitor<out T> {
     fun visitFunction(esFunction: ESFunction): T
     fun visitReceiver(esReceiver: ESReceiver): T
 }
+
+interface ESExpressionVisitorWithData<in D, out T> {
+    fun visitIs(isOperator: ESIs, data: D): T
+    fun visitEqual(equal: ESEqual, data: D): T
+    fun visitAnd(and: ESAnd, data: D): T
+    fun visitNot(not: ESNot, data: D): T
+    fun visitOr(or: ESOr, data: D): T
+
+    fun visitVariable(esVariable: ESVariable, data: D): T
+    fun visitConstant(esConstant: ESConstant, data: D): T
+
+    fun visitReceiverReference(esReceiverReference: ESReceiverReference, data: D): T
+    fun visitFunction(esFunction: ESFunction, data: D): T
+    fun visitReceiver(esReceiver: ESReceiver, data: D): T
+}

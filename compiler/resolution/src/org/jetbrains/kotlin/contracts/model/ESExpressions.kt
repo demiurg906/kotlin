@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.types.KotlinType
 
 interface ESExpression {
     fun <T> accept(visitor: ESExpressionVisitor<T>): T
+    fun <D, T> accept(visitor: ESExpressionVisitorWithData<D, T>, data: D): T
 }
 
 interface ESOperator : ESExpression {
@@ -34,12 +35,15 @@ abstract class ESValue(override val type: KotlinType?) : Computation, ESExpressi
 
 class ESFunction(val descriptor: FunctionDescriptor) : ESValue(null) {
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T = visitor.visitFunction(this)
+    override fun <D, T> accept(visitor: ESExpressionVisitorWithData<D, T>, data: D): T = visitor.visitFunction(this, data)
 }
 
 class ESReceiverReference(val lambda: ESValue) : ESValue(null) {
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T = visitor.visitReceiverReference(this)
+    override fun <D, T> accept(visitor: ESExpressionVisitorWithData<D, T>, data: D): T = visitor.visitReceiverReference(this, data)
 }
 
 class ESReceiver(val receiver: ReceiverValue) : ESValue(null) {
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T = visitor.visitReceiver(this)
+    override fun <D, T> accept(visitor: ESExpressionVisitorWithData<D, T>, data: D): T = visitor.visitReceiver(this, data)
 }

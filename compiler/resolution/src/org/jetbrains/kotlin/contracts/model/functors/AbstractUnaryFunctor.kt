@@ -16,11 +16,12 @@
 
 package org.jetbrains.kotlin.contracts.model.functors
 
-import org.jetbrains.kotlin.contracts.model.structure.ESReturns
-import org.jetbrains.kotlin.contracts.model.structure.ESConstant
+import org.jetbrains.kotlin.contracts.model.Computation
 import org.jetbrains.kotlin.contracts.model.ConditionalEffect
 import org.jetbrains.kotlin.contracts.model.ESEffect
-import org.jetbrains.kotlin.contracts.model.Computation
+import org.jetbrains.kotlin.contracts.model.TypeArguments
+import org.jetbrains.kotlin.contracts.model.structure.ESConstant
+import org.jetbrains.kotlin.contracts.model.structure.ESReturns
 
 
 /**
@@ -31,7 +32,7 @@ import org.jetbrains.kotlin.contracts.model.Computation
  * be called only on clauses that haven't failed before reaching functor transformation.
  */
 abstract class AbstractUnaryFunctor : AbstractReducingFunctor() {
-    override fun doInvocation(arguments: List<Computation>): List<ESEffect> {
+    override fun doInvocation(arguments: List<Computation>, typeArguments: TypeArguments): List<ESEffect> {
         assert(arguments.size == 1, { "Wrong size of arguments list for Unary operator: expected 1, got ${arguments.size}" })
         return invokeWithArguments(arguments[0])
     }

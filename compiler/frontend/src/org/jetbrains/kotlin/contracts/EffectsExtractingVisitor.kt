@@ -62,12 +62,13 @@ class EffectsExtractingVisitor(
         if (resolvedCall.isCallWithUnsupportedReceiver()) return UNKNOWN_COMPUTATION
 
         val arguments = resolvedCall.getCallArgumentsAsComputations() ?: return UNKNOWN_COMPUTATION
+        val typeArguments = resolvedCall.typeArguments.mapKeys { it.key.typeConstructor }
 
         val descriptor = resolvedCall.resultingDescriptor
         return when {
             descriptor.isEqualsDescriptor() -> CallComputation(
                 DefaultBuiltIns.Instance.booleanType,
-                EqualsFunctor(false).invokeWithArguments(arguments)
+                EqualsFunctor(false).invokeWithArguments(arguments, typeArguments)
             )
             descriptor is ValueDescriptor -> ESDataFlowValue(
                 descriptor,
@@ -75,7 +76,7 @@ class EffectsExtractingVisitor(
             )
             descriptor is FunctionDescriptor -> CallComputation(
                 descriptor.returnType,
-                descriptor.getFunctor(element)?.invokeWithArguments(arguments) ?: emptyList()
+                descriptor.getFunctor(element)?.invokeWithArguments(arguments, typeArguments) ?: emptyList()
             )
             else -> UNKNOWN_COMPUTATION
         }
@@ -111,7 +112,7 @@ class EffectsExtractingVisitor(
         val arg = extractOrGetCached(expression.leftHandSide)
         return CallComputation(
             DefaultBuiltIns.Instance.booleanType,
-            IsFunctor(rightType, expression.isNegated).invokeWithArguments(listOf(arg))
+            IsFunctor(rightType, expression.isNegated).invokeWithArguments(listOf(arg), mapOf())
         )
     }
 
@@ -136,10 +137,10 @@ class EffectsExtractingVisitor(
         val args = listOf(left, right)
 
         return when (expression.operationToken) {
-            KtTokens.EXCLEQ -> CallComputation(DefaultBuiltIns.Instance.booleanType, EqualsFunctor(true).invokeWithArguments(args))
-            KtTokens.EQEQ -> CallComputation(DefaultBuiltIns.Instance.booleanType, EqualsFunctor(false).invokeWithArguments(args))
-            KtTokens.ANDAND -> CallComputation(DefaultBuiltIns.Instance.booleanType, AndFunctor().invokeWithArguments(args))
-            KtTokens.OROR -> CallComputation(DefaultBuiltIns.Instance.booleanType, OrFunctor().invokeWithArguments(args))
+            KtTokens.EXCLEQ -> CallComputation(DefaultBuiltIns.Instance.booleanType, EqualsFunctor(true).invokeWithArguments(args, mapOf()))
+            KtTokens.EQEQ -> CallComputation(DefaultBuiltIns.Instance.booleanType, EqualsFunctor(false).invokeWithArguments(args, mapOf()))
+            KtTokens.ANDAND -> CallComputation(DefaultBuiltIns.Instance.booleanType, AndFunctor().invokeWithArguments(args, mapOf()))
+            KtTokens.OROR -> CallComputation(DefaultBuiltIns.Instance.booleanType, OrFunctor().invokeWithArguments(args, mapOf()))
             else -> UNKNOWN_COMPUTATION
         }
     }

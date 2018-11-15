@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.contracts
 
 import org.jetbrains.kotlin.contracts.model.ESExpressionVisitor
+import org.jetbrains.kotlin.contracts.model.ESExpressionVisitorWithData
 import org.jetbrains.kotlin.contracts.model.ESValue
 import org.jetbrains.kotlin.contracts.model.structure.ESVariable
 import org.jetbrains.kotlin.descriptors.ValueDescriptor
@@ -54,5 +55,9 @@ class ESLambda(val lambda: KtLambdaExpression, bindingContext: BindingContext) :
 
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T {
         throw IllegalStateException("Lambdas shouldn't be visited by ESExpressionVisitor")
+    }
+
+    override fun <D, T> accept(visitor: ESExpressionVisitorWithData<D, T>, data: D): T {
+        throw IllegalStateException("Lambdas shouldn't be visited by ESExpressionVisitorWithData")
     }
 }

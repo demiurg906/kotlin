@@ -17,17 +17,19 @@
 package org.jetbrains.kotlin.contracts.model.structure
 
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
-import org.jetbrains.kotlin.descriptors.ValueDescriptor
-import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
 import org.jetbrains.kotlin.contracts.description.expressions.BooleanConstantReference
+import org.jetbrains.kotlin.contracts.description.expressions.ConstantReference
 import org.jetbrains.kotlin.contracts.model.ESExpressionVisitor
+import org.jetbrains.kotlin.contracts.model.ESExpressionVisitorWithData
 import org.jetbrains.kotlin.contracts.model.ESValue
+import org.jetbrains.kotlin.descriptors.ValueDescriptor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.makeNullable
 import java.util.*
 
 open class ESVariable(val descriptor: ValueDescriptor) : ESValue(descriptor.type) {
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T = visitor.visitVariable(this)
+    override fun <D, T> accept(visitor: ESExpressionVisitorWithData<D, T>, data: D): T = visitor.visitVariable(this, data)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -47,6 +49,7 @@ open class ESVariable(val descriptor: ValueDescriptor) : ESValue(descriptor.type
 
 open class ESConstant private constructor(open val constantReference: ConstantReference, override val type: KotlinType) : ESValue(type) {
     override fun <T> accept(visitor: ESExpressionVisitor<T>): T = visitor.visitConstant(this)
+    override fun <D, T> accept(visitor: ESExpressionVisitorWithData<D, T>, data: D): T = visitor.visitConstant(this, data)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -16,13 +16,12 @@
 
 package org.jetbrains.kotlin.contracts.model.functors
 
-import org.jetbrains.kotlin.contracts.model.structure.ESReturns
 import org.jetbrains.kotlin.contracts.model.*
 import org.jetbrains.kotlin.contracts.model.structure.*
 import org.jetbrains.kotlin.types.KotlinType
 
 class IsFunctor(val type: KotlinType, val isNegated: Boolean) : AbstractReducingFunctor() {
-    override fun doInvocation(arguments: List<Computation>): List<ESEffect> {
+    override fun doInvocation(arguments: List<Computation>, typeArguments: TypeArguments): List<ESEffect> {
         assert(arguments.size == 1, { "Wrong size of arguments list for Unary operator: expected 1, got ${arguments.size}" })
         return invokeWithArguments(arguments[0])
     }

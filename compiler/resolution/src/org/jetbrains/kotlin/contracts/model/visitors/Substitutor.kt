@@ -25,7 +25,10 @@ import org.jetbrains.kotlin.contracts.model.structure.*
  * and then flattens resulting tree, producing an [EffectSchema], which describes effects
  * of this [ESExpression] with effects of arguments taken into consideration.
  */
-class Substitutor(private val substitutions: Map<ESVariable, Computation>) : ESExpressionVisitor<Computation?> {
+class Substitutor(
+    private val substitutions: Map<ESVariable, Computation>,
+    private val typeArguments: TypeArguments
+) : ESExpressionVisitor<Computation?> {
     override fun visitIs(isOperator: ESIs): Computation? {
         val arg = isOperator.left.accept(this) ?: return null
         return CallComputation(DefaultBuiltIns.Instance.booleanType, isOperator.functor.invokeWithArguments(arg))
@@ -39,7 +42,7 @@ class Substitutor(private val substitutions: Map<ESVariable, Computation>) : ESE
     override fun visitEqual(equal: ESEqual): Computation? {
         val left = equal.left.accept(this) ?: return null
         val right = equal.right.accept(this) ?: return null
-        return CallComputation(DefaultBuiltIns.Instance.booleanType, equal.functor.invokeWithArguments(listOf(left, right)))
+        return CallComputation(DefaultBuiltIns.Instance.booleanType, equal.functor.invokeWithArguments(listOf(left, right), typeArguments))
     }
 
     override fun visitAnd(and: ESAnd): Computation? {

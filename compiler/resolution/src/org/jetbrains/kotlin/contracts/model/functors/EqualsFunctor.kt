@@ -16,15 +16,12 @@
 
 package org.jetbrains.kotlin.contracts.model.functors
 
-import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.contracts.model.structure.ESReturns
+import org.jetbrains.kotlin.contracts.model.*
 import org.jetbrains.kotlin.contracts.model.structure.ESConstant
 import org.jetbrains.kotlin.contracts.model.structure.ESEqual
-import org.jetbrains.kotlin.contracts.model.ESValue
+import org.jetbrains.kotlin.contracts.model.structure.ESReturns
 import org.jetbrains.kotlin.contracts.model.structure.lift
-import org.jetbrains.kotlin.contracts.model.*
-import org.jetbrains.kotlin.contracts.model.Computation
 
 class EqualsFunctor(val isNegated: Boolean) : AbstractReducingFunctor() {
     /*
@@ -44,7 +41,7 @@ class EqualsFunctor(val isNegated: Boolean) : AbstractReducingFunctor() {
         We don't want to code here fair analysis for general cases, because it's too complex. Instead, we just
         check some specific cases, which are useful enough in practice
      */
-    override fun doInvocation(arguments: List<Computation>): List<ESEffect> {
+    override fun doInvocation(arguments: List<Computation>, typeArguments: TypeArguments): List<ESEffect> {
         assert(arguments.size == 2) { "Equals functor expected 2 arguments, got ${arguments.size}" }
 
         // TODO: AnnotationConstructorCaller kills this with implicit receiver. Investigate, how.

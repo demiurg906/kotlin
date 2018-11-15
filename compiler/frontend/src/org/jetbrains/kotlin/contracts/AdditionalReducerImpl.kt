@@ -7,10 +7,11 @@ package org.jetbrains.kotlin.contracts
 
 import org.jetbrains.kotlin.contracts.model.ESReceiver
 import org.jetbrains.kotlin.contracts.model.ESReceiverReference
+import org.jetbrains.kotlin.contracts.model.TypeArguments
 import org.jetbrains.kotlin.contracts.model.visitors.AdditionalReducer
 
 class AdditionalReducerImpl : AdditionalReducer {
-    override fun reduceReceiverReference(esReceiverReference: ESReceiverReference): ESReceiver? {
+    override fun reduceReceiverReference(esReceiverReference: ESReceiverReference, data: TypeArguments): ESReceiver? {
         val lambda = esReceiverReference.lambda as? ESLambda ?: throw AssertionError()
         val receiverValue = lambda.receiverValue ?: throw AssertionError()
         return ESReceiver(receiverValue)

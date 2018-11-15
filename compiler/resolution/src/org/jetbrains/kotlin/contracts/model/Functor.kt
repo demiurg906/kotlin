@@ -16,6 +16,9 @@
 
 package org.jetbrains.kotlin.contracts.model
 
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.TypeConstructor
+
 /**
  * An abstraction of effect-generating nature of some computation.
  *
@@ -25,5 +28,7 @@ package org.jetbrains.kotlin.contracts.model
  * values, it takes effects and returns effects.
  */
 interface Functor {
-    fun invokeWithArguments(arguments: List<Computation>): List<ESEffect>
+    fun invokeWithArguments(arguments: List<Computation>, typeArguments: TypeArguments): List<ESEffect>
 }
+
+typealias TypeArguments = Map<TypeConstructor, KotlinType>
