@@ -1,0 +1,6 @@
+package
+
+public fun test_1(): kotlin.Unit
+public inline fun </*0*/ reified T> kotlin.Any.mustbe(): kotlin.Boolean
+    Returns(TRUE) -> <this> is T
+
